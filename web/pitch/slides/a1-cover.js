@@ -24,6 +24,7 @@ RISE.slide({
         </svg>
         </span>
       </div>
+      <span class="horizon" aria-hidden="true"></span>
       <div class="copy">
         <h1 class="display split"><span class="soft">Don't hope your migration works.</span> Prove it.</h1>
         <p class="what rv" style="--i:8">Your repo, one answer in seconds.</p>
@@ -31,7 +32,12 @@ RISE.slide({
     </div>`,
 
   css: `
-    .cover { height: 100%; display: grid; justify-items: center; align-content: center; gap: 56px; text-align: center; }
+    .cover { height: 100%; display: grid; justify-items: center; align-content: center; gap: 0; text-align: center; }
+    /* linha de horizonte: desenha-se do centro para fora; a seta sobe acima das nuvens */
+    .horizon { display: block; width: 1100px; height: 2px; margin: 34px 0 52px; border-radius: 2px;
+      background: linear-gradient(90deg, transparent, rgba(18,31,53,.28) 25%, rgba(18,31,53,.28) 75%, transparent);
+      transform: scaleX(0); transition: transform 1.4s var(--e-inout) .5s; }
+    &.cur .horizon { transform: none; }
     /* a seta tem a altura das maiúsculas de RISE e assenta na mesma linha de base */
     .lockup { display: flex; align-items: baseline; gap: .04em; font: 700 230px/.82 var(--f-ui); }
     .word { font: inherit; letter-spacing: .06em; color: var(--ink); }

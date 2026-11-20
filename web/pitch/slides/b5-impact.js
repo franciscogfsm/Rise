@@ -54,14 +54,18 @@ RISE.slide({
     .cmd .ps { color: var(--muted); }
     .cmd .out { padding: 0 30px; font: 500 24px/1.3 var(--f-mono); color: var(--ok); }
     .pts { list-style: none; display: grid; gap: 18px; margin-top: 36px; }
-    .pts li { position: relative; padding-left: 34px; font-size: var(--t2); line-height: 1.35; }
-    .pts li::before { content: ""; position: absolute; left: 0; top: .55em; width: 14px; height: 14px; border-radius: 50%; background: var(--accent); }
+    .pts li { position: relative; padding-left: 50px; font-size: var(--t2); line-height: 1.35; }
+    .pts li::before { content: "✓"; position: absolute; left: 0; top: .05em; width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; font: 700 18px/1 var(--f-ui); color: var(--ok); background: var(--ok-bg); }
     .lbl { font-size: var(--t1); font-weight: 600; color: var(--muted); margin-bottom: 18px; }
     .chips { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
     .chips span { display: grid; place-items: center; min-height: 84px; padding: 10px; border-radius: 20px; text-align: center; font-size: 24px; font-weight: 500; background: rgba(255,255,255,.78); box-shadow: inset 0 0 0 1px var(--line); }
     .chips span.live { box-shadow: inset 0 0 0 2px var(--ok); color: var(--ok); }
     .foot { margin-top: 18px; font-size: var(--t1); color: var(--muted); }
-    .scope { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 16px; font-size: var(--t1); color: var(--muted); }
+    /* o âmbito numa barra de vidro */
+    .scope { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 16px; font-size: var(--t1); color: var(--muted);
+      padding: 22px 30px; border-radius: 24px; background: var(--glass);
+      -webkit-backdrop-filter: blur(var(--blur)) saturate(var(--sat)); backdrop-filter: blur(var(--blur)) saturate(var(--sat));
+      box-shadow: inset 0 1px 0 #fff, inset 0 0 0 1px rgba(255,255,255,.5), var(--shadow); }
     .scope span:nth-child(2) { margin-right: 20px; color: var(--ink); }
     .scope .lic { margin-left: auto; font-weight: 600; color: var(--ink); }`,
 

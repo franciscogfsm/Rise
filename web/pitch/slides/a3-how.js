@@ -31,7 +31,7 @@ RISE.slide({
   html: `
     <div class="how">
       <div class="head">
-        <h2 class="title split">Three questions in. One answer out.</h2>
+        <h2 class="title split"><span class="soft">Three questions in.</span> One answer out.</h2>
         <p class="ask rv" style="--i:2"><span>Which repo?</span><span>What's the goal?</span><span>From which cloud to which?</span></p>
       </div>
       <div class="track">
