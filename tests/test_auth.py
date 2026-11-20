@@ -14,5 +14,6 @@ def test_password_gate(monkeypatch):
     assert c.get("/api/connections", headers=auth("wrong")).status_code == 401
     assert c.get("/api/connections", headers={"Authorization": "Basic %%%"}).status_code == 401
     assert c.get("/api/connections", headers=auth("s3cret")).status_code == 200
+    assert c.get("/healthz").status_code == 200  # the only open route, for the host health check
     monkeypatch.setattr(server, "PASSWORD", "")
     assert c.get("/api/connections").status_code == 200

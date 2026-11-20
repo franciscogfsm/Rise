@@ -1,0 +1,17 @@
+# Render Blueprint: free web service built from the Dockerfile, redeployed on every push to main.
+# Render asks for the two secret values when you create it. See docs/GUIDE.md → "Deploy for free".
+services:
+  - type: web
+    name: rise
+    runtime: docker
+    plan: free
+    branch: main
+    autoDeploy: true
+    healthCheckPath: /healthz
+    envVars:
+      - key: PORT            # Render routes traffic to this port; RISE listens on 8080
+        value: "8080"
+      - key: OPENROUTER_API_KEY
+        sync: false
+      - key: RISE_PASSWORD   # required: the URL is public
+        sync: false

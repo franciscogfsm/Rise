@@ -52,7 +52,7 @@ PASSWORD = os.environ.get("RISE_PASSWORD", "")  # set it before exposing RISE be
 
 @app.middleware("http")
 async def require_password(request, call_next):
-    if PASSWORD:
+    if PASSWORD and request.url.path != "/healthz":  # health checks carry no password; /healthz reveals nothing
         try:
             given = base64.b64decode(request.headers.get("authorization", "")[6:]).decode().partition(":")[2]
         except Exception:
@@ -131,6 +131,11 @@ def analysis_proof(aid: str):
     if not p:
         raise HTTPException(404, "Analysis not found")
     return p
+
+
+@app.get("/healthz")
+def healthz():
+    return "ok"
 
 
 @app.get("/api/system")

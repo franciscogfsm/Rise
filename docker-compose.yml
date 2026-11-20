@@ -3,6 +3,7 @@
 services:
   rise:
     build: .
+    platform: linux/amd64   # the Garage binary is x86_64; Apple Silicon runs it emulated
     ports: ["${RISE_BIND:-127.0.0.1}:8080:8080"]   # RISE_BIND=0.0.0.0 only with RISE_PASSWORD set
     environment:
       OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}

@@ -13,7 +13,7 @@ Paste a GitHub repository. RISE finds every object-storage call in the code, has
 <p align="center">
   <img src="https://img.shields.io/badge/license-Apache--2.0-0A8A74" alt="license Apache-2.0">
   <img src="https://img.shields.io/badge/python-3.12-2563EB" alt="python 3.12">
-  <img src="https://img.shields.io/badge/tests-39%20passing-0A8A74" alt="39 tests passing">
+  <img src="https://img.shields.io/badge/tests-40%20passing-0A8A74" alt="40 tests passing">
   <img src="https://img.shields.io/badge/storage-any%20S3--compatible-121F35" alt="any S3-compatible storage">
   <img src="https://img.shields.io/badge/AI-OpenRouter%20%C2%B7%20strict%20JSON-7C5CFF" alt="AI: OpenRouter, strict JSON">
   <img src="https://img.shields.io/badge/InfraHack-Portugal%202026-D4513B" alt="InfraHack Portugal 2026">
@@ -21,6 +21,7 @@ Paste a GitHub repository. RISE finds every object-storage call in the code, has
 
 <p align="center">
   <a href="#quick-start"><b>Quick start</b></a> ·
+  <a href="docs/GUIDE.md"><b>Full guide</b></a> ·
   <a href="#how-it-works">How it works</a> ·
   <a href="#deploy">Deploy</a> ·
   <a href="#security">Security</a> ·
@@ -67,18 +68,18 @@ The answer comes first: **Ready to migrate**, **Ready · 1 change**, **Partially
 
 ## Features
 
-| | |
+| Feature | What it does |
 |---|---|
-| 🔎 **Code scan** | Finds every S3 call site and behaviour in boto3, AWS SDK JS v2/v3, Go, Java and PHP: metadata, ranges, presigned URLs, multipart, tags, SSE, ACLs, storage classes, the signing region. Each finding links to `file:line`. |
-| 🧠 **AI test plan** | An LLM turns the code evidence into a test plan in **strict JSON schema**. RISE validates it, drops unknown tests, clamps parameters and adds anything the AI missed. |
-| ⚡ **Real tests** | 13 test kinds run against the reference and the target **at the same time**, with synthetic data. A test passes only if checks on the **real bytes** pass (SHA-256, never ETags). |
-| 🛠 **Auto-adapt** | When something fails, the AI may propose **one** change from an allow-list (`region`, `addressing_style`). RISE applies it and retests everything. |
-| 🧭 **Risk radar** | Deterministic rules find architecture risks, single points of failure included, with `file:line` evidence. The AI explains them; it never invents them. |
-| ⚖️ **Compare clouds** | Up to 4 targets in parallel, ranked, with the exact change each one needs. |
-| 🔒 **Private repos** | A read-only GitHub token, used for the download only: never stored, logged or sent to the AI. |
-| 🔌 **Any S3 provider** | Add Leaseweb Object Storage, AWS S3, MinIO… from the UI. Keys are encrypted at rest. **Test** makes real calls and explains failures (wrong region, rejected key, missing bucket). |
-| 💬 **RISE agent** (`Ctrl K`) | Ask "can we migrate?" and get the answer with the file to change. It can also start analyses and comparisons, test connections and open pages. |
-| 🔁 **Live switch** | The full journey on a running app: discover → test → adapt → copy and verify → switch → cut the old cloud → prove a new write works. |
+| **Code scan** | Finds every S3 call site and behaviour in boto3, AWS SDK JS v2/v3, Go, Java and PHP: metadata, ranges, presigned URLs, multipart, tags, SSE, ACLs, storage classes, the signing region. Each finding links to `file:line`. |
+| **AI test plan** | An LLM turns the code evidence into a test plan in **strict JSON schema**. RISE validates it, drops unknown tests, clamps parameters and adds anything the AI missed. |
+| **Real tests** | 13 test kinds run against the reference and the target **at the same time**, with synthetic data. A test passes only if checks on the **real bytes** pass (SHA-256, never ETags). |
+| **Auto-adapt** | When something fails, the AI may propose **one** change from an allow-list (`region`, `addressing_style`). RISE applies it and retests everything. |
+| **Risk radar** | Deterministic rules find architecture risks, single points of failure included, with `file:line` evidence. The AI explains them; it never invents them. |
+| **Compare clouds** | Up to 4 targets in parallel, ranked, with the exact change each one needs. |
+| **Private repos** | A read-only GitHub token, used for the download only: never stored, logged or sent to the AI. |
+| **Any S3 provider** | Add Leaseweb Object Storage, AWS S3, MinIO… from the UI. Keys are encrypted at rest. **Test** makes real calls and explains failures (wrong region, rejected key, missing bucket). |
+| **RISE agent** (`Ctrl K`) | Ask "can we migrate?" and get the answer with the file to change. It can also start analyses and comparisons, test connections and open pages. |
+| **Live switch** | The full journey on a running app: discover → test → adapt → copy and verify → switch → cut the old cloud → prove a new write works. |
 
 ## How it works
 
@@ -117,16 +118,35 @@ RISE instruments a running app (`asset-service`) and records each real S3 call. 
 
 ## Quick start
 
-### Docker (one command)
+### Try it in one command
+
+You only need [Docker](https://docs.docker.com/get-docker/), on Windows, macOS or Linux. No cloud account and no key are needed.
 
 ```bash
-git clone https://github.com/franciscogfsm/Rise.git && cd Rise
+git clone https://github.com/franciscogfsm/Rise.git && cd Rise && docker compose up --build
+```
+
+When the log says `Uvicorn running`, open **http://localhost:8080**. The first build takes about 2–3 minutes.
+
+**What to try:**
+
+1. **Analyze a repo.** Paste `https://github.com/ucapistranmtz/s3PresignedUrl_v3` and keep *From* **moto S3 · local** and *To* **Garage S3 · local**. Press **Run analysis**: in about 10 s you get the answer, the risks with `file:line`, and every test side by side.
+2. **Compare.** Pick more than one target (*Compare N providers*) to get a ranking with **Best fit**.
+3. **Live switch.** Open **http://localhost:8080/demo**, press **Start traffic**, then press the next-step button (*Observe the app →*, *Generate tests with AI →* … *Prove a new operation →*) until the end. You see the app move to the new provider while its traffic keeps flowing.
+4. **Ask.** Press `Ctrl K` and ask *"can we migrate?"*.
+5. **Your own cloud (optional).** Go to *Connections → + Add* and pick a preset (AWS S3, Leaseweb, Backblaze B2…).
+
+The container runs RISE plus two **simulated** S3 providers (moto and Garage), so everything works offline from any cloud. The tests are real either way.
+
+Without an AI key, the AI parts use rule-based fallbacks, labelled **RULES**. For the live AI, add an [OpenRouter](https://openrouter.ai) key:
+
+```bash
 OPENROUTER_API_KEY=sk-or-... docker compose up --build
 ```
 
-Open **http://localhost:8080**. The container runs RISE plus two simulated S3 providers (moto and Garage), so the whole product works with no cloud account. Analyses and encrypted connections persist in a volume.
+Stop with `Ctrl C`, or `docker compose down`. Analyses and connections are kept in a Docker volume.
 
-### Linux or WSL
+### Linux or WSL, without Docker
 
 ```bash
 bash scripts/setup.sh    # Python venv, Garage binary, .env with generated local keys
@@ -146,12 +166,13 @@ Open **Connections → Add**, enter the endpoint, region, bucket and keys (for A
 
 | Where | How |
 |---|---|
+| **Free, auto-updating** | [![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/franciscogfsm/Rise)<br>Render builds the Dockerfile from [`render.yaml`](render.yaml) and redeploys on every push. You must set `RISE_PASSWORD`. Step by step: [docs/GUIDE.md](docs/GUIDE.md#10-deploy-for-free-render). |
 | **Any Docker host** | `docker compose up -d --build`. The port is bound to `127.0.0.1` by default. |
 | **A VM, private** | `bash scripts/setup.sh && bash scripts/run.sh`, then from your laptop `ssh -L 8080:127.0.0.1:8080 <vm>`. |
 | **Public URL** | Set `RISE_PASSWORD` (HTTP basic auth on every route, any user name), then `RISE_BIND=0.0.0.0` in `.env`. Ideally behind HTTPS. |
-| **Auto-deploy** | [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml): every push to `main` runs the tests, then SSHes into the VM, pulls and runs `docker compose up -d --build`, and checks `/api/system`. Needs the secrets `VM_HOST`, `VM_USER`, `VM_SSH_KEY`. |
+| **Auto-deploy** | [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml): every push to `main` runs the tests, then SSHes into the VM, pulls and runs `docker compose up -d --build`, and checks `/healthz`. Needs the secrets `VM_HOST`, `VM_USER`, `VM_SSH_KEY`. |
 
-The image is self-contained (Python 3.12 slim, moto, Garage) and has a health check on `/api/system`. No secret is baked in: `OPENROUTER_API_KEY` and `RISE_PASSWORD` come from the environment.
+The image is self-contained (Python 3.12 slim, moto, Garage) and has a health check on `/healthz` (the only route open without the password). No secret is baked in: `OPENROUTER_API_KEY` and `RISE_PASSWORD` come from the environment.
 
 ## Security
 
@@ -181,7 +202,7 @@ rise/
   config.py     settings from the environment
 web/            React 18 + htm, no build step, works offline (Light Liquid Glass design)
 scripts/        setup · env · providers · run · stop
-tests/          39 tests: end-to-end journey on two real S3 servers, scan, risks, connections, agent, auth
+tests/          40 tests: end-to-end journey on two real S3 servers, scan, risks, connections, agent, auth
 ```
 
 **API:** `POST /api/analyses` · `GET /api/analyses/{id}` · `GET /api/analyses/{id}/proof` · `GET|POST|DELETE /api/connections` · `POST /api/connections/{id}/test` · `POST /api/agent` · `GET /api/events` (SSE)

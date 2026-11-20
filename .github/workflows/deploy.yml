@@ -27,5 +27,5 @@ jobs:
             cd ~/Rise
             git fetch --quiet origin main && git reset --hard origin/main
             docker compose up -d --build
-            for i in $(seq 30); do curl -fsS -o /dev/null http://127.0.0.1:8080/api/system && echo healthy && exit 0; sleep 2; done
+            for i in $(seq 30); do curl -fsS -o /dev/null http://127.0.0.1:8080/healthz && echo healthy && exit 0; sleep 2; done
             docker compose logs --tail 50; exit 1

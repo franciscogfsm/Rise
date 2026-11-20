@@ -14,5 +14,5 @@ RUN python -m venv /opt/venv && /opt/venv/bin/pip install -q --no-cache-dir -r r
 COPY . .
 RUN rm -f .env && chmod +x scripts/*.sh
 EXPOSE 8080
-HEALTHCHECK --interval=15s --timeout=3s --start-period=20s CMD curl -sf -o /dev/null -u "x:$RISE_PASSWORD" http://127.0.0.1:8080/api/system || exit 1
+HEALTHCHECK --interval=15s --timeout=3s --start-period=20s CMD curl -sf -o /dev/null http://127.0.0.1:8080/healthz || exit 1
 CMD ["bash", "-c", "bash scripts/env.sh && exec bash scripts/run.sh"]

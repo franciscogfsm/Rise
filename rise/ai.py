@@ -168,8 +168,10 @@ def plan(profile: dict, providers: list[dict], app_config: dict, evidence: list[
 def _rules_adapt(failures: list[dict], app_cfg: dict, dest: dict) -> dict:
     for f in failures:
         e = f.get("error") or {}
-        text = f"{e.get('code')} {e.get('message')}".lower()
-        if e.get("code") in {"AuthorizationHeaderMalformed", "SignatureDoesNotMatch", "InvalidRegion"} or "region" in text:
+        # presigned URLs fail over plain HTTP: the S3 error code is only in the failed check's body
+        text = f"{e.get('code')} {e.get('message')} " + " ".join(str(c.get("actual")) for c in f.get("failed_checks") or [])
+        codes = {"AuthorizationHeaderMalformed", "SignatureDoesNotMatch", "InvalidRegion"}
+        if e.get("code") in codes or any(c in text for c in codes) or "region" in text.lower():
             region = e.get("region") or dest["documented_region"]
             if region != app_cfg["region"]:
                 return {"diagnosis": f"Requests are signed for region '{app_cfg['region']}' but the destination "

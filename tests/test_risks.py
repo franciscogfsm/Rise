@@ -52,3 +52,11 @@ def test_token_check(tok, ok):
 def test_fallback_in_a_ci_comment_is_not_a_fallback():
     files = {**APP, ".circleci/config.yml": "# fallback to using the latest cache\n", "src/x.py": "# failover later\n"}
     assert "single-provider" in {r["id"] for r in risks.find(files, scan.scan(files))}
+
+
+def test_rules_adapt_reads_presigned_check_body():
+    # without the AI, a presigned URL signed for the wrong region must still get the region fix
+    f = [{"kind": "presigned_get", "error": None, "failed_checks": [
+        {"name": "http status", "ok": False, "actual": "400 <Error><Code>AuthorizationHeaderMalformed</Code></Error>"}]}]
+    p = ai._rules_adapt(f, {"region": "us-east-1"}, {"documented_region": "nl-ams-1"})
+    assert (p["key"], p["value"]) == ("region", "nl-ams-1")
