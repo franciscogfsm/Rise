@@ -1,8 +1,8 @@
-/* Parte B · slide 7 · Impacto: onboarding da Leaseweb e um adaptador por serviço */
+/* Parte B · 10 · Impacto: onboarding de um fornecedor como a Leaseweb, um adaptador por serviço. */
 RISE.slide({
-  id: "business",
+  id: "impact",
   title: "Impact",
-  time: "3:40 – 4:20",
+  time: "4:00 – 4:30",
   notes: `
 "Remember the 89%. RISE gives them a way to find out, one dependency at a time, before they commit."
 "A provider like Leaseweb could put RISE into customer onboarding: connect your current cloud, run RISE, see your own app pass, then move."
@@ -11,19 +11,21 @@ RISE.slide({
 Não dizer que já funciona com a Leaseweb Object Storage: o destino da demo é simulado.`,
 
   html: `
-    <h2 class="title">Customers arrive with proof, not with risk.</h2>
-    <div class="row">
-      <p class="lead">RISE fits into a provider's onboarding. Before a customer moves, they connect their current cloud, run RISE, and watch their own app pass on the new one.</p>
-      <ol class="road" aria-label="Adapters">
-        <li class="now"><i></i><b>Object storage</b><span>S3 API, working today</span></li>
-        <li><i></i><b>Databases and queues</b><span>Next adapters</span></li>
-        <li><i></i><b>Every release</b><span>The same checks, run in CI</span></li>
-      </ol>
-    </div>
-    <p class="oss">Open source under Apache 2.0.</p>`,
+    <div class="im">
+      <h2 class="title split">Customers arrive with proof, not with risk.</h2>
+      <div class="row">
+        <p class="sub rv" style="--i:3">RISE fits into a provider's onboarding. Before a customer moves, they connect their current cloud, run RISE, and watch their own app pass on the new one.</p>
+        <ol class="road" aria-label="Adapters">
+          <li class="now rv" style="--i:4"><i></i><b>Object storage</b><span>S3 API, working today</span></li>
+          <li class="rv" style="--i:5"><i></i><b>Databases and queues</b><span>Next adapters</span></li>
+          <li class="rv" style="--i:6"><i></i><b>Every release</b><span>The same checks, run in CI</span></li>
+        </ol>
+      </div>
+      <p class="oss rv" style="--i:8">Open source under Apache 2.0.</p>
+    </div>`,
 
   css: `
-    display: flex; flex-direction: column; justify-content: space-between;
+    .im { height: 100%; display: flex; flex-direction: column; justify-content: space-between; }
     .title { max-width: 18ch; }
     .row { display: grid; grid-template-columns: 1fr 1fr; gap: 120px; align-items: center; }
     .road { list-style: none; position: relative; display: grid; gap: 44px; }
@@ -35,4 +37,7 @@ Não dizer que já funciona com a Leaseweb Object Storage: o destino da demo é 
     .road .now i { background: var(--ok); box-shadow: 0 0 0 8px var(--ok-bg); }
     .road .now span { color: var(--ok); font-weight: 600; }
     .oss { font-size: var(--t2); color: var(--muted); }`,
+
+  init(el) { FX.prep(el); },
+  enter() { FX.act("solution"); },
 });

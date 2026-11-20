@@ -1,0 +1,111 @@
+/*
+  Camada de palco v2: motion e "humor" do fundo por ato. Carrega DEPOIS de rise.css e deck.css.
+  Partilhado: mudar só depois de combinar.
+
+  Cor: só as cores do design system (rise.css), para o deck e o dashboard parecerem o mesmo produto.
+    problem  → fundo com um toque coral (--bad-bg), acento --bad
+    solution → ice / lavanda / aqua, acento --accent
+    proof    → mint (--ok-bg), acento --ok
+  Motion: expo-out para entrar, in-out para mudar de estado. 240 / 600 / 1000 ms. Stagger 70 ms.
+  Nada anima o que não aconteceu: contadores, hashes e estados mostram só dados reais.
+*/
+:root {
+  --faint-ink: #5F6B84;   /* texto terciário: só ≥ 20 px */
+  --accent-soft: color-mix(in srgb, var(--accent) 50%, #fff);
+  --act: var(--accent);
+  --e-out: cubic-bezier(.16, 1, .3, 1);
+  --e-inout: cubic-bezier(.65, 0, .35, 1);
+  --e-spring: cubic-bezier(.34, 1.56, .64, 1);
+  --d-1: 240ms; --d-2: 600ms; --d-3: 1000ms;
+  --stagger: 70ms;
+  --d0: 180ms;
+}
+
+/* ── Humor do fundo por ato (transição lenta entre atos; os blobs não andam sozinhos) ── */
+@property --b1 { syntax: "<color>"; inherits: true; initial-value: #DCEBFF; }
+@property --b2 { syntax: "<color>"; inherits: true; initial-value: #E9E4FF; }
+@property --b3 { syntax: "<color>"; inherits: true; initial-value: #C6F0EC; }
+#deck { --b1: var(--blob-ice); --b2: var(--blob-lavender); --b3: var(--blob-aqua);
+  transition: --b1 1.6s var(--e-inout), --b2 1.6s var(--e-inout), --b3 1.6s var(--e-inout); }
+#deck[data-act="problem"]  { --b1: var(--bad-bg);   --b2: var(--blob-lavender); --b3: var(--blob-ice);  --act: var(--bad); }
+#deck[data-act="solution"] { --b1: var(--blob-ice); --b2: var(--blob-lavender); --b3: var(--blob-aqua); --act: var(--accent); }
+#deck[data-act="proof"]    { --b1: var(--ok-bg);    --b2: var(--blob-ice);      --b3: var(--blob-aqua); --act: var(--ok); }
+#deck[data-act="finale"]   { --b1: var(--blob-ice); --b2: var(--blob-lavender); --b3: var(--blob-aqua); --act: var(--accent); }
+#deck > .blobs i:nth-child(1) { background: var(--b1); }
+#deck > .blobs i:nth-child(2) { background: var(--b2); }
+#deck > .blobs i:nth-child(3) { background: var(--b3); }
+
+/* grão subtil por baixo do conteúdo: tira o aspeto liso dos gradientes no projetor */
+#deck::after {
+  content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none; opacity: .05; mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* a barra de progresso segue o ato */
+#deck .progress button { height: 3px; }
+#deck .progress button.on { background: var(--act); transition: background .6s var(--e-inout); }
+#deck > .brand { transition: opacity .6s var(--e-out), transform .6s var(--e-out); }
+
+/* ── Tipografia de palco ── */
+.slide { color: var(--ink); }
+.slide .display { font-size: 112px; line-height: .98; letter-spacing: -.045em; font-weight: 600; }
+.slide .statement { font-size: var(--t6); line-height: 1.04; font-weight: 600; letter-spacing: -.04em; max-width: 17ch; text-wrap: balance; }
+.slide .kicker { font: 600 26px/1.2 var(--f-ui); letter-spacing: -.01em; color: var(--act); }
+.slide .sub { font-size: var(--t3); line-height: 1.35; color: var(--muted); max-width: 34ch; text-wrap: pretty; }
+.slide .big-num { font-size: 200px; line-height: .86; font-weight: 700; letter-spacing: -.06em; font-variant-numeric: tabular-nums; }
+.slide .unit { font-size: var(--t1); line-height: 1.3; color: var(--muted); }
+
+/* ── Sistema de reveal ──
+   .rv            entra quando o slide fica visível (.cur)
+   .rv[data-s=N]  entra no passo N
+   --i            ordem no stagger (FX.index numera os que não têm)
+   variantes: .fade .scale .left .right .mask .pop */
+.slide .rv {
+  opacity: 0; transform: translate3d(0, 28px, 0); filter: blur(6px);
+  transition: opacity var(--d-2) var(--e-out), transform var(--d-3) var(--e-out), filter var(--d-2) var(--e-out), clip-path var(--d-3) var(--e-out);
+}
+.slide .rv.fade { transform: none; }
+.slide .rv.scale { transform: scale(.94); }
+.slide .rv.pop { transform: scale(.6); filter: none; transition-timing-function: var(--e-out), var(--e-spring), var(--e-out); }
+.slide .rv.left { transform: translate3d(-48px, 0, 0); }
+.slide .rv.right { transform: translate3d(48px, 0, 0); }
+.slide .rv.mask { transform: none; filter: none; clip-path: inset(-80px calc(100% + 80px) -80px -80px); opacity: 1; }
+.slide.cur .rv:not([data-s]),
+.slide.s1 .rv[data-s="1"], .slide.s2 .rv[data-s="2"], .slide.s3 .rv[data-s="3"], .slide.s4 .rv[data-s="4"] {
+  opacity: 1; transform: none; filter: none;
+  transition-delay: calc(var(--d0) + var(--i, 0) * var(--stagger));
+}
+.slide.cur .rv.mask:not([data-s]), .slide.s1 .rv.mask[data-s="1"], .slide.s2 .rv.mask[data-s="2"], .slide.s3 .rv.mask[data-s="3"] { clip-path: inset(-80px); }
+.slide .rv[data-s] { --d0: 40ms; }
+
+/* coisas que recuam num passo */
+.slide .out { transition: opacity var(--d-2) var(--e-out), transform var(--d-2) var(--e-out), filter var(--d-2) var(--e-out); }
+.slide.s1 .out[data-out="1"], .slide.s2 .out[data-out="2"], .slide.s3 .out[data-out="3"] { opacity: .14; filter: blur(3px); transform: scale(.98); }
+
+/* títulos palavra a palavra (FX.split) */
+.slide .w { display: inline-block; overflow: hidden; vertical-align: top; padding: 0 .02em .14em; margin: 0 -.02em -.14em; }
+.slide .w > span { display: inline-block; transform: translate3d(0, 110%, 0) rotate(4deg); transform-origin: 0 100%; transition: transform var(--d-3) var(--e-out); }
+.slide.cur .split:not([data-s]) .w > span,
+.slide.s1 .split[data-s="1"] .w > span, .slide.s2 .split[data-s="2"] .w > span, .slide.s3 .split[data-s="3"] .w > span {
+  transform: none; transition-delay: calc(var(--d0) + var(--wi, 0) * 55ms);
+}
+.slide .split[data-s] { --d0: 40ms; }
+
+/* traço SVG que se desenha (FX.draw mede --len) */
+.slide .draw { stroke-dasharray: var(--len, 1000); stroke-dashoffset: var(--len, 1000); transition: stroke-dashoffset 1.4s var(--e-inout); }
+.slide.cur .draw:not([data-s]), .slide.s1 .draw[data-s="1"], .slide.s2 .draw[data-s="2"], .slide.s3 .draw[data-s="3"] {
+  stroke-dashoffset: 0; transition-delay: calc(var(--d0) + var(--i, 0) * 120ms);
+}
+
+/* ── Componentes ── */
+.slide .tag { display: inline-flex; align-items: center; gap: 10px; font: 500 20px/1 var(--f-mono); padding: 10px 16px; border-radius: 999px; background: rgba(255,255,255,.72); box-shadow: inset 0 0 0 1px var(--line); color: var(--muted); }
+.slide .tag b { color: var(--ink); font-weight: 500; }
+.slide .dot { width: 12px; height: 12px; border-radius: 50%; background: currentColor; flex: none; }
+.slide .ok-c { color: var(--ok); }
+.slide .bad-c { color: var(--bad); }
+.slide .act-c { color: var(--act); }
+
+/* ── ?static e movimento reduzido: estado final ── */
+html.still .slide .rv, html.still .slide .w > span, html.still .slide .draw {
+  opacity: 1 !important; transform: none !important; filter: none !important; clip-path: none !important; stroke-dashoffset: 0 !important;
+}
