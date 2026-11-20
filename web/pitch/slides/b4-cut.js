@@ -6,8 +6,8 @@ RISE.slide({
   time: "3:40 – 3:55",
   steps: 2,
   notes: `
-(→) "We cut the app's link to the source. RISE checked it: the source no longer answers."
-(→) "Then the app wrote a brand new object, never cached, and read it back. Served by the destination, same SHA-256."
+(automático) "We cut the app's link to the source. RISE checked it: the source no longer answers."
+(automático) "Then the app wrote a brand new object, never cached, and read it back. Served by the destination, same SHA-256."
 Se o cabo não partir no ecrã, o Cut não correu no dashboard: não fingir. Dizer "we'll cut it now" e voltar à demo, ou avançar.`,
 
   html: `

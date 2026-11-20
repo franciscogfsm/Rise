@@ -1,101 +1,95 @@
 window.TIMING = {
- "total": 72.385,
+ "total": 67.699,
  "scenes": {
   "paul": {
    "start": 0.0,
-   "dur": 3.0,
-   "voAt": 0.9,
+   "dur": 2.8,
+   "voAt": 0.8,
    "voDur": 1.228
   },
   "want": {
-   "start": 3.0,
-   "dur": 3.6,
+   "start": 2.8,
+   "dur": 3.219,
    "voAt": 0.2,
-   "voDur": 2.273
+   "voDur": 2.769
   },
   "fear": {
-   "start": 6.6,
-   "dur": 6.406,
+   "start": 6.019,
+   "dur": 6.171,
    "voAt": 0.2,
-   "voDur": 5.956
+   "voDur": 5.721
   },
   "stuck": {
-   "start": 13.006,
-   "dur": 3.953,
+   "start": 12.19,
+   "dur": 3.0,
    "voAt": 0.15,
-   "voDur": 3.553
+   "voDur": 2.194
   },
   "rise": {
-   "start": 16.959,
+   "start": 15.19,
    "dur": 2.6,
    "voAt": 0.35,
-   "voDur": 1.724
+   "voDur": 1.646
   },
   "box": {
-   "start": 19.559,
-   "dur": 4.2,
+   "start": 17.79,
+   "dur": 4.0,
    "voAt": 0.2,
-   "voDur": 2.429
+   "voDur": 3.161
   },
   "scan": {
-   "start": 23.759,
-   "dur": 5.992,
+   "start": 21.79,
+   "dur": 5.418,
    "voAt": 0.1,
-   "voDur": 5.642
+   "voDur": 5.068
   },
-  "scale": {
-   "start": 29.751,
-   "dur": 6.798,
-   "voAt": 0.2,
-   "voDur": 6.348
-  },
-  "zero": {
-   "start": 36.549,
-   "dur": 3.297,
-   "voAt": 0.2,
-   "voDur": 2.847
-  },
-  "docs": {
-   "start": 39.846,
-   "dur": 3.874,
+  "fast": {
+   "start": 27.208,
+   "dur": 6.591,
    "voAt": 0.15,
-   "voDur": 3.474
+   "voDur": 6.191
+  },
+  "mcp": {
+   "start": 33.799,
+   "dur": 5.4,
+   "voAt": 0.15,
+   "voDur": 4.833
   },
   "replay": {
-   "start": 43.72,
-   "dur": 7.244,
+   "start": 39.199,
+   "dur": 7.714,
    "voAt": 0.15,
-   "voDur": 6.844
+   "voDur": 7.314
   },
   "fix": {
-   "start": 50.964,
-   "dur": 5.261,
+   "start": 46.913,
+   "dur": 5.104,
    "voAt": 0.1,
-   "voDur": 4.911
+   "voDur": 4.754
   },
   "cut": {
-   "start": 56.226,
+   "start": 52.017,
    "dur": 4.762,
    "voAt": 0.15,
    "voDur": 4.362
   },
   "hope": {
-   "start": 60.988,
-   "dur": 3.397,
+   "start": 56.78,
+   "dur": 3.319,
    "voAt": 0.3,
-   "voDur": 2.847
+   "voDur": 2.769
   },
   "proved": {
-   "start": 64.385,
+   "start": 60.099,
    "dur": 2.4,
    "voAt": 0.1,
-   "voDur": 1.411
+   "voDur": 1.306
   },
   "end": {
-   "start": 66.785,
-   "dur": 5.0,
+   "start": 62.499,
+   "dur": 4.6,
    "voAt": 0.6,
-   "voDur": 3.318
+   "voDur": 3.239
   }
  }
 };

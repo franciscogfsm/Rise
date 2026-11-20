@@ -6,7 +6,7 @@ RISE.slide({
   steps: 1,
   notes: `
 (passo 0: a imagem, pedida agora mesmo; a etiqueta diz quem a serviu)
-(→) A frase escolhe-se sozinha a partir do Freedom Proof:
+(automático) A frase escolhe-se sozinha a partir do Freedom Proof:
  · se houve pedidos do pitch servidos pelo destino depois do switch: "You didn't just watch RISE. RISE powered what you just watched."
    "The charts on our problem slide were stored on the source. After the switch, every slide image came from the destination. Each square is a real request: grey from the source, blue from the destination."
  · se não: "Every image in this deck came through RISE." Dizer só isso.`,

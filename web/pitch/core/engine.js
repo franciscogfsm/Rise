@@ -115,7 +115,11 @@
     }
     updateHud();
     history.replaceState(null, "", location.search + "#" + d.id + (step ? "." + step : ""));
+    // Passos automáticos: cada passo abre sozinho (d.auto ms, por omissão 2.8 s). As setas continuam a funcionar.
+    clearTimeout(autoTimer);
+    if (!STATIC && step < d.steps) autoTimer = setTimeout(() => cur === i && show(i, step + 1), d.auto || 2800);
   }
+  var autoTimer; // var: show() may run before this line is reached
 
   const next = () => step < slides[cur].steps ? show(cur, step + 1) : show(cur + 1, 0);
   const prev = () => step > 0 ? show(cur, step - 1) : cur > 0 && show(cur - 1, slides[cur - 1].steps);

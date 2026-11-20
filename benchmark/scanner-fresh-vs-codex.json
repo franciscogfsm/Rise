@@ -1,0 +1,1822 @@
+{
+  "method": "Search strata and eligibility filters were fixed before scanning. The supplemental targeted sample is separately identified. Snapshots were checked against the local benchmark manifests. We cannot exclude foundation-model pretraining exposure. Only bounded application-source files were included; test and vendored files were filtered. Both systems saw the same source with recognizable credentials redacted, matching by file and source line. Explicit aliases normalize construction and execution lines for the same reviewed multipart operation. Strict scores are also provided. One reviewer annotated an explicit-call reference by independent source searches. The reference is not exhaustive ground truth. No scanner changes during the trial. Codex CLI ran separate text-only batches; reported wall time includes parallel batching. RISE timing is the local median of nine passes. Download excluded.",
+  "groups": [
+    {
+      "selection": {
+        "queries": {
+          "python_s3": "boto3 s3 in:name,description,readme language:Python size:2..100 stars:0..25 fork:false archived:false",
+          "javascript_s3": "s3 upload in:name,description,readme language:TypeScript size:2..100 stars:0..25 fork:false archived:false",
+          "go_s3": "s3 storage in:name,description,readme language:Go size:2..100 stars:0..25 fork:false archived:false",
+          "controls": "todo cli in:name,description language:Python size:2..60 stars:0..25 fork:false archived:false"
+        },
+        "exclusions": [
+          {
+            "repo": "twarangupta/mf-nav-lakehouse",
+            "reason": "source size 103560"
+          },
+          {
+            "repo": "nickmori05/status-probes",
+            "reason": "source size 55750"
+          },
+          {
+            "repo": "Gabrululu/Egress",
+            "reason": "source size 166773"
+          },
+          {
+            "repo": "soumyadip-SSAI/RIS_new_logic_ec2",
+            "reason": "source size 165993"
+          },
+          {
+            "repo": "runwhen-contrib/demo-sandbox-connected-app",
+            "reason": "source size 33838"
+          },
+          {
+            "repo": "ADITHYAG73/compute-dashboard",
+            "reason": "source size 29621"
+          },
+          {
+            "repo": "BhaskarGogoi/AWS-Boto3-CLI",
+            "reason": "source size 51187"
+          },
+          {
+            "repo": "TaherMedia/Snow-Cell",
+            "reason": "source size 97226"
+          },
+          {
+            "repo": "Vishal221222/aws-cloud-security-scanner",
+            "reason": "source size 46222"
+          },
+          {
+            "repo": "NonsoGodson/marketplace-web",
+            "reason": "source size 171623"
+          },
+          {
+            "repo": "shashankanakal24/CloudDrop_Frontend",
+            "reason": "source size 77356"
+          },
+          {
+            "repo": "phamvietlinh164/frontend",
+            "reason": "source size 29963"
+          },
+          {
+            "repo": "SharkSpidy/hive-ktu-vault",
+            "reason": "source size 77271"
+          },
+          {
+            "repo": "guardraildev/claude-code-remotion-skills",
+            "reason": "source size 104399"
+          },
+          {
+            "repo": "rayapati1200/dx-design-to-code",
+            "reason": "source size 29394"
+          },
+          {
+            "repo": "Sangmeshwar-Naik/NexusAI",
+            "reason": "source size 159277"
+          },
+          {
+            "repo": "Afaq499/forest-quest-3d",
+            "reason": "source size 73201"
+          },
+          {
+            "repo": "go-ruby-activestorage/activestorage",
+            "reason": "source size 66795"
+          },
+          {
+            "repo": "nritter26/mallard-os",
+            "reason": "source size 98616"
+          },
+          {
+            "repo": "moov-io/watchman-cache",
+            "reason": "source size 0"
+          },
+          {
+            "repo": "dlebee/kevaso-provider-juicefs",
+            "reason": "source size 32456"
+          },
+          {
+            "repo": "bookghf/RoomCraft-api",
+            "reason": "source size 160895"
+          },
+          {
+            "repo": "cloud-shuttle/drover-registry",
+            "reason": "source size 88194"
+          },
+          {
+            "repo": "egmarc/sqs-event-consumers",
+            "reason": "source size 53693"
+          },
+          {
+            "repo": "RidwanRamdhani/ppkpt-backend",
+            "reason": "source size 67300"
+          },
+          {
+            "repo": "Cyphra-dev/operator",
+            "reason": "source size 71193"
+          },
+          {
+            "repo": "yoohooshantanu/calldag-orchestrator",
+            "reason": "source size 32069"
+          }
+        ],
+        "repos": [
+          {
+            "url": "https://github.com/bethhaysom/amplitude_project",
+            "commit": "21c0ecc704259342dde98e5553b72b3d16f15d00",
+            "size_chars": 22335,
+            "stratum": "python_s3",
+            "name": "bethhaysom/amplitude_project",
+            "id": "1",
+            "sha256": "b070b54110b14dd824ef9dec2768d7d1c4089f724fdc4f1509e941bac4def2f9"
+          },
+          {
+            "url": "https://github.com/exxmanster/exxmanster",
+            "commit": "047934caf287e10bbd7dffbf2d220d1096ea7c28",
+            "size_chars": 10447,
+            "stratum": "python_s3",
+            "name": "exxmanster/exxmanster",
+            "id": "2",
+            "sha256": "c45b3b639787fdba83f39add1cee990b2414ecbf8cb516c2fd84458e796e415d"
+          },
+          {
+            "url": "https://github.com/Olivierjhf/NYC-taxi-pyspark-etl",
+            "commit": "668ff9f5752e0446c1f294a9ccb6273b37042eea",
+            "size_chars": 26098,
+            "stratum": "python_s3",
+            "name": "Olivierjhf/NYC-taxi-pyspark-etl",
+            "id": "3",
+            "sha256": "ff882fadb0644c43365e89d6af2485d4ae27c395712c9ea13266447522be3701"
+          },
+          {
+            "url": "https://github.com/Gopimahith/aws-tourism-data-pipeline",
+            "commit": "abdcb94f7aa2ad3276957ec94b98f06785a6fa5e",
+            "size_chars": 6854,
+            "stratum": "python_s3",
+            "name": "Gopimahith/aws-tourism-data-pipeline",
+            "id": "4",
+            "sha256": "d4d739c82398020c62139412d448cddf02b9f667c1b2c7213f5a63f508cd5847"
+          },
+          {
+            "url": "https://github.com/bugsdriven-dev/canteen-live",
+            "commit": "ea21d6654ccdcef8041e284c67d1a877b93b4fea",
+            "size_chars": 6341,
+            "stratum": "python_s3",
+            "name": "bugsdriven-dev/canteen-live",
+            "id": "5",
+            "sha256": "92cfc4c6db97b9a266f67def8e7e1325fe59cc8bdbb3995d354f11e6a0bfe01c"
+          },
+          {
+            "url": "https://github.com/NITISH084/Deployr",
+            "commit": "c74f28d5bcc6f8a5fd14cac28469793ea12549ae",
+            "size_chars": 21752,
+            "stratum": "javascript_s3",
+            "name": "NITISH084/Deployr",
+            "id": "6",
+            "sha256": "67a38fe8452b5a2c7fc8f111060c9937402d3a2ce5fb1e2eb8c6919378631bf9"
+          },
+          {
+            "url": "https://github.com/govuk-once/flex-platform-domain-sandbox",
+            "commit": "4524196953ce387a39d9d057d20ac30815bce501",
+            "size_chars": 22080,
+            "stratum": "javascript_s3",
+            "name": "govuk-once/flex-platform-domain-sandbox",
+            "id": "7",
+            "sha256": "f883813046afaf08c473a538f0cc6207face543b441fc8e6600b20a1c32d9b9c"
+          },
+          {
+            "url": "https://github.com/raviponcodemonday/nextjs-terraform-localstack-cloud",
+            "commit": "b2d8b0fb4b68f29bede0e6738f10cd6309971199",
+            "size_chars": 5809,
+            "stratum": "javascript_s3",
+            "name": "raviponcodemonday/nextjs-terraform-localstack-cloud",
+            "id": "8",
+            "sha256": "da02e658b42a35179824160910e4943ca50b03d7dd33dd80651b8bc5167a6b7e"
+          },
+          {
+            "url": "https://github.com/sunsiyuan/n8n-nodes-haryai",
+            "commit": "1abd74c8daa099f37cf45fd7c07db29f27bb9cc6",
+            "size_chars": 16656,
+            "stratum": "javascript_s3",
+            "name": "sunsiyuan/n8n-nodes-haryai",
+            "id": "9",
+            "sha256": "c25240faa56089d9b9d5f3761e61779c09dcb626155a0636ee212f6c22335eb0"
+          },
+          {
+            "url": "https://github.com/zainab-kassim/zayelle-photo-pipeline",
+            "commit": "d5f6224fa6dffda2b066592066f8bb43ad873f9a",
+            "size_chars": 13378,
+            "stratum": "javascript_s3",
+            "name": "zainab-kassim/zayelle-photo-pipeline",
+            "id": "10",
+            "sha256": "f0a40ad6701b771ea6324c7ea7626688c9ae25443a029d09c6d653a6321445d8"
+          },
+          {
+            "url": "https://github.com/prachizala/StreamForge",
+            "commit": "add72c1b1de688e82dd21b2a4433084d7853644f",
+            "size_chars": 26637,
+            "stratum": "javascript_s3",
+            "name": "prachizala/StreamForge",
+            "id": "11",
+            "sha256": "3556be99cb911b24739358963f713efe9d1206dc713020d070d632ae44f4e28b"
+          },
+          {
+            "url": "https://github.com/prometheus/kube-demo-site",
+            "commit": "e2b78698fc7097b34a0e4925c2d08a66d4d9342e",
+            "size_chars": 1108,
+            "stratum": "go_s3",
+            "name": "prometheus/kube-demo-site",
+            "id": "12",
+            "sha256": "b56187a9af42f9592a3cc5b99556ef6bffe7d7c0f15a63c64f47f0394aa7a403"
+          },
+          {
+            "url": "https://github.com/yasir2000/go-pistachio",
+            "commit": "d7634bb64cf5356470e064ea028e1fd66bf03f3f",
+            "size_chars": 23697,
+            "stratum": "go_s3",
+            "name": "yasir2000/go-pistachio",
+            "id": "13",
+            "sha256": "a2e453d9ef4b1017146b9e8d6fb84f51e2e28bb80f84d6934e28fc48196d11ab"
+          },
+          {
+            "url": "https://github.com/NebojsaJovanovic95/VISP",
+            "commit": "9e26a37cc42b43c6676321a54c792f0125dc6c75",
+            "size_chars": 16707,
+            "stratum": "go_s3",
+            "name": "NebojsaJovanovic95/VISP",
+            "id": "14",
+            "sha256": "0cdefad510876b9ff5ce0e75dee9cf2c06e1990d34fa54487d428baebefb186d"
+          },
+          {
+            "url": "https://github.com/AndersonMonteiro/cursus",
+            "commit": "e3e0c1b446311995843a612f4e094f8b5f9ff827",
+            "size_chars": 11678,
+            "stratum": "go_s3",
+            "name": "AndersonMonteiro/cursus",
+            "id": "15",
+            "sha256": "754d6296ab58f7ac727cd97d36b59d2d9d0cce82038f5ee4d3f1a6167c6115ec"
+          },
+          {
+            "url": "https://github.com/haufionect/todo-cli",
+            "commit": "469cec321020c76a38823d542b19a5ddb392933e",
+            "size_chars": 5681,
+            "stratum": "controls",
+            "name": "haufionect/todo-cli",
+            "id": "16",
+            "sha256": "8f5719f8ce6f040cd2d26a15b42100891e05ee0dc329cd37c4d60b6f150939a9"
+          },
+          {
+            "url": "https://github.com/Sree426-hub/Python_cli_todo-app",
+            "commit": "5e389952ba977c49824cde6fae769afd188c55ac",
+            "size_chars": 1970,
+            "stratum": "controls",
+            "name": "Sree426-hub/Python_cli_todo-app",
+            "id": "17",
+            "sha256": "1b07384809a5c06beb5c37091c9eeecd517cd4a4b4563bfde7a1136646c42ab7"
+          },
+          {
+            "url": "https://github.com/kacperjaworskikontakt-sudo/todo-cli",
+            "commit": "8db3a68cb2e7e65fa28f6e07a78b8fdbc4f25700",
+            "size_chars": 2936,
+            "stratum": "controls",
+            "name": "kacperjaworskikontakt-sudo/todo-cli",
+            "id": "18",
+            "sha256": "935406236962d1f492087bbe0090774b7eea1525fd550f506480e38eb41891a4"
+          },
+          {
+            "url": "https://github.com/La2ryx/todo-list-cli-ft-AI-Engr-4",
+            "commit": "5b9b1f695b442ce3a7c1cdd117d3519128a4ba36",
+            "size_chars": 13782,
+            "stratum": "controls",
+            "name": "La2ryx/todo-list-cli-ft-AI-Engr-4",
+            "id": "19",
+            "sha256": "9665e3d8e0302277b86303e32261ca7c07c764af24c685d135ea150c8ed1fb42"
+          },
+          {
+            "url": "https://github.com/SapnaGavati/cli-todo-app",
+            "commit": "806c230fb1fb2adee0f912ccc97cd5ac8014433d",
+            "size_chars": 2322,
+            "stratum": "controls",
+            "name": "SapnaGavati/cli-todo-app",
+            "id": "20",
+            "sha256": "6958b4c58acd9e89d2d7322ff0e0f7304ee83aef559908b8ea5e0f6b4fece286"
+          },
+          {
+            "url": "https://github.com/devmeadow1040/devmeadow1040-todo-cli",
+            "commit": "e48e0eed5cc031e9b8f085a7743b87ff08bba7ab",
+            "size_chars": 1412,
+            "stratum": "controls",
+            "name": "devmeadow1040/devmeadow1040-todo-cli",
+            "id": "21",
+            "sha256": "4c97b769076c166e0fe1c3470c940e5bfc6d1cfcba5064f599c380750b0eb147"
+          }
+        ]
+      },
+      "file_index": {
+        "1.1": {
+          "repo": "bethhaysom/amplitude_project",
+          "commit": "21c0ecc704259342dde98e5553b72b3d16f15d00",
+          "file": "archive/extract.py",
+          "lines": 151
+        },
+        "1.2": {
+          "repo": "bethhaysom/amplitude_project",
+          "commit": "21c0ecc704259342dde98e5553b72b3d16f15d00",
+          "file": "archive/load.py",
+          "lines": 74
+        },
+        "1.3": {
+          "repo": "bethhaysom/amplitude_project",
+          "commit": "21c0ecc704259342dde98e5553b72b3d16f15d00",
+          "file": "archive/unzip.py",
+          "lines": 77
+        },
+        "1.4": {
+          "repo": "bethhaysom/amplitude_project",
+          "commit": "21c0ecc704259342dde98e5553b72b3d16f15d00",
+          "file": "main.py",
+          "lines": 89
+        },
+        "1.5": {
+          "repo": "bethhaysom/amplitude_project",
+          "commit": "21c0ecc704259342dde98e5553b72b3d16f15d00",
+          "file": "modules/extract_function.py",
+          "lines": 69
+        },
+        "1.6": {
+          "repo": "bethhaysom/amplitude_project",
+          "commit": "21c0ecc704259342dde98e5553b72b3d16f15d00",
+          "file": "modules/load_function.py",
+          "lines": 43
+        },
+        "1.7": {
+          "repo": "bethhaysom/amplitude_project",
+          "commit": "21c0ecc704259342dde98e5553b72b3d16f15d00",
+          "file": "modules/logging_function.py",
+          "lines": 21
+        },
+        "1.8": {
+          "repo": "bethhaysom/amplitude_project",
+          "commit": "21c0ecc704259342dde98e5553b72b3d16f15d00",
+          "file": "modules/s3_filecheck_function.py",
+          "lines": 59
+        },
+        "1.9": {
+          "repo": "bethhaysom/amplitude_project",
+          "commit": "21c0ecc704259342dde98e5553b72b3d16f15d00",
+          "file": "modules/unzip_function.py",
+          "lines": 71
+        },
+        "2.1": {
+          "repo": "exxmanster/exxmanster",
+          "commit": "047934caf287e10bbd7dffbf2d220d1096ea7c28",
+          "file": "scripts/stats.py",
+          "lines": 278
+        },
+        "3.1": {
+          "repo": "Olivierjhf/NYC-taxi-pyspark-etl",
+          "commit": "668ff9f5752e0446c1f294a9ccb6273b37042eea",
+          "file": "dags/nyc_taxi_etl_dag.py",
+          "lines": 34
+        },
+        "3.2": {
+          "repo": "Olivierjhf/NYC-taxi-pyspark-etl",
+          "commit": "668ff9f5752e0446c1f294a9ccb6273b37042eea",
+          "file": "main.py",
+          "lines": 198
+        },
+        "3.3": {
+          "repo": "Olivierjhf/NYC-taxi-pyspark-etl",
+          "commit": "668ff9f5752e0446c1f294a9ccb6273b37042eea",
+          "file": "src/__init__.py",
+          "lines": 0
+        },
+        "3.4": {
+          "repo": "Olivierjhf/NYC-taxi-pyspark-etl",
+          "commit": "668ff9f5752e0446c1f294a9ccb6273b37042eea",
+          "file": "src/aggregation.py",
+          "lines": 85
+        },
+        "3.5": {
+          "repo": "Olivierjhf/NYC-taxi-pyspark-etl",
+          "commit": "668ff9f5752e0446c1f294a9ccb6273b37042eea",
+          "file": "src/cleaning.py",
+          "lines": 122
+        },
+        "3.6": {
+          "repo": "Olivierjhf/NYC-taxi-pyspark-etl",
+          "commit": "668ff9f5752e0446c1f294a9ccb6273b37042eea",
+          "file": "src/download_data.py",
+          "lines": 63
+        },
+        "3.7": {
+          "repo": "Olivierjhf/NYC-taxi-pyspark-etl",
+          "commit": "668ff9f5752e0446c1f294a9ccb6273b37042eea",
+          "file": "src/extract.py",
+          "lines": 90
+        },
+        "3.8": {
+          "repo": "Olivierjhf/NYC-taxi-pyspark-etl",
+          "commit": "668ff9f5752e0446c1f294a9ccb6273b37042eea",
+          "file": "src/inspect_raw_data.py",
+          "lines": 110
+        },
+        "3.9": {
+          "repo": "Olivierjhf/NYC-taxi-pyspark-etl",
+          "commit": "668ff9f5752e0446c1f294a9ccb6273b37042eea",
+          "file": "src/load.py",
+          "lines": 81
+        },
+        "3.10": {
+          "repo": "Olivierjhf/NYC-taxi-pyspark-etl",
+          "commit": "668ff9f5752e0446c1f294a9ccb6273b37042eea",
+          "file": "src/logger.py",
+          "lines": 44
+        },
+        "3.11": {
+          "repo": "Olivierjhf/NYC-taxi-pyspark-etl",
+          "commit": "668ff9f5752e0446c1f294a9ccb6273b37042eea",
+          "file": "src/s3_upload.py",
+          "lines": 63
+        },
+        "3.12": {
+          "repo": "Olivierjhf/NYC-taxi-pyspark-etl",
+          "commit": "668ff9f5752e0446c1f294a9ccb6273b37042eea",
+          "file": "src/transform.py",
+          "lines": 29
+        },
+        "3.13": {
+          "repo": "Olivierjhf/NYC-taxi-pyspark-etl",
+          "commit": "668ff9f5752e0446c1f294a9ccb6273b37042eea",
+          "file": "src/validation.py",
+          "lines": 190
+        },
+        "4.1": {
+          "repo": "Gopimahith/aws-tourism-data-pipeline",
+          "commit": "abdcb94f7aa2ad3276957ec94b98f06785a6fa5e",
+          "file": "src/generate_sample_data.py",
+          "lines": 61
+        },
+        "4.2": {
+          "repo": "Gopimahith/aws-tourism-data-pipeline",
+          "commit": "abdcb94f7aa2ad3276957ec94b98f06785a6fa5e",
+          "file": "src/lambda_handler.py",
+          "lines": 54
+        },
+        "4.3": {
+          "repo": "Gopimahith/aws-tourism-data-pipeline",
+          "commit": "abdcb94f7aa2ad3276957ec94b98f06785a6fa5e",
+          "file": "src/validate.py",
+          "lines": 79
+        },
+        "5.1": {
+          "repo": "bugsdriven-dev/canteen-live",
+          "commit": "ea21d6654ccdcef8041e284c67d1a877b93b4fea",
+          "file": "app.py",
+          "lines": 189
+        },
+        "5.2": {
+          "repo": "bugsdriven-dev/canteen-live",
+          "commit": "ea21d6654ccdcef8041e284c67d1a877b93b4fea",
+          "file": "config.js",
+          "lines": 2
+        },
+        "6.1": {
+          "repo": "NITISH084/Deployr",
+          "commit": "c74f28d5bcc6f8a5fd14cac28469793ea12549ae",
+          "file": "deployr-deploy-service/src/cloud.ts",
+          "lines": 282
+        },
+        "6.2": {
+          "repo": "NITISH084/Deployr",
+          "commit": "c74f28d5bcc6f8a5fd14cac28469793ea12549ae",
+          "file": "deployr-deploy-service/src/index.ts",
+          "lines": 112
+        },
+        "6.3": {
+          "repo": "NITISH084/Deployr",
+          "commit": "c74f28d5bcc6f8a5fd14cac28469793ea12549ae",
+          "file": "deployr-deploy-service/src/paths.ts",
+          "lines": 18
+        },
+        "6.4": {
+          "repo": "NITISH084/Deployr",
+          "commit": "c74f28d5bcc6f8a5fd14cac28469793ea12549ae",
+          "file": "deployr-deploy-service/src/utils.ts",
+          "lines": 163
+        },
+        "6.5": {
+          "repo": "NITISH084/Deployr",
+          "commit": "c74f28d5bcc6f8a5fd14cac28469793ea12549ae",
+          "file": "deployr-request-handler/src/index.ts",
+          "lines": 110
+        },
+        "6.6": {
+          "repo": "NITISH084/Deployr",
+          "commit": "c74f28d5bcc6f8a5fd14cac28469793ea12549ae",
+          "file": "deployr-upload-service/src/cloud.ts",
+          "lines": 32
+        },
+        "6.7": {
+          "repo": "NITISH084/Deployr",
+          "commit": "c74f28d5bcc6f8a5fd14cac28469793ea12549ae",
+          "file": "deployr-upload-service/src/index.ts",
+          "lines": 103
+        },
+        "6.8": {
+          "repo": "NITISH084/Deployr",
+          "commit": "c74f28d5bcc6f8a5fd14cac28469793ea12549ae",
+          "file": "deployr-upload-service/src/paths.ts",
+          "lines": 18
+        },
+        "6.9": {
+          "repo": "NITISH084/Deployr",
+          "commit": "c74f28d5bcc6f8a5fd14cac28469793ea12549ae",
+          "file": "deployr-upload-service/src/utils.ts",
+          "lines": 30
+        },
+        "7.1": {
+          "repo": "govuk-once/flex-platform-domain-sandbox",
+          "commit": "4524196953ce387a39d9d057d20ac30815bce501",
+          "file": "eslint.config.js",
+          "lines": 41
+        },
+        "7.2": {
+          "repo": "govuk-once/flex-platform-domain-sandbox",
+          "commit": "4524196953ce387a39d9d057d20ac30815bce501",
+          "file": "src/ci/main.ts",
+          "lines": 78
+        },
+        "7.3": {
+          "repo": "govuk-once/flex-platform-domain-sandbox",
+          "commit": "4524196953ce387a39d9d057d20ac30815bce501",
+          "file": "src/ci/release.ts",
+          "lines": 68
+        },
+        "7.4": {
+          "repo": "govuk-once/flex-platform-domain-sandbox",
+          "commit": "4524196953ce387a39d9d057d20ac30815bce501",
+          "file": "src/ci/status.ts",
+          "lines": 168
+        },
+        "7.5": {
+          "repo": "govuk-once/flex-platform-domain-sandbox",
+          "commit": "4524196953ce387a39d9d057d20ac30815bce501",
+          "file": "src/ci/upload.ts",
+          "lines": 200
+        },
+        "7.6": {
+          "repo": "govuk-once/flex-platform-domain-sandbox",
+          "commit": "4524196953ce387a39d9d057d20ac30815bce501",
+          "file": "src/ci/version.ts",
+          "lines": 19
+        },
+        "7.7": {
+          "repo": "govuk-once/flex-platform-domain-sandbox",
+          "commit": "4524196953ce387a39d9d057d20ac30815bce501",
+          "file": "src/function/app.ts",
+          "lines": 35
+        },
+        "7.8": {
+          "repo": "govuk-once/flex-platform-domain-sandbox",
+          "commit": "4524196953ce387a39d9d057d20ac30815bce501",
+          "file": "src/function/handler.ts",
+          "lines": 11
+        },
+        "7.9": {
+          "repo": "govuk-once/flex-platform-domain-sandbox",
+          "commit": "4524196953ce387a39d9d057d20ac30815bce501",
+          "file": "vitest.config.ts",
+          "lines": 8
+        },
+        "8.1": {
+          "repo": "raviponcodemonday/nextjs-terraform-localstack-cloud",
+          "commit": "b2d8b0fb4b68f29bede0e6738f10cd6309971199",
+          "file": "my-nextjs-app/app/api/health/route.ts",
+          "lines": 9
+        },
+        "8.2": {
+          "repo": "raviponcodemonday/nextjs-terraform-localstack-cloud",
+          "commit": "b2d8b0fb4b68f29bede0e6738f10cd6309971199",
+          "file": "my-nextjs-app/app/api/s3-test/route.ts",
+          "lines": 66
+        },
+        "8.3": {
+          "repo": "raviponcodemonday/nextjs-terraform-localstack-cloud",
+          "commit": "b2d8b0fb4b68f29bede0e6738f10cd6309971199",
+          "file": "my-nextjs-app/app/layout.tsx",
+          "lines": 29
+        },
+        "8.4": {
+          "repo": "raviponcodemonday/nextjs-terraform-localstack-cloud",
+          "commit": "b2d8b0fb4b68f29bede0e6738f10cd6309971199",
+          "file": "my-nextjs-app/app/page.tsx",
+          "lines": 78
+        },
+        "8.5": {
+          "repo": "raviponcodemonday/nextjs-terraform-localstack-cloud",
+          "commit": "b2d8b0fb4b68f29bede0e6738f10cd6309971199",
+          "file": "my-nextjs-app/eslint.config.mjs",
+          "lines": 18
+        },
+        "8.6": {
+          "repo": "raviponcodemonday/nextjs-terraform-localstack-cloud",
+          "commit": "b2d8b0fb4b68f29bede0e6738f10cd6309971199",
+          "file": "my-nextjs-app/next.config.ts",
+          "lines": 21
+        },
+        "9.1": {
+          "repo": "sunsiyuan/n8n-nodes-haryai",
+          "commit": "1abd74c8daa099f37cf45fd7c07db29f27bb9cc6",
+          "file": ".prettierrc.js",
+          "lines": 51
+        },
+        "9.2": {
+          "repo": "sunsiyuan/n8n-nodes-haryai",
+          "commit": "1abd74c8daa099f37cf45fd7c07db29f27bb9cc6",
+          "file": "build-readme.mjs",
+          "lines": 117
+        },
+        "9.3": {
+          "repo": "sunsiyuan/n8n-nodes-haryai",
+          "commit": "1abd74c8daa099f37cf45fd7c07db29f27bb9cc6",
+          "file": "credentials/HaryAiApi.credentials.ts",
+          "lines": 54
+        },
+        "9.4": {
+          "repo": "sunsiyuan/n8n-nodes-haryai",
+          "commit": "1abd74c8daa099f37cf45fd7c07db29f27bb9cc6",
+          "file": "eslint.config.mjs",
+          "lines": 3
+        },
+        "9.5": {
+          "repo": "sunsiyuan/n8n-nodes-haryai",
+          "commit": "1abd74c8daa099f37cf45fd7c07db29f27bb9cc6",
+          "file": "nodes/HaryAiSeedance/HaryAiSeedance.node.ts",
+          "lines": 290
+        },
+        "10.1": {
+          "repo": "zainab-kassim/zayelle-photo-pipeline",
+          "commit": "d5f6224fa6dffda2b066592066f8bb43ad873f9a",
+          "file": "app/api/resize/route.ts",
+          "lines": 23
+        },
+        "10.2": {
+          "repo": "zainab-kassim/zayelle-photo-pipeline",
+          "commit": "d5f6224fa6dffda2b066592066f8bb43ad873f9a",
+          "file": "app/layout.tsx",
+          "lines": 19
+        },
+        "10.3": {
+          "repo": "zainab-kassim/zayelle-photo-pipeline",
+          "commit": "d5f6224fa6dffda2b066592066f8bb43ad873f9a",
+          "file": "app/page.tsx",
+          "lines": 345
+        },
+        "10.4": {
+          "repo": "zainab-kassim/zayelle-photo-pipeline",
+          "commit": "d5f6224fa6dffda2b066592066f8bb43ad873f9a",
+          "file": "src/handler.ts",
+          "lines": 2
+        },
+        "10.5": {
+          "repo": "zainab-kassim/zayelle-photo-pipeline",
+          "commit": "d5f6224fa6dffda2b066592066f8bb43ad873f9a",
+          "file": "src/local.ts",
+          "lines": 2
+        },
+        "10.6": {
+          "repo": "zainab-kassim/zayelle-photo-pipeline",
+          "commit": "d5f6224fa6dffda2b066592066f8bb43ad873f9a",
+          "file": "src/resize.ts",
+          "lines": 2
+        },
+        "11.1": {
+          "repo": "prachizala/StreamForge",
+          "commit": "add72c1b1de688e82dd21b2a4433084d7853644f",
+          "file": "apps/web/app/layout.tsx",
+          "lines": 21
+        },
+        "11.2": {
+          "repo": "prachizala/StreamForge",
+          "commit": "add72c1b1de688e82dd21b2a4433084d7853644f",
+          "file": "apps/web/app/page.tsx",
+          "lines": 339
+        },
+        "11.3": {
+          "repo": "prachizala/StreamForge",
+          "commit": "add72c1b1de688e82dd21b2a4433084d7853644f",
+          "file": "apps/web/lib/bitrateLadder.ts",
+          "lines": 28
+        },
+        "11.4": {
+          "repo": "prachizala/StreamForge",
+          "commit": "add72c1b1de688e82dd21b2a4433084d7853644f",
+          "file": "apps/web/next-env.d.ts",
+          "lines": 5
+        },
+        "11.5": {
+          "repo": "prachizala/StreamForge",
+          "commit": "add72c1b1de688e82dd21b2a4433084d7853644f",
+          "file": "apps/web/next.config.js",
+          "lines": 7
+        },
+        "11.6": {
+          "repo": "prachizala/StreamForge",
+          "commit": "add72c1b1de688e82dd21b2a4433084d7853644f",
+          "file": "apps/web/postcss.config.js",
+          "lines": 6
+        },
+        "11.7": {
+          "repo": "prachizala/StreamForge",
+          "commit": "add72c1b1de688e82dd21b2a4433084d7853644f",
+          "file": "apps/web/tailwind.config.js",
+          "lines": 23
+        },
+        "11.8": {
+          "repo": "prachizala/StreamForge",
+          "commit": "add72c1b1de688e82dd21b2a4433084d7853644f",
+          "file": "services/gateway/buffer.go",
+          "lines": 58
+        },
+        "11.9": {
+          "repo": "prachizala/StreamForge",
+          "commit": "add72c1b1de688e82dd21b2a4433084d7853644f",
+          "file": "services/gateway/cmd/server/main.go",
+          "lines": 129
+        },
+        "11.10": {
+          "repo": "prachizala/StreamForge",
+          "commit": "add72c1b1de688e82dd21b2a4433084d7853644f",
+          "file": "services/gateway/internal/queue/metadata.go",
+          "lines": 12
+        },
+        "11.11": {
+          "repo": "prachizala/StreamForge",
+          "commit": "add72c1b1de688e82dd21b2a4433084d7853644f",
+          "file": "services/gateway/internal/queue/queue.go",
+          "lines": 217
+        },
+        "12.1": {
+          "repo": "prometheus/kube-demo-site",
+          "commit": "e2b78698fc7097b34a0e4925c2d08a66d4d9342e",
+          "file": "do-k8s/main.go",
+          "lines": 35
+        },
+        "13.1": {
+          "repo": "yasir2000/go-pistachio",
+          "commit": "d7634bb64cf5356470e064ea028e1fd66bf03f3f",
+          "file": "client/client.go",
+          "lines": 82
+        },
+        "13.2": {
+          "repo": "yasir2000/go-pistachio",
+          "commit": "d7634bb64cf5356470e064ea028e1fd66bf03f3f",
+          "file": "cmd/examples/debug.go",
+          "lines": 7
+        },
+        "13.3": {
+          "repo": "yasir2000/go-pistachio",
+          "commit": "d7634bb64cf5356470e064ea028e1fd66bf03f3f",
+          "file": "cmd/examples/main.go",
+          "lines": 74
+        },
+        "13.4": {
+          "repo": "yasir2000/go-pistachio",
+          "commit": "d7634bb64cf5356470e064ea028e1fd66bf03f3f",
+          "file": "cmd/examples/release.go",
+          "lines": 5
+        },
+        "13.5": {
+          "repo": "yasir2000/go-pistachio",
+          "commit": "d7634bb64cf5356470e064ea028e1fd66bf03f3f",
+          "file": "cmd/pistachio/main.go",
+          "lines": 66
+        },
+        "13.6": {
+          "repo": "yasir2000/go-pistachio",
+          "commit": "d7634bb64cf5356470e064ea028e1fd66bf03f3f",
+          "file": "machine/machine.go",
+          "lines": 79
+        },
+        "13.7": {
+          "repo": "yasir2000/go-pistachio",
+          "commit": "d7634bb64cf5356470e064ea028e1fd66bf03f3f",
+          "file": "message/log.go",
+          "lines": 157
+        },
+        "13.8": {
+          "repo": "yasir2000/go-pistachio",
+          "commit": "d7634bb64cf5356470e064ea028e1fd66bf03f3f",
+          "file": "message/service.go",
+          "lines": 29
+        },
+        "13.9": {
+          "repo": "yasir2000/go-pistachio",
+          "commit": "d7634bb64cf5356470e064ea028e1fd66bf03f3f",
+          "file": "pipeline/batch.go",
+          "lines": 53
+        },
+        "13.10": {
+          "repo": "yasir2000/go-pistachio",
+          "commit": "d7634bb64cf5356470e064ea028e1fd66bf03f3f",
+          "file": "pipeline/pipeline.go",
+          "lines": 109
+        },
+        "13.11": {
+          "repo": "yasir2000/go-pistachio",
+          "commit": "d7634bb64cf5356470e064ea028e1fd66bf03f3f",
+          "file": "transport/context.go",
+          "lines": 17
+        },
+        "13.12": {
+          "repo": "yasir2000/go-pistachio",
+          "commit": "d7634bb64cf5356470e064ea028e1fd66bf03f3f",
+          "file": "transport/http.go",
+          "lines": 170
+        },
+        "14.1": {
+          "repo": "NebojsaJovanovic95/VISP",
+          "commit": "9e26a37cc42b43c6676321a54c792f0125dc6c75",
+          "file": "cmd/camera-acquisition/main.go",
+          "lines": 13
+        },
+        "14.2": {
+          "repo": "NebojsaJovanovic95/VISP",
+          "commit": "9e26a37cc42b43c6676321a54c792f0125dc6c75",
+          "file": "cmd/visp-server/main.go",
+          "lines": 13
+        },
+        "14.3": {
+          "repo": "NebojsaJovanovic95/VISP",
+          "commit": "9e26a37cc42b43c6676321a54c792f0125dc6c75",
+          "file": "internal/acquisition/acquisition.go",
+          "lines": 46
+        },
+        "14.4": {
+          "repo": "NebojsaJovanovic95/VISP",
+          "commit": "9e26a37cc42b43c6676321a54c792f0125dc6c75",
+          "file": "internal/acquisition/camera.go",
+          "lines": 118
+        },
+        "14.5": {
+          "repo": "NebojsaJovanovic95/VISP",
+          "commit": "9e26a37cc42b43c6676321a54c792f0125dc6c75",
+          "file": "internal/acquisition/h265_decoder.go",
+          "lines": 203
+        },
+        "14.6": {
+          "repo": "NebojsaJovanovic95/VISP",
+          "commit": "9e26a37cc42b43c6676321a54c792f0125dc6c75",
+          "file": "internal/acquisition/stream.go",
+          "lines": 82
+        },
+        "14.7": {
+          "repo": "NebojsaJovanovic95/VISP",
+          "commit": "9e26a37cc42b43c6676321a54c792f0125dc6c75",
+          "file": "internal/config/config.go",
+          "lines": 64
+        },
+        "14.8": {
+          "repo": "NebojsaJovanovic95/VISP",
+          "commit": "9e26a37cc42b43c6676321a54c792f0125dc6c75",
+          "file": "internal/database/database.go",
+          "lines": 103
+        },
+        "14.9": {
+          "repo": "NebojsaJovanovic95/VISP",
+          "commit": "9e26a37cc42b43c6676321a54c792f0125dc6c75",
+          "file": "internal/server/middleware.go",
+          "lines": 41
+        },
+        "14.10": {
+          "repo": "NebojsaJovanovic95/VISP",
+          "commit": "9e26a37cc42b43c6676321a54c792f0125dc6c75",
+          "file": "internal/server/server.go",
+          "lines": 105
+        },
+        "15.1": {
+          "repo": "AndersonMonteiro/cursus",
+          "commit": "e3e0c1b446311995843a612f4e094f8b5f9ff827",
+          "file": "cmd/agentctl/main.go",
+          "lines": 41
+        },
+        "15.2": {
+          "repo": "AndersonMonteiro/cursus",
+          "commit": "e3e0c1b446311995843a612f4e094f8b5f9ff827",
+          "file": "cmd/api/main.go",
+          "lines": 81
+        },
+        "15.3": {
+          "repo": "AndersonMonteiro/cursus",
+          "commit": "e3e0c1b446311995843a612f4e094f8b5f9ff827",
+          "file": "cmd/worker/main.go",
+          "lines": 84
+        },
+        "15.4": {
+          "repo": "AndersonMonteiro/cursus",
+          "commit": "e3e0c1b446311995843a612f4e094f8b5f9ff827",
+          "file": "internal/config/config.go",
+          "lines": 83
+        },
+        "15.5": {
+          "repo": "AndersonMonteiro/cursus",
+          "commit": "e3e0c1b446311995843a612f4e094f8b5f9ff827",
+          "file": "internal/health/health.go",
+          "lines": 75
+        },
+        "15.6": {
+          "repo": "AndersonMonteiro/cursus",
+          "commit": "e3e0c1b446311995843a612f4e094f8b5f9ff827",
+          "file": "internal/postgres/postgres.go",
+          "lines": 35
+        },
+        "15.7": {
+          "repo": "AndersonMonteiro/cursus",
+          "commit": "e3e0c1b446311995843a612f4e094f8b5f9ff827",
+          "file": "internal/temporal/temporal.go",
+          "lines": 42
+        },
+        "16.1": {
+          "repo": "haufionect/todo-cli",
+          "commit": "469cec321020c76a38823d542b19a5ddb392933e",
+          "file": "todo/__init__.py",
+          "lines": 3
+        },
+        "16.2": {
+          "repo": "haufionect/todo-cli",
+          "commit": "469cec321020c76a38823d542b19a5ddb392933e",
+          "file": "todo/__main__.py",
+          "lines": 3
+        },
+        "16.3": {
+          "repo": "haufionect/todo-cli",
+          "commit": "469cec321020c76a38823d542b19a5ddb392933e",
+          "file": "todo/cli.py",
+          "lines": 98
+        },
+        "16.4": {
+          "repo": "haufionect/todo-cli",
+          "commit": "469cec321020c76a38823d542b19a5ddb392933e",
+          "file": "todo/store.py",
+          "lines": 118
+        },
+        "17.1": {
+          "repo": "Sree426-hub/Python_cli_todo-app",
+          "commit": "5e389952ba977c49824cde6fae769afd188c55ac",
+          "file": "todo_app.py",
+          "lines": 50
+        },
+        "18.1": {
+          "repo": "kacperjaworskikontakt-sudo/todo-cli",
+          "commit": "8db3a68cb2e7e65fa28f6e07a78b8fdbc4f25700",
+          "file": "todo.py",
+          "lines": 118
+        },
+        "19.1": {
+          "repo": "La2ryx/todo-list-cli-ft-AI-Engr-4",
+          "commit": "5b9b1f695b442ce3a7c1cdd117d3519128a4ba36",
+          "file": "app.py",
+          "lines": 119
+        },
+        "19.2": {
+          "repo": "La2ryx/todo-list-cli-ft-AI-Engr-4",
+          "commit": "5b9b1f695b442ce3a7c1cdd117d3519128a4ba36",
+          "file": "main.py",
+          "lines": 1
+        },
+        "19.3": {
+          "repo": "La2ryx/todo-list-cli-ft-AI-Engr-4",
+          "commit": "5b9b1f695b442ce3a7c1cdd117d3519128a4ba36",
+          "file": "server.py",
+          "lines": 37
+        },
+        "19.4": {
+          "repo": "La2ryx/todo-list-cli-ft-AI-Engr-4",
+          "commit": "5b9b1f695b442ce3a7c1cdd117d3519128a4ba36",
+          "file": "test.py",
+          "lines": 249
+        },
+        "20.1": {
+          "repo": "SapnaGavati/cli-todo-app",
+          "commit": "806c230fb1fb2adee0f912ccc97cd5ac8014433d",
+          "file": "storage.py",
+          "lines": 17
+        },
+        "20.2": {
+          "repo": "SapnaGavati/cli-todo-app",
+          "commit": "806c230fb1fb2adee0f912ccc97cd5ac8014433d",
+          "file": "todo.py",
+          "lines": 65
+        },
+        "21.1": {
+          "repo": "devmeadow1040/devmeadow1040-todo-cli",
+          "commit": "e48e0eed5cc031e9b8f085a7743b87ff08bba7ab",
+          "file": "main.py",
+          "lines": 56
+        }
+      },
+      "reference": [
+        [
+          "1.1",
+          52
+        ],
+        [
+          "1.2",
+          64
+        ],
+        [
+          "1.6",
+          33
+        ],
+        [
+          "1.8",
+          27
+        ],
+        [
+          "3.11",
+          48
+        ],
+        [
+          "4.2",
+          26
+        ],
+        [
+          "4.2",
+          31
+        ],
+        [
+          "4.2",
+          37
+        ],
+        [
+          "6.1",
+          91
+        ],
+        [
+          "6.1",
+          126
+        ],
+        [
+          "6.1",
+          171
+        ],
+        [
+          "6.1",
+          230
+        ],
+        [
+          "6.1",
+          249
+        ],
+        [
+          "6.5",
+          59
+        ],
+        [
+          "6.6",
+          23
+        ],
+        [
+          "7.5",
+          64
+        ],
+        [
+          "8.2",
+          28
+        ],
+        [
+          "8.2",
+          50
+        ]
+      ],
+      "same_operation_line_aliases": {
+        "6.1": {
+          "99": 91
+        },
+        "6.6": {
+          "30": 23
+        }
+      },
+      "strict_line_scores": {
+        "rise_found": 17,
+        "codex_found": 16
+      },
+      "repo_count": 21,
+      "lines": 8942,
+      "file_count": 117,
+      "rise": {
+        "found": 17,
+        "outside_reference": 0,
+        "missed": 1,
+        "missed_locations": [
+          [
+            "7.5",
+            64
+          ]
+        ],
+        "extra_locations": [],
+        "seconds": 0.0503023
+      },
+      "rise_with_experimental_model": {
+        "found": 17,
+        "outside_reference": 0,
+        "missed": 1,
+        "missed_locations": [
+          [
+            "7.5",
+            64
+          ]
+        ],
+        "extra_locations": [],
+        "seconds": 0.0798609
+      },
+      "openai_codex": {
+        "found": 18,
+        "outside_reference": 0,
+        "missed": 0,
+        "missed_locations": [],
+        "extra_locations": [],
+        "timing": {
+          "wall_s": 11.37055060000057,
+          "runs": [
+            {
+              "batch": 1,
+              "seconds": 5.740242599997146,
+              "prompt_sha256": "f477da277d53ee51eb87e81121ce9a7d10dd07ce090412084b01350fb4b4bf8a",
+              "model": "gpt-6.2-sol"
+            },
+            {
+              "batch": 2,
+              "seconds": 9.54466229999889,
+              "prompt_sha256": "cdba9f8ed3e11ad66137fe3076c33900af20d57302f49cd62beba5711bcd12a4",
+              "model": "gpt-6.2-sol"
+            },
+            {
+              "batch": 3,
+              "seconds": 7.362448399999266,
+              "prompt_sha256": "f4a584035d17bbb004e113437f6ee9561ebea433996183290d1729780bb933a0",
+              "model": "gpt-6.2-sol"
+            },
+            {
+              "batch": 4,
+              "seconds": 3.63998569999967,
+              "prompt_sha256": "346425b9a7737ce0a40d6ed30b88754682b9d4e7442bbbeb8b75f01a95f3ef07",
+              "model": "gpt-6.2-sol"
+            },
+            {
+              "batch": 5,
+              "seconds": 4.003469999999652,
+              "prompt_sha256": "0f0e645fa1b986d167cae3a14c2feb0e6ff1360a2fc25311d5e27146f022da9c",
+              "model": "gpt-6.2-sol"
+            }
+          ]
+        }
+      },
+      "by_repository": [
+        {
+          "repo": "bethhaysom/amplitude_project",
+          "stratum": "python_s3",
+          "reference_sites": 4,
+          "rise": 4,
+          "codex": 4,
+          "rise_extra": 0,
+          "codex_extra": 0
+        },
+        {
+          "repo": "exxmanster/exxmanster",
+          "stratum": "python_s3",
+          "reference_sites": 0,
+          "rise": 0,
+          "codex": 0,
+          "rise_extra": 0,
+          "codex_extra": 0
+        },
+        {
+          "repo": "Olivierjhf/NYC-taxi-pyspark-etl",
+          "stratum": "python_s3",
+          "reference_sites": 1,
+          "rise": 1,
+          "codex": 1,
+          "rise_extra": 0,
+          "codex_extra": 0
+        },
+        {
+          "repo": "Gopimahith/aws-tourism-data-pipeline",
+          "stratum": "python_s3",
+          "reference_sites": 3,
+          "rise": 3,
+          "codex": 3,
+          "rise_extra": 0,
+          "codex_extra": 0
+        },
+        {
+          "repo": "bugsdriven-dev/canteen-live",
+          "stratum": "python_s3",
+          "reference_sites": 0,
+          "rise": 0,
+          "codex": 0,
+          "rise_extra": 0,
+          "codex_extra": 0
+        },
+        {
+          "repo": "NITISH084/Deployr",
+          "stratum": "javascript_s3",
+          "reference_sites": 7,
+          "rise": 7,
+          "codex": 7,
+          "rise_extra": 0,
+          "codex_extra": 0
+        },
+        {
+          "repo": "govuk-once/flex-platform-domain-sandbox",
+          "stratum": "javascript_s3",
+          "reference_sites": 1,
+          "rise": 0,
+          "codex": 1,
+          "rise_extra": 0,
+          "codex_extra": 0
+        },
+        {
+          "repo": "raviponcodemonday/nextjs-terraform-localstack-cloud",
+          "stratum": "javascript_s3",
+          "reference_sites": 2,
+          "rise": 2,
+          "codex": 2,
+          "rise_extra": 0,
+          "codex_extra": 0
+        },
+        {
+          "repo": "sunsiyuan/n8n-nodes-haryai",
+          "stratum": "javascript_s3",
+          "reference_sites": 0,
+          "rise": 0,
+          "codex": 0,
+          "rise_extra": 0,
+          "codex_extra": 0
+        },
+        {
+          "repo": "zainab-kassim/zayelle-photo-pipeline",
+          "stratum": "javascript_s3",
+          "reference_sites": 0,
+          "rise": 0,
+          "codex": 0,
+          "rise_extra": 0,
+          "codex_extra": 0
+        },
+        {
+          "repo": "prachizala/StreamForge",
+          "stratum": "javascript_s3",
+          "reference_sites": 0,
+          "rise": 0,
+          "codex": 0,
+          "rise_extra": 0,
+          "codex_extra": 0
+        },
+        {
+          "repo": "prometheus/kube-demo-site",
+          "stratum": "go_s3",
+          "reference_sites": 0,
+          "rise": 0,
+          "codex": 0,
+          "rise_extra": 0,
+          "codex_extra": 0
+        },
+        {
+          "repo": "yasir2000/go-pistachio",
+          "stratum": "go_s3",
+          "reference_sites": 0,
+          "rise": 0,
+          "codex": 0,
+          "rise_extra": 0,
+          "codex_extra": 0
+        },
+        {
+          "repo": "NebojsaJovanovic95/VISP",
+          "stratum": "go_s3",
+          "reference_sites": 0,
+          "rise": 0,
+          "codex": 0,
+          "rise_extra": 0,
+          "codex_extra": 0
+        },
+        {
+          "repo": "AndersonMonteiro/cursus",
+          "stratum": "go_s3",
+          "reference_sites": 0,
+          "rise": 0,
+          "codex": 0,
+          "rise_extra": 0,
+          "codex_extra": 0
+        },
+        {
+          "repo": "haufionect/todo-cli",
+          "stratum": "controls",
+          "reference_sites": 0,
+          "rise": 0,
+          "codex": 0,
+          "rise_extra": 0,
+          "codex_extra": 0
+        },
+        {
+          "repo": "Sree426-hub/Python_cli_todo-app",
+          "stratum": "controls",
+          "reference_sites": 0,
+          "rise": 0,
+          "codex": 0,
+          "rise_extra": 0,
+          "codex_extra": 0
+        },
+        {
+          "repo": "kacperjaworskikontakt-sudo/todo-cli",
+          "stratum": "controls",
+          "reference_sites": 0,
+          "rise": 0,
+          "codex": 0,
+          "rise_extra": 0,
+          "codex_extra": 0
+        },
+        {
+          "repo": "La2ryx/todo-list-cli-ft-AI-Engr-4",
+          "stratum": "controls",
+          "reference_sites": 0,
+          "rise": 0,
+          "codex": 0,
+          "rise_extra": 0,
+          "codex_extra": 0
+        },
+        {
+          "repo": "SapnaGavati/cli-todo-app",
+          "stratum": "controls",
+          "reference_sites": 0,
+          "rise": 0,
+          "codex": 0,
+          "rise_extra": 0,
+          "codex_extra": 0
+        },
+        {
+          "repo": "devmeadow1040/devmeadow1040-todo-cli",
+          "stratum": "controls",
+          "reference_sites": 0,
+          "rise": 0,
+          "codex": 0,
+          "rise_extra": 0,
+          "codex_extra": 0
+        }
+      ]
+    },
+    {
+      "selection": {
+        "queries": {
+          "targeted": [
+            "lazylib/s3",
+            "prestonlimlianjie/aws-s3-multipart-presigned-upload",
+            "modelair/s3uploader",
+            "jamil-safi/minio-file-upload",
+            "SadaleNet/simple-python-s3-file-hosting",
+            "mnaufalazwar/s3-upload",
+            "orme292/s3packer",
+            "aminalaee/fastapi-storages",
+            "Sharashchandra/s3ranger"
+          ]
+        },
+        "exclusions": [
+          {
+            "repo": "lazylib/s3",
+            "reason": "source size 32493"
+          },
+          {
+            "repo": "orme292/s3packer",
+            "reason": "source size 88857"
+          },
+          {
+            "repo": "Sharashchandra/s3ranger",
+            "reason": "source size 233487"
+          }
+        ],
+        "repos": [
+          {
+            "url": "https://github.com/modelair/s3uploader",
+            "commit": "3ca5b3d022b8ddfa5fbab940d3c96cd1cef75c10",
+            "size_chars": 12904,
+            "stratum": "targeted",
+            "name": "modelair/s3uploader",
+            "id": "1",
+            "sha256": "dec2d412e3c855f8473b4b767835adf0e4df0c250fdb8877fed08ad6d8b7e824"
+          },
+          {
+            "url": "https://github.com/jamil-safi/minio-file-upload",
+            "commit": "25ace2383e66ab30e2fe2ba6de68e97ddfa7ad44",
+            "size_chars": 2519,
+            "stratum": "targeted",
+            "name": "jamil-safi/minio-file-upload",
+            "id": "2",
+            "sha256": "7d12fa7fcf5c06bd7ab03bfb42993255b5e0327cf6e647a4e063c9fb3eaaf01b"
+          },
+          {
+            "url": "https://github.com/SadaleNet/simple-python-s3-file-hosting",
+            "commit": "c9ca4ed59a0d094bf72d458fd00ddef532a907eb",
+            "size_chars": 7121,
+            "stratum": "targeted",
+            "name": "SadaleNet/simple-python-s3-file-hosting",
+            "id": "3",
+            "sha256": "41a19a32f861e8e202cbb20c6437a2200a707eb7b9d679ec1253a8a14cc5dc09"
+          },
+          {
+            "url": "https://github.com/mnaufalazwar/s3-upload",
+            "commit": "985fbde09a57b3b278d3a2bbf5c739add71bac21",
+            "size_chars": 4918,
+            "stratum": "targeted",
+            "name": "mnaufalazwar/s3-upload",
+            "id": "4",
+            "sha256": "32234ae96e7b4b25302e1459a6e4a15fd0a72a4a5cbc99cd4d118b30e787eddd"
+          },
+          {
+            "url": "https://github.com/aminalaee/fastapi-storages",
+            "commit": "a3521e9ab81d21f261a995783dea67cd0e1d06f9",
+            "size_chars": 19514,
+            "stratum": "targeted",
+            "name": "aminalaee/fastapi-storages",
+            "id": "5",
+            "sha256": "75cfefbb2828085e3757c2dfa2f97ecf15ad40edef73eaf1fc1acacd29aff620"
+          }
+        ]
+      },
+      "file_index": {
+        "1.1": {
+          "repo": "modelair/s3uploader",
+          "commit": "3ca5b3d022b8ddfa5fbab940d3c96cd1cef75c10",
+          "file": "src/errors.ts",
+          "lines": 11
+        },
+        "1.2": {
+          "repo": "modelair/s3uploader",
+          "commit": "3ca5b3d022b8ddfa5fbab940d3c96cd1cef75c10",
+          "file": "src/index.ts",
+          "lines": 12
+        },
+        "1.3": {
+          "repo": "modelair/s3uploader",
+          "commit": "3ca5b3d022b8ddfa5fbab940d3c96cd1cef75c10",
+          "file": "src/mime.ts",
+          "lines": 42
+        },
+        "1.4": {
+          "repo": "modelair/s3uploader",
+          "commit": "3ca5b3d022b8ddfa5fbab940d3c96cd1cef75c10",
+          "file": "src/s3-uploader.ts",
+          "lines": 255
+        },
+        "1.5": {
+          "repo": "modelair/s3uploader",
+          "commit": "3ca5b3d022b8ddfa5fbab940d3c96cd1cef75c10",
+          "file": "src/types.ts",
+          "lines": 91
+        },
+        "1.6": {
+          "repo": "modelair/s3uploader",
+          "commit": "3ca5b3d022b8ddfa5fbab940d3c96cd1cef75c10",
+          "file": "tsup.config.ts",
+          "lines": 14
+        },
+        "1.7": {
+          "repo": "modelair/s3uploader",
+          "commit": "3ca5b3d022b8ddfa5fbab940d3c96cd1cef75c10",
+          "file": "vitest.config.ts",
+          "lines": 9
+        },
+        "2.1": {
+          "repo": "jamil-safi/minio-file-upload",
+          "commit": "25ace2383e66ab30e2fe2ba6de68e97ddfa7ad44",
+          "file": "main.py",
+          "lines": 74
+        },
+        "2.2": {
+          "repo": "jamil-safi/minio-file-upload",
+          "commit": "25ace2383e66ab30e2fe2ba6de68e97ddfa7ad44",
+          "file": "storage.py",
+          "lines": 24
+        },
+        "3.1": {
+          "repo": "SadaleNet/simple-python-s3-file-hosting",
+          "commit": "c9ca4ed59a0d094bf72d458fd00ddef532a907eb",
+          "file": "app/app.py",
+          "lines": 144
+        },
+        "4.1": {
+          "repo": "mnaufalazwar/s3-upload",
+          "commit": "985fbde09a57b3b278d3a2bbf5c739add71bac21",
+          "file": "backend/config.py",
+          "lines": 12
+        },
+        "4.2": {
+          "repo": "mnaufalazwar/s3-upload",
+          "commit": "985fbde09a57b3b278d3a2bbf5c739add71bac21",
+          "file": "backend/main.py",
+          "lines": 105
+        },
+        "4.3": {
+          "repo": "mnaufalazwar/s3-upload",
+          "commit": "985fbde09a57b3b278d3a2bbf5c739add71bac21",
+          "file": "backend/s3_client.py",
+          "lines": 17
+        },
+        "4.4": {
+          "repo": "mnaufalazwar/s3-upload",
+          "commit": "985fbde09a57b3b278d3a2bbf5c739add71bac21",
+          "file": "frontend/eslint.config.js",
+          "lines": 29
+        },
+        "4.5": {
+          "repo": "mnaufalazwar/s3-upload",
+          "commit": "985fbde09a57b3b278d3a2bbf5c739add71bac21",
+          "file": "frontend/vite.config.js",
+          "lines": 7
+        },
+        "5.1": {
+          "repo": "aminalaee/fastapi-storages",
+          "commit": "a3521e9ab81d21f261a995783dea67cd0e1d06f9",
+          "file": "fastapi_storages/__init__.py",
+          "lines": 10
+        },
+        "5.2": {
+          "repo": "aminalaee/fastapi-storages",
+          "commit": "a3521e9ab81d21f261a995783dea67cd0e1d06f9",
+          "file": "fastapi_storages/base.py",
+          "lines": 120
+        },
+        "5.3": {
+          "repo": "aminalaee/fastapi-storages",
+          "commit": "a3521e9ab81d21f261a995783dea67cd0e1d06f9",
+          "file": "fastapi_storages/exceptions.py",
+          "lines": 1
+        },
+        "5.4": {
+          "repo": "aminalaee/fastapi-storages",
+          "commit": "a3521e9ab81d21f261a995783dea67cd0e1d06f9",
+          "file": "fastapi_storages/filesystem.py",
+          "lines": 87
+        },
+        "5.5": {
+          "repo": "aminalaee/fastapi-storages",
+          "commit": "a3521e9ab81d21f261a995783dea67cd0e1d06f9",
+          "file": "fastapi_storages/integrations/__init__.py",
+          "lines": 0
+        },
+        "5.6": {
+          "repo": "aminalaee/fastapi-storages",
+          "commit": "a3521e9ab81d21f261a995783dea67cd0e1d06f9",
+          "file": "fastapi_storages/integrations/peewee.py",
+          "lines": 107
+        },
+        "5.7": {
+          "repo": "aminalaee/fastapi-storages",
+          "commit": "a3521e9ab81d21f261a995783dea67cd0e1d06f9",
+          "file": "fastapi_storages/integrations/sqlalchemy.py",
+          "lines": 133
+        },
+        "5.8": {
+          "repo": "aminalaee/fastapi-storages",
+          "commit": "a3521e9ab81d21f261a995783dea67cd0e1d06f9",
+          "file": "fastapi_storages/s3.py",
+          "lines": 178
+        },
+        "5.9": {
+          "repo": "aminalaee/fastapi-storages",
+          "commit": "a3521e9ab81d21f261a995783dea67cd0e1d06f9",
+          "file": "fastapi_storages/utils.py",
+          "lines": 41
+        }
+      },
+      "reference": [
+        [
+          "1.4",
+          76
+        ],
+        [
+          "1.4",
+          135
+        ],
+        [
+          "1.4",
+          149
+        ],
+        [
+          "1.4",
+          164
+        ],
+        [
+          "1.4",
+          181
+        ],
+        [
+          "1.4",
+          217
+        ],
+        [
+          "1.4",
+          224
+        ],
+        [
+          "1.4",
+          226
+        ],
+        [
+          "2.1",
+          21
+        ],
+        [
+          "2.1",
+          33
+        ],
+        [
+          "2.1",
+          50
+        ],
+        [
+          "2.1",
+          57
+        ],
+        [
+          "2.1",
+          66
+        ],
+        [
+          "2.2",
+          22
+        ],
+        [
+          "2.2",
+          24
+        ],
+        [
+          "3.1",
+          93
+        ],
+        [
+          "4.2",
+          42
+        ],
+        [
+          "4.2",
+          62
+        ],
+        [
+          "4.2",
+          92
+        ],
+        [
+          "5.8",
+          117
+        ],
+        [
+          "5.8",
+          131
+        ],
+        [
+          "5.8",
+          148
+        ],
+        [
+          "5.8",
+          156
+        ],
+        [
+          "5.8",
+          173
+        ]
+      ],
+      "same_operation_line_aliases": {
+        "1.4": {
+          "96": 76
+        }
+      },
+      "strict_line_scores": {
+        "rise_found": 24,
+        "codex_found": 23
+      },
+      "repo_count": 5,
+      "lines": 1523,
+      "file_count": 24,
+      "rise": {
+        "found": 24,
+        "outside_reference": 1,
+        "missed": 0,
+        "missed_locations": [],
+        "extra_locations": [
+          [
+            "1.4",
+            120
+          ]
+        ],
+        "seconds": 0.0285705
+      },
+      "rise_with_experimental_model": {
+        "found": 24,
+        "outside_reference": 1,
+        "missed": 0,
+        "missed_locations": [],
+        "extra_locations": [
+          [
+            "1.4",
+            120
+          ]
+        ],
+        "seconds": 0.0381631
+      },
+      "openai_codex": {
+        "found": 24,
+        "outside_reference": 0,
+        "missed": 0,
+        "missed_locations": [],
+        "extra_locations": [],
+        "timing": {
+          "wall_s": 8.683474699999351,
+          "runs": [
+            {
+              "batch": 1,
+              "seconds": 8.678603000000294,
+              "prompt_sha256": "7c630304d30f23027e7f021db61ce87fcd111f5ca930bec748ed90c5b9709b06",
+              "model": "gpt-6.2-sol"
+            }
+          ]
+        }
+      },
+      "by_repository": [
+        {
+          "repo": "modelair/s3uploader",
+          "stratum": "targeted",
+          "reference_sites": 8,
+          "rise": 8,
+          "codex": 8,
+          "rise_extra": 1,
+          "codex_extra": 0
+        },
+        {
+          "repo": "jamil-safi/minio-file-upload",
+          "stratum": "targeted",
+          "reference_sites": 7,
+          "rise": 7,
+          "codex": 7,
+          "rise_extra": 0,
+          "codex_extra": 0
+        },
+        {
+          "repo": "SadaleNet/simple-python-s3-file-hosting",
+          "stratum": "targeted",
+          "reference_sites": 1,
+          "rise": 1,
+          "codex": 1,
+          "rise_extra": 0,
+          "codex_extra": 0
+        },
+        {
+          "repo": "mnaufalazwar/s3-upload",
+          "stratum": "targeted",
+          "reference_sites": 3,
+          "rise": 3,
+          "codex": 3,
+          "rise_extra": 0,
+          "codex_extra": 0
+        },
+        {
+          "repo": "aminalaee/fastapi-storages",
+          "stratum": "targeted",
+          "reference_sites": 5,
+          "rise": 5,
+          "codex": 5,
+          "rise_extra": 0,
+          "codex_extra": 0
+        }
+      ]
+    }
+  ],
+  "scanner_revision": {
+    "head": "6197792fa88dd832335f3080f27d79e3e41804b6",
+    "scan_py_sha256": "dcc661adc820fc170afc0feb61bc67aef2a71ae2506fe5dd7be30758c4eb1e97"
+  },
+  "totals": {
+    "repositories": 26,
+    "files": 141,
+    "lines": 10465,
+    "repositories_with_reference_sites": 11,
+    "reference_sites": 42,
+    "rise": {
+      "found": 41,
+      "missed": 1,
+      "outside_reference": 1,
+      "seconds": 0.07887279999999999
+    },
+    "openai_codex": {
+      "found": 42,
+      "missed": 0,
+      "outside_reference": 0,
+      "seconds": 20.05402529999992
+    },
+    "rise_with_experimental_model": {
+      "found": 41,
+      "missed": 1,
+      "outside_reference": 1,
+      "seconds": 0.11802399999999999
+    }
+  }
+}

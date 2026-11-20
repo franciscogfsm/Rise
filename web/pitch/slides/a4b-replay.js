@@ -5,12 +5,12 @@ RISE.slide({
   id: "replay",
   title: "Replay",
   time: "1:25 – 1:45",
-  steps: 2,
+  // automatic: the grid fills, then the divergence appears (no clicks needed)
   notes: `
 "Some companies can't share their code at all. For them, there's replay."
 "RISE records, locally, a real sequence of S3 operations from the running app. The code and the data never leave the company."
-(→) "Then it replays exactly that sequence on each candidate provider, with synthetic data."
-(→) "And it shows the first operation that would behave differently: which step, on which provider, and the evidence, side by side."
+(automático) "Then it replays exactly that sequence on each candidate provider, with synthetic data."
+(automático, ~3 s) "And it shows the first operation that would behave differently: which step, on which provider, and the evidence, side by side."
 Este slide é uma ilustração: os candidatos A/B/C e a divergência no passo 4 são exemplos. Se perguntarem, dizê-lo.`,
 
   OPS: ["PutObject", "HeadObject", "ListObjectsV2", "GetObject (range)", "Presigned GET", "DeleteObject"],
@@ -86,5 +86,10 @@ Este slide é uma ilustração: os candidatos A/B/C e a divergência no passo 4 
     }).join("")}</div>`).join("");
     FX.prep(el);
   },
-  enter() { FX.act("solution"); },
+  enter(el, api) {
+    FX.act("solution");
+    if (api.still) return el.classList.add("s1", "s2");
+    this._t = [setTimeout(() => el.classList.add("s1"), 900), setTimeout(() => el.classList.add("s2"), 3300)];
+  },
+  leave(el) { (this._t || []).forEach(clearTimeout); el.classList.remove("s1", "s2"); },
 });

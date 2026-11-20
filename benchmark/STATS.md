@@ -2,7 +2,7 @@
 
 > Don't trust our words. Trust our results.
 
-**In one line.** RISE read 35 million lines in 40 seconds and missed no real S3 call. On the same code it is hundreds of times faster than Claude and OpenAI Codex, with 0 AI tokens. On 6 new repositories it now finds 45 of 45 S3 calls; Codex finds 43.
+**In one line.** RISE read 35 million lines in 40 seconds and missed no real S3 call. On the same code it is hundreds of times faster than Claude and OpenAI Codex, with 0 AI tokens. On 6 new repositories it now finds 45 of 45 S3 calls; Codex finds 43. On 26 more fresh repositories, RISE Fast found 41 of 42 in 79 ms; Codex found 42 in 20 s.
 
 All figures were measured on 20 Nov 2026, on one 16-core laptop. Download time is not included. The raw data is in [results.json](results.json), and the method is in [README.md](README.md).
 
@@ -93,11 +93,29 @@ Operations RISE finds but cannot test yet, such as the browser's presigned POST,
 
 Honest note: the "after" column is a regression result. The same 6 repositories were used to make the fixes. The "before" column (34/45 in 92 ms) is the only blind result.
 
+### RISE Fast: 26 fresh repositories, no changes during the trial (10,465 lines)
+
+Data: [scanner-fresh-vs-codex.json](scanner-fresh-vs-codex.json). It records pinned commits and the scanner hash.
+
+**RISE Fast** is the discovery engine: the deterministic scanner plus an optional **1.3 KB local model**.
+- The model reviews ambiguous S3 calls in Python and JS/TS.
+- It runs offline on the CPU.
+- It learns only from reviewed feedback (`--feedback`).
+
+| | RISE Fast scanner | RISE Fast + local model | OpenAI Codex |
+|---|---|---|---|
+| S3 call sites found | 41 / 42 | 41 / 42 | **42 / 42** |
+| Alerts outside the reference | 1 | 1 | 0 |
+| Time | **79 ms** | 118 ms | 20.05 s (**~250× slower**) |
+
+This is a blind result: the scanner did not change during the trial. Codex was 1 call more accurate, and RISE was about 250 times faster with 0 AI tokens. Only 11 of the 26 repositories had S3 calls. One reviewer built the reference. On this sample the model kept the scanner's coverage; it did not raise it.
+
 ## 4. What the comparisons improved
 
 - **Call names inside strings are no longer counted.** Error text such as `"S3::putObject(): failed"` used to count as a call. A test now covers it.
 - **More languages.** RISE now reads Scala, Swift, Dart, C++ and Elixir as well. That is 15 languages: Python, JavaScript, TypeScript, Go, Java, Kotlin, PHP, Ruby, C#, Rust, Scala, Swift, Dart, C++ and Elixir.
-- **115 automated tests pass.** They include a corpus covering 24 SDK styles.
+- **RISE Fast local model.** The 1.3 KB model reviews ambiguous calls and learns from confirmed feedback.
+- **119 automated tests pass.** They include a corpus covering 24 SDK styles.
 
 ## 5. Limits
 

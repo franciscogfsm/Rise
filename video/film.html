@@ -15,23 +15,32 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@300..800&family=Geist+Mono:wght@400;500;600&display=block">
 <link rel="stylesheet" href="../web/rise.css">
 <style>
+/* One theme for the whole film: the pitch's Pearl Pro (web/rise.css + web/pitch/core/stage.css). No dark scenes.
+   The background mood changes by act exactly like the deck: problem = a touch of coral, solution = ice/lavender/aqua, proof = mint. */
 :root {
-  --night: #060A14; --night2: #0C1424; --e-out: cubic-bezier(.16, 1, .3, 1); --e-io: cubic-bezier(.65, 0, .35, 1);
-  --e-spring: cubic-bezier(.34, 1.56, .64, 1); --coral: #FF6B4F; --mint: #2EE6B8; --sky: #6EA8FF;
+  --e-out: cubic-bezier(.16, 1, .3, 1); --e-io: cubic-bezier(.65, 0, .35, 1); --e-spring: cubic-bezier(.34, 1.56, .64, 1);
+  --faint-ink: #5F6B84; --accent-soft: color-mix(in srgb, var(--accent) 50%, #fff);
 }
 html, body { margin: 0; height: 100%; background: #000; overflow: hidden; }
 #stage { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; overflow: hidden; transform-origin: 0 0;
   font-family: var(--f-ui); color: var(--ink); background: var(--bg); }
 #world, #world > *, .scene, .cam { position: absolute; inset: 0; }
-#world .blob { position: absolute; border-radius: 50%; filter: blur(90px); will-change: transform; }
-#world .dark { background: radial-gradient(1200px 800px at 50% 40%, var(--night2), var(--night)); }
-#world .dark .blob { filter: blur(120px); opacity: .55; }
-#grain { position: absolute; inset: -60px; z-index: 50; pointer-events: none; opacity: .07; mix-blend-mode: overlay;
+#world .blob { position: absolute; border-radius: 50%; filter: blur(70px); opacity: .95; will-change: transform; }
+#grain { position: absolute; inset: -60px; z-index: 50; pointer-events: none; opacity: .05; mix-blend-mode: multiply;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
-#vignette { position: absolute; inset: 0; z-index: 49; pointer-events: none; background: radial-gradient(130% 100% at 50% 50%, transparent 60%, rgba(6,10,20,.22)); }
-.scene { display: none; }
-.dk { color: #fff; }
+.scene { display: none; --act: var(--accent); }
+.scene[data-act="problem"] { --act: var(--bad); }
+.scene[data-act="proof"] { --act: var(--ok); }
+.soft { color: var(--faint-ink); }
+.glass-card { background: rgba(255,255,255,.72); border-radius: 32px;
+  box-shadow: inset 0 1px 0 #fff, inset 0 0 0 1px rgba(255,255,255,.6), 0 1px 1px rgba(26,41,63,.05), 0 30px 70px -24px rgba(26,41,63,.28); }
 
+/* animation knobs never inherit: a parent's --d or --ease must not leak into its children */
+@property --d { syntax: "<time>"; inherits: false; initial-value: .8s; }
+@property --at { syntax: "<number>"; inherits: false; initial-value: 0; }
+@property --fx { syntax: "*"; inherits: false; }
+@property --ease { syntax: "*"; inherits: false; }
+@property --n { syntax: "*"; inherits: false; }
 /* ---------- motion library: class="fx NAME" style="--at: seconds-into-scene; --d: length" ---------- */
 .fx { animation: var(--fx) var(--d, .8s) var(--ease, var(--e-out)) calc(var(--at, 0) * 1s) var(--n, 1) both; }
 .in     { --fx: fx-in; }      @keyframes fx-in { from { opacity: 0; transform: translateY(var(--y, 40px)); filter: blur(12px); } }
@@ -59,10 +68,6 @@ html, body { margin: 0; height: 100%; background: #000; overflow: hidden; }
 .shake  { --fx: fx-shake; --d: .5s; --ease: linear; }
 @keyframes fx-shake { 10% { transform: translate(-18px, 9px) rotate(-.6deg); } 20% { transform: translate(15px, -12px) rotate(.5deg); } 30% { transform: translate(-12px, -6px); }
   45% { transform: translate(10px, 8px) rotate(.3deg); } 60% { transform: translate(-6px, 4px); } 80% { transform: translate(3px, -2px); } }
-.glitch { --fx: fx-glitch; --d: .9s; --ease: steps(1); }
-@keyframes fx-glitch { 0% { transform: translate(0); text-shadow: none; } 10% { transform: translate(-14px, 3px) skewX(-8deg); text-shadow: 10px 0 #FF2E63, -10px 0 #08F7FE; clip-path: inset(10% 0 40% 0); }
-  20% { transform: translate(12px, -4px); clip-path: inset(50% 0 5% 0); } 30% { transform: translate(-6px, 0) skewX(10deg); clip-path: inset(0 0 70% 0); text-shadow: -14px 0 #FF2E63, 14px 0 #08F7FE; }
-  45% { transform: translate(4px, 2px); clip-path: none; } 60% { transform: translate(-3px, 0); text-shadow: 4px 0 #FF2E63, -4px 0 #08F7FE; } 100% { transform: none; text-shadow: none; clip-path: none; } }
 .strike { --fx: fx-strike; --d: .45s; transform-origin: 0 50%; } @keyframes fx-strike { from { transform: scaleX(0); } }
 .sweep  { --fx: fx-sweep; --d: 1.2s; --ease: var(--e-io); position: absolute; inset: 0; pointer-events: none; z-index: 5;
   background: linear-gradient(105deg, transparent 35%, rgba(255,255,255,.75) 50%, transparent 65%); background-size: 250% 100%; mix-blend-mode: soft-light; }
@@ -75,11 +80,14 @@ html, body { margin: 0; height: 100%; background: #000; overflow: hidden; }
 .shot { position: relative; overflow: hidden; border-radius: 22px; background: #fff;
   box-shadow: 0 1px 0 rgba(255,255,255,.9) inset, 0 0 0 1px rgba(18,31,53,.07), 0 40px 120px -30px rgba(18,31,53,.45), 0 12px 40px -12px rgba(37,99,235,.25); }
 .shot img { position: absolute; display: block; max-width: none; }
+.layer { position: absolute; inset: 0; }
 .center { position: absolute; inset: 0; display: grid; place-items: center; text-align: center; }
 .mono { font-family: var(--f-mono); }
 .kick { font: 600 24px/1 var(--f-mono); letter-spacing: .22em; text-transform: uppercase; }
 .foot { position: absolute; left: 0; right: 0; bottom: 46px; text-align: center; font: 500 19px/1.4 var(--f-mono); color: var(--muted); letter-spacing: .02em; }
-.dk .foot, .foot.dk { color: rgba(255,255,255,.55); }
+.horizon { display: block; height: 2px; border-radius: 2px; transform-origin: 50% 50%;
+  background: linear-gradient(90deg, transparent, rgba(18,31,53,.28) 25%, rgba(18,31,53,.28) 75%, transparent); }
+.grow-x { --fx: fx-grow-x; --d: 1.2s; --ease: var(--e-io); } @keyframes fx-grow-x { from { transform: scaleX(0); } }
 
 /* preview UI (hidden in render) */
 #ui { position: fixed; left: 0; right: 0; bottom: 0; height: 44px; background: #0b0f18; color: #cfd6e4; font: 13px/44px var(--f-mono); display: flex; gap: 14px; padding: 0 14px; z-index: 100; }
@@ -92,10 +100,8 @@ html.render #ui { display: none; }
 <div id="stage">
   <div id="world">
     <div class="light"><i class="blob" id="b1"></i><i class="blob" id="b2"></i><i class="blob" id="b3"></i></div>
-    <div class="dark"><i class="blob" id="d1"></i><i class="blob" id="d2"></i></div>
   </div>
   <div id="scenes"></div>
-  <div id="vignette"></div>
   <div id="grain"></div>
 </div>
 <div id="ui"><button id="play">▶</button><span id="tc">0.00</span><div id="bar"><i></i></div><span id="sc"></span></div>
@@ -134,8 +140,9 @@ const list = [];
     t = tm.start + tm.dur;
     const def = SCENES[sc.id] || { html: `<div class="center"><h1>${sc.id}</h1></div>` };
     const el = document.createElement("section");
-    el.className = "scene" + (sc.act === "dark" ? " dk" : "");
+    el.className = "scene";
     el.dataset.scene = sc.id;
+    el.dataset.act = sc.act;
     el.style.setProperty("--dur", tm.dur + "s");
     el.innerHTML = `<div class="cam fx push" style="--d:${tm.dur}s;--p1:${def.push ?? 1.045}">${typeof def.html === "function" ? def.html(tm) : def.html}</div>`;
     if (def.css || def.raw) { const st = document.createElement("style"); st.textContent = `[data-scene="${sc.id}"] { ${def.css || ""} }
@@ -149,7 +156,9 @@ ${def.raw || ""}`; document.head.append(st); }
 /* ---------- seek: the only place time enters ---------- */
 const $ = (s) => document.querySelector(s);
 const blob = (id, x, y, s, c) => { const b = $(id); b.style.cssText = `width:${s}px;height:${s}px;left:${x}px;top:${y}px;background:${c}`; };
-const PAL = { light: ["var(--blob-ice)", "var(--blob-lavender)", "var(--blob-aqua)"], proof: ["var(--ok-bg)", "var(--blob-ice)", "var(--blob-aqua)"] };
+// the deck's act palettes (web/pitch/core/stage.css)
+const PAL = { problem: ["var(--bad-bg)", "var(--blob-lavender)", "var(--blob-ice)"], solution: ["var(--blob-ice)", "var(--blob-lavender)", "var(--blob-aqua)"],
+  proof: ["var(--ok-bg)", "var(--blob-ice)", "var(--blob-aqua)"] };
 let current = null;
 function seek(t) {
   let cur = list[list.length - 1];
@@ -171,17 +180,14 @@ function seek(t) {
     e.textContent = e.dataset.type.slice(0, n);
   });
   cur.def.tick?.(cur.el, local, cur.dur);
-  // world: dark ↔ light with a fast crossfade at scene starts, blobs drift with time
+  // world: always the pearl background; the blob colours cross-fade between acts, and the blobs sit where the deck has them
   const i = list.indexOf(cur), prev = list[i - 1];
-  const dk = (s) => (s && s.act === "dark" ? 1 : 0);
-  const k = clamp(local / 0.25);
-  $("#world .dark").style.opacity = prev ? dk(prev) + (dk(cur) - dk(prev)) * k : dk(cur);
-  const pal = PAL[cur.act === "proof" ? "proof" : "light"];
-  blob("#b1", -260 + 120 * Math.sin(t * .23), -380 + 80 * Math.cos(t * .19), 1100, pal[0]);
-  blob("#b2", 1150 + 140 * Math.cos(t * .21), 120 + 90 * Math.sin(t * .17), 950, pal[1]);
-  blob("#b3", 560 + 160 * Math.sin(t * .15), 640 + 60 * Math.cos(t * .25), 900, pal[2]);
-  blob("#d1", -200 + 200 * Math.sin(t * .3), -200 + 100 * Math.cos(t * .2), 1000, cur.id === "fear" || cur.id === "stuck" ? "rgba(212,81,59,.55)" : "rgba(37,99,235,.45)");
-  blob("#d2", 1100 + 150 * Math.cos(t * .25), 500 + 120 * Math.sin(t * .22), 900, "rgba(110,80,255,.35)");
+  const now = PAL[cur.act] || PAL.solution, was = PAL[prev?.act] || now;
+  const k = Math.round(clamp(local / 0.8) * 100);
+  const mix = (n) => (was[n] === now[n] ? now[n] : `color-mix(in srgb, ${was[n]} ${100 - k}%, ${now[n]})`);
+  blob("#b1", -230 + 40 * Math.sin(t * .23), -420 + 30 * Math.cos(t * .19), 1000, mix(0));
+  blob("#b2", 1270 + 40 * Math.cos(t * .21), 190 + 30 * Math.sin(t * .17), 840, mix(1));
+  blob("#b3", 610 + 50 * Math.sin(t * .15), 810 + 25 * Math.cos(t * .25), 730, mix(2));
   $("#grain").style.transform = `translate(${(Math.floor(t * 24) * 37) % 60}px, ${(Math.floor(t * 24) * 53) % 60}px)`;
   current = cur;
   return cur.id;

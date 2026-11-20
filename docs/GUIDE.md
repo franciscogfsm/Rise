@@ -60,7 +60,7 @@ RISE server (Python 3.12, FastAPI)  ── rise/server.py
 Everything below is real, and each stage is streamed live to the browser.
 
 1. **Fetch.** RISE downloads the repository archive from GitHub **into memory**. Limits: 200 MB archive, 50,000 files, 400 KB per file, text source only. Nothing is written to disk and **no repository code is ever executed**. For a private repo you give a read-only token. It is used for this one download and then dropped: never stored, logged or sent to the AI.
-2. **Scan** (no AI). Deterministic rules find every S3 call site with its `file:line`. They cover boto3, AWS SDK JS v2/v3, Go, Java and PHP. The scan records the behaviours each call relies on: metadata, ranges, presigned URLs, multipart, tags, encryption, ACLs, storage classes, and the region the client signs with. It also lists other cloud services the code depends on (SQS, DynamoDB, Lambda…) as lock-in.
+2. **Scan** (no AI), by **RISE Fast**. Deterministic rules find every S3 call site with its `file:line`. They cover boto3, AWS SDK JS v2/v3, Go, Java and PHP. The scan records the behaviours each call relies on: metadata, ranges, presigned URLs, multipart, tags, encryption, ACLs, storage classes, and the region the client signs with. It also lists other cloud services the code depends on (SQS, DynamoDB, Lambda…) as lock-in.
 3. **Risks** (no AI). Rules flag architecture risks, each with `file:line` evidence:
    - a single provider with no fallback (single point of failure);
    - regions or AWS endpoints written in the code;
@@ -155,7 +155,7 @@ bash scripts/run.sh       # providers + RISE on 127.0.0.1:8080
 bash scripts/stop.sh      # stop the providers
 ```
 
-**Tests:** `python -m pytest -q`. They run 115 tests, including an end-to-end journey on two real S3 servers in-process and the real link cut.
+**Tests:** `python -m pytest -q`. They run 119 tests, including an end-to-end journey on two real S3 servers in-process and the real link cut.
 
 ### From Claude Code: `/rise` (MCP)
 

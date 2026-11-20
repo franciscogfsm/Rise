@@ -1,8 +1,9 @@
-/* Parte A · 3 · Como funciona: a pipeline do RISE, do repositório à resposta (sequência real, daí os números). */
+/* Parte A · 3 · Como funciona: do repositório ao veredicto. Cada passo diz quem o faz (código ou IA),
+   porque a mensagem é essa: a IA sugere, o código decide. */
 RISE.slide({
   id: "how",
   title: "How it works",
-  time: "0:35 – 1:05",
+  time: "0:45 – 1:15",
   notes: `
 "You give RISE three things: a repository, your goal, and the clouds: where you are and where you want to go. Up to four targets to compare."
 (acompanhar a linha)
@@ -11,86 +12,120 @@ RISE.slide({
 "The AI reads only that evidence and writes a test plan, in a strict JSON schema that we validate."
 "Thirteen kinds of real tests run on both clouds at the same time. A test passes only if the SHA-256 of the real bytes matches."
 "If something fails, the AI may propose one change, from an allow-list. We apply it and retest everything."
-"And the answer is decided by code, never by the AI. Ready, ready with one change, or not ready. With a downloadable proof."`,
+"And the verdict is decided by code, never by the AI. Ready, ready with one change, or not ready. With a downloadable proof."
+(apontar para a frase de baixo) "AI suggests. Code decides."`,
 
   STEPS: [
-    ["Fetch", "Repo in memory. Its code never runs.",
+    ["Fetch", "in memory", "code",
       `<path d="M24 8v22m-9-9 9 9 9-9"/><path d="M9 34v6h30v-6"/>`],
-    ["Scan", "Every S3 call, with file:line. No AI.",
+    ["Scan", "file:line", "code",
       `<circle cx="21" cy="21" r="12"/><path d="M30 30l10 10"/>`],
-    ["AI plan", "Evidence in. Validated test plan out.",
+    ["Plan", "JSON schema", "ai",
       `<path d="M18 13h20M18 24h20M18 35h14"/><path d="M8 12l2.5 2.5L15 10M8 23l2.5 2.5L15 21M8 34l2.5 2.5L15 32"/>`],
-    ["Test", "13 real tests, both clouds, SHA-256.",
+    ["Test", "SHA-256", "code",
       `<path d="M24 5l16 6v11c0 10-7 18-16 21C15 40 8 32 8 22V11z"/><path d="M17 24l5 5 9-10"/>`],
-    ["Adapt", "One allow-listed fix. Retest all.",
+    ["Adapt", "allow-list", "ai",
       `<path d="M29 9a10 10 0 0 0-9.5 13.2L8 33.7 14.3 40l11.5-11.5A10 10 0 0 0 39 19l-6 6-6-1-1-6z"/>`],
-    ["Answer", "Decided by code. Proof attached.",
-      `<circle cx="24" cy="24" r="17"/><path d="M16 24.5l5.5 5.5L32 19"/>`],
   ],
 
   html: `
     <div class="how">
-      <div class="head">
-        <h2 class="title split"><span class="soft">Three questions in.</span> One answer out.</h2>
-        <p class="ask rv" style="--i:2"><span>Which repo?</span><span>What's the goal?</span><span>From which cloud to which?</span></p>
+      <h2 class="title split">Paste a repo. <span class="soft">Get the truth.</span></h2>
+      <div class="input glass rv" style="--i:2">
+        <span class="field"><span class="lbl">repo</span><span class="val mono type">github.com/acme/shop</span></span>
+        <span class="sep"></span>
+        <span class="field"><span class="lbl">to</span><span class="val">4 clouds</span></span>
+        <span class="go">Run</span>
       </div>
       <div class="track">
-        <svg class="rail" viewBox="0 0 1680 20" preserveAspectRatio="none" aria-hidden="true">
-          <path class="draw" style="--i:2" d="M60 10H1530" stroke-width="3"/>
-        </svg>
-        <ol class="steps"></ol>
+        <div class="line"><div class="rail" aria-hidden="true"><i class="packet"></i></div><ol class="steps"></ol></div>
+        <div class="verdict">
+          <div class="outs">
+            <span class="out ok"><span class="dot"></span>Ready</span>
+            <span class="out warn"><span class="dot"></span>Ready with 1 change</span>
+            <span class="out bad"><span class="dot"></span>Not ready</span>
+          </div>
+        </div>
       </div>
+      <p class="punch rv" style="--i:12"><span class="soft">AI suggests.</span> Code decides.</p>
     </div>`,
 
   css: `
-    .how { height: 100%; display: grid; grid-template-rows: auto 1fr; }
-    .head { display: grid; gap: 28px; }
-    .title { max-width: 20ch; }
-    .ask { display: flex; flex-wrap: wrap; gap: 12px; }
-    .ask span { font-size: var(--t1); font-weight: 500; padding: 10px 18px; border-radius: 999px; background: rgba(255,255,255,.75); box-shadow: inset 0 0 0 1px var(--line); }
-    .track { position: relative; margin-top: 80px; }
-    .rail { position: absolute; left: 0; right: 0; top: 50px; width: 100%; height: 20px; overflow: visible; }
-    .rail path { stroke: rgba(18,31,53,.18); fill: none; }
-    .steps { list-style: none; display: grid; grid-template-columns: repeat(6, 1fr); gap: 28px; }
-    .step { display: grid; gap: 12px; justify-items: start; align-content: start; }
-    .ico { width: 120px; height: 120px; display: grid; place-items: center; --radius: 32px; color: var(--accent); }
-    .ico svg { width: 54px; height: 54px; stroke: currentColor; }
-    .step:last-child .ico { color: var(--ok); }
-    .n { margin-top: 14px; font: 500 20px/1 var(--f-mono); color: var(--faint-ink); }
-    .step h3 { font-size: 40px; font-weight: 600; letter-spacing: -.03em; }
-    .step p { font-size: var(--t1); line-height: 1.35; color: var(--muted); max-width: 13ch; }
+    .how { height: 100%; display: grid; grid-template-rows: auto auto 1fr auto; gap: 56px; }
+    .title { max-width: none; white-space: nowrap; }
 
-    /* ── Motion: uma só sequência. A linha desenha-se e cada passo acende quando ela lhe chega. ──
-       --k é a posição do passo (0–5); --t0 é quando a linha começa; --dt o tempo entre passos. */
-    --t0: 500ms; --dt: 300ms;
-    .ask span { display: inline-block; opacity: 0; translate: 0 12px; transition: opacity .5s var(--e-out), translate .7s var(--e-out); }
-    &.cur .ask span { opacity: 1; translate: 0 0; }
-    &.cur .ask span:nth-child(1) { transition-delay: 260ms; }
-    &.cur .ask span:nth-child(2) { transition-delay: 380ms; }
-    &.cur .ask span:nth-child(3) { transition-delay: 500ms; }
-    &.cur .rail path { transition-duration: calc(var(--dt) * 5 + 300ms); transition-timing-function: cubic-bezier(.45, 0, .25, 1); transition-delay: var(--t0); }
-    &.cur .step.rv { transition-delay: calc(var(--t0) + var(--k) * var(--dt)); }
-    .ico { transform: scale(.6); transition: transform .8s var(--e-spring), box-shadow .6s var(--e-out); }
+    /* barra de entrada: as três perguntas como um formulário */
+    .input { --radius: 999px; display: flex; align-items: center; gap: 24px; padding: 14px 14px 14px 36px; width: fit-content; }
+    .field { display: flex; align-items: baseline; gap: 14px; }
+    .lbl { font: 500 20px/1 var(--f-mono); color: var(--faint-ink); }
+    .val { font-size: 28px; font-weight: 500; color: var(--ink); }
+    .val.mono { font: 500 26px/1 var(--f-mono); }
+    .sep { width: 1px; height: 34px; background: var(--line); }
+    .go { margin-left: 12px; font-size: 26px; font-weight: 600; color: #fff; padding: 16px 34px; border-radius: 999px;
+      background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 86%, #fff), var(--accent));
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.4), 0 10px 24px -10px color-mix(in srgb, var(--accent) 80%, transparent); }
+
+    /* pipeline: 5 passos + veredicto mais largo */
+    .track { position: relative; display: grid; grid-template-columns: 5fr 1.6fr; gap: 40px; align-items: center; }
+    .steps { list-style: none; display: grid; grid-template-columns: repeat(5, 1fr); gap: 22px; }
+    .line { position: relative; }
+    .rail { position: absolute; left: 10%; right: -40px; top: 50px; height: 4px; border-radius: 4px; z-index: -1;
+      background: linear-gradient(90deg, rgba(18,31,53,.16), color-mix(in srgb, var(--ok) 60%, transparent)); }
+    .packet { position: absolute; top: 50%; left: 0; width: 22px; height: 22px; margin: -11px 0 0 -11px; border-radius: 50%; opacity: 0;
+      background: var(--accent); box-shadow: 0 0 0 6px color-mix(in srgb, var(--accent) 22%, transparent), 0 0 30px 6px color-mix(in srgb, var(--accent) 55%, transparent); }
+
+    .step { display: grid; justify-items: center; align-content: start; gap: 26px; text-align: center; }
+    .ico { width: 104px; height: 104px; display: grid; place-items: center; border-radius: 28px; color: var(--accent);
+      background: #fff; box-shadow: inset 0 0 0 1px var(--line), 0 10px 26px -14px rgba(26,41,63,.35); }
+    .ico svg { width: 48px; height: 48px; stroke: currentColor; }
+    .step.ai .ico { color: #fff; background: linear-gradient(140deg, color-mix(in srgb, var(--accent) 70%, #fff), var(--accent)); box-shadow: 0 14px 30px -12px color-mix(in srgb, var(--accent) 75%, transparent); }
+    .step h3 { font-size: 40px; line-height: 1; font-weight: 600; letter-spacing: -.03em; }
+
+    .verdict { display: grid; }
+    .outs { display: grid; gap: 12px; align-content: center; }
+    .out { display: flex; align-items: center; gap: 12px; white-space: nowrap; font-size: 28px; font-weight: 600; letter-spacing: -.01em; padding: 16px 20px; border-radius: 18px; }
+    .out .dot { width: 14px; height: 14px; }
+    .out.ok { color: var(--ok); background: var(--ok-bg); }
+    .out.warn { color: var(--warn); background: var(--warn-bg); }
+    .out.bad { color: var(--bad); background: var(--bad-bg); }
+
+    .punch { font-size: 72px; line-height: 1; font-weight: 700; letter-spacing: -.045em; }
+
+    /* ── Motion: uma sequência. O ponto percorre a linha e cada passo acende quando ele lhe chega. ── */
+    --t0: 1700ms; --dt: 260ms;
+    .type { display: inline-block; overflow: hidden; white-space: nowrap; width: 0; border-right: 3px solid var(--accent); padding-right: 2px; }
+    &.cur .type { animation: how-type .9s steps(20) .35s both, how-caret .5s step-end 1.25s 2 both; }
+    &.cur .go { animation: how-press .45s var(--e-out) 1.35s both; }
+    .step, .verdict { opacity: 0; transform: translate3d(0, 34px, 0) scale(.96); filter: blur(6px);
+      transition: opacity .6s var(--e-out), transform .9s var(--e-out), filter .6s var(--e-out); }
+    &.cur .step, &.cur .verdict { opacity: 1; transform: none; filter: none; transition-delay: calc(var(--t0) + var(--k) * var(--dt)); }
+    .verdict { --k: 5; }
+    .ico { transform: scale(.5) rotate(-8deg); transition: transform .9s var(--e-spring); }
     &.cur .ico { transform: none; transition-delay: calc(var(--t0) + 120ms + var(--k) * var(--dt)); }
     &.cur .ico .draw { transition-duration: .8s; transition-delay: calc(var(--t0) + 220ms + var(--k) * var(--dt)); }
-    /* a resposta acende a mint no fim, com um único pulso */
-    &.cur .step:last-child .ico { box-shadow: inset 0 1px 0 #fff, inset 0 0 0 3px var(--ok), var(--shadow); transition-delay: calc(var(--t0) + 6 * var(--dt) + 300ms); }
-    .pulse { position: absolute; inset: 0; border-radius: inherit; pointer-events: none; opacity: 0; }
-    &.cur .step:last-child .pulse { animation: how-pulse 1.1s var(--e-out) calc(var(--t0) + 6 * var(--dt) + 300ms) 1 both; }`,
+    .out { opacity: 0; transform: translate3d(-18px, 0, 0); transition: opacity .5s var(--e-out), transform .7s var(--e-out); }
+    &.cur .out { opacity: 1; transform: none; }
+    &.cur .out:nth-child(1) { transition-delay: calc(var(--t0) + 6 * var(--dt) + 80ms); }
+    &.cur .out:nth-child(2) { transition-delay: calc(var(--t0) + 6 * var(--dt) + 200ms); }
+    &.cur .out:nth-child(3) { transition-delay: calc(var(--t0) + 6 * var(--dt) + 320ms); }
+    &.cur .packet { animation: how-packet calc(var(--dt) * 6) cubic-bezier(.45, 0, .25, 1) var(--t0) 1 both; }
+    &.cur .verdict { animation: how-glow 1.4s var(--e-out) calc(var(--t0) + 6 * var(--dt)) 1 both; }`,
 
   globalCss: `
-    @keyframes how-pulse { 0% { opacity: .9; box-shadow: 0 0 0 0 color-mix(in srgb, var(--ok) 55%, transparent); } 100% { opacity: 0; box-shadow: 0 0 0 26px color-mix(in srgb, var(--ok) 0%, transparent); } }
-    html.still .slide[data-slide="how"] .pulse { animation: none !important; }`,
+    @keyframes how-packet { 0% { left: 0; opacity: 0; } 8% { opacity: 1; } 92% { opacity: 1; } 100% { left: 100%; opacity: 0; } }
+    @keyframes how-type { from { width: 0; } to { width: 20.4ch; } }
+    @keyframes how-caret { 50% { border-color: transparent; } 100% { border-color: transparent; } }
+    @keyframes how-press { 0% { transform: none; } 40% { transform: scale(.9); filter: brightness(1.15); } 100% { transform: none; } }
+    html.still .slide[data-slide="how"] .type { width: 20.4ch; animation: none !important; border-color: transparent; }
+    @keyframes how-glow { 0% { scale: 1; } 30% { scale: 1.035; } 100% { scale: 1; } }
+    html.still .slide[data-slide="how"] .packet, html.still .slide[data-slide="how"] .verdict { animation: none !important; }`,
 
   init(el) {
-    el.querySelector(".steps").innerHTML = this.STEPS.map(([verb, line, icon], i) => `
-      <li class="step rv" style="--k:${i}">
-        <div class="ico glass"><svg viewBox="0 0 48 48" fill="none" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">${icon}</svg><span class="pulse" aria-hidden="true"></span></div>
-        <span class="n">0${i + 1}</span>
+    el.querySelector(".steps").innerHTML = this.STEPS.map(([verb, line, who, icon], i) => `
+      <li class="step ${who}" style="--k:${i}">
+        <div class="ico"><svg viewBox="0 0 48 48" fill="none" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">${icon}</svg></div>
         <h3>${verb}</h3>
-        <p>${line}</p>
       </li>`).join("");
-    // os traços dos ícones desenham-se (FX.draw mede o comprimento)
     el.querySelectorAll(".ico svg > *").forEach(p => p.classList.add("draw"));
     FX.prep(el);
   },

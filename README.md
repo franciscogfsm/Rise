@@ -13,7 +13,7 @@ Paste a GitHub repository. RISE finds every object-storage call in the code, has
 <p align="center">
   <img src="https://img.shields.io/badge/license-Apache--2.0-0A8A74" alt="license Apache-2.0">
   <img src="https://img.shields.io/badge/python-3.12-2563EB" alt="python 3.12">
-  <img src="https://img.shields.io/badge/tests-118%20passing-0A8A74" alt="118 tests passing">
+  <img src="https://img.shields.io/badge/tests-119%20passing-0A8A74" alt="119 tests passing">
   <img src="https://img.shields.io/badge/storage-any%20S3--compatible-121F35" alt="any S3-compatible storage">
   <img src="https://img.shields.io/badge/AI-OpenRouter%20%C2%B7%20strict%20JSON-7C5CFF" alt="AI: OpenRouter, strict JSON">
   <img src="https://img.shields.io/badge/InfraHack-Portugal%202026-D4513B" alt="InfraHack Portugal 2026">
@@ -111,9 +111,9 @@ flowchart LR
 
 **Speed.** A 10-file TypeScript repository took **11.3 s** from URL to proof (fetch 1.2 s, scan 22 ms, AI plan 9.0 s, 8 real S3 tests 1.1 s). Simple repositories finish in about **6 s**. A three-provider comparison took about **16 s**.
 
-### Local ML for S3 call review
+### RISE Fast
 
-RISE ships an experimental **1.3 KB local classifier** that ranks ambiguous S3 call sites in Python and JavaScript/TypeScript. It runs on CPU, works offline on a checked-out folder, and returns a score with each file and line. The optional source check narrows suggestions to recognizable code structures, such as a client binding or a paginator used later in the file. The main scan and migration verdict use deterministic rules and real provider tests.
+**RISE Fast** is the discovery engine behind RISE. It combines the deterministic scanner with an optional, experimental **1.3 KB local classifier** that ranks ambiguous S3 call sites in Python and JavaScript/TypeScript. It runs on CPU, works offline on a checked-out folder, and returns a score with each file and line. The optional source check narrows suggestions to recognizable code structures, such as a client binding or a paginator used later in the file. The main scan and migration verdict use deterministic rules and real provider tests.
 
 To review a local repository, use the shipped weights and keep a separate copy if you want to train on your own feedback.
 
@@ -135,6 +135,8 @@ We compared the scanner with Claude Sonnet 5.5 and OpenAI Codex on **25 selected
 
 The files were used to improve the scanner, so this is a regression comparison. RISE time is the median of nine local runs. Claude and Codex each received the same numbered source once. The times exclude downloading the repositories and include the respective analysis and output steps. This measures static discovery, separate from executing provider tests. [Reference locations, timings and method](benchmark/scanner-head-to-head.json)
 
+
+On a subsequent **fresh set of 26 public repositories absent from our prior benchmark manifests**, the unchanged RISE scanner found **41/42** annotated S3 call sites with one alert outside the reference. OpenAI Codex found **42/42** with no extra alerts. The two batches took about **79 ms** of local RISE scan time and **20.1 s** combined wall time for Codex. The local ML option found the same sites in this trial. This comparison used a single-reviewer reference and applies only to the eligible source files. [Fresh corpus, pinned commits, model and scoring](benchmark/scanner-fresh-vs-codex.json)
 
 A separate check of the final scanner on **33 complete public snapshots** covered **75,915 lines in 1.50 s**. All 442 locations flagged by the official API-name heuristic were accounted for. This check measures coverage of the heuristic. [Full-repository regression](benchmark/scanner-cached-regression.json)
 
@@ -250,7 +252,7 @@ rise/
 web/            React 18 + htm, no build step, works offline (Light Liquid Glass design)
 scripts/        setup · env · providers · run · stop · benchmark
 benchmark/      scanner benchmark: 185 real repos, 35 M lines, every leftover call reviewed
-tests/          118 tests: end-to-end journey on two real S3 servers, scanner accuracy corpus (24 SDK styles), risks, connections, agent, auth
+tests/          119 tests: end-to-end journey on two real S3 servers, scanner accuracy corpus (24 SDK styles), risks, connections, agent, auth
 ```
 
 **API:** `POST /api/analyses` · `GET /api/analyses/{id}` · `GET /api/analyses/{id}/proof` · `GET|POST|DELETE /api/connections` · `POST /api/connections/{id}/test` · `POST /api/agent` · `GET /api/events` (SSE)
