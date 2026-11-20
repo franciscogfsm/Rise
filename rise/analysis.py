@@ -12,7 +12,7 @@ import time
 import uuid
 from concurrent.futures import ThreadPoolExecutor
 
-from . import ai, config as C, repo, scan as scanner
+from . import ai, config as C, repo, risks as riskscan, scan as scanner
 from .engine import COVERABLE, KINDS, TestSpec, run as run_test
 from .storage import make_client
 
@@ -28,10 +28,31 @@ def now() -> str:
     return time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime(t)) + f".{int(t * 1000) % 1000:03d}Z"
 
 
+
+def decide(score: dict | None, verdict: dict, adaptation: dict | None) -> dict:
+    """The one-line answer, from real results only. kind: ready | ready_with_change | partial | not_ready | no_storage."""
+    ad = adaptation or {}
+    fixed = bool(ad.get("applied")) and ad["retest"]["passed"] == ad["retest"]["total"]
+    bad = [k for k, v in verdict.items() if v in ("fail", "unsupported")]
+    untested = [k for k, v in verdict.items() if v == "untested"]
+    change = {"key": ad["proposal"]["key"], "from": ad["before"][ad["proposal"]["key"]], "to": ad["proposal"]["value"]} \
+        if ad.get("applied") else None
+    if not score or not score["total"]:
+        kind, title = "no_storage", "No object storage found"
+    elif bad or (ad.get("applied") and not fixed):
+        kind, title = "not_ready", "Not ready to migrate"
+    elif untested:
+        kind, title = "partial", "Partially verified"
+    elif fixed:
+        kind, title = "ready_with_change", "Ready to migrate · 1 change"
+    else:
+        kind, title = "ready", "Ready to migrate"
+    return {"kind": kind, "title": title, "change": change, "failing": bad, "untested": untested}
+
 class Analyses:
     def __init__(self):
         self.lock = threading.RLock()
-        self.run_lock = threading.Lock()  # one analysis exercises the providers at a time
+        self.run_lock = threading.BoundedSemaphore(4)  # a comparison runs its targets side by side; keys never collide
         self.version = 0
         self.items: dict[str, dict] = {}
         self._t: dict[tuple, float] = {}  # (analysis, stage) -> perf_counter at start
@@ -45,30 +66,36 @@ class Analyses:
                 continue
 
     # ---------- public API ----------
-    def start(self, url: str, ref_p: C.Provider, tgt_p: C.Provider) -> dict:
+    def start(self, url: str, ref_p: C.Provider, tgt_p: C.Provider, token: str | None = None, goal: str = "",
+              group: str | None = None) -> dict:
         owner, name, ref = repo.parse(url)  # raises RepoError on bad input
+        token = repo.check_token(token)  # kept in the worker thread's arguments only, never in the record
         aid = uuid.uuid4().hex[:10]
         a = {"id": aid, "url": f"https://github.com/{owner}/{name}" + (f"/tree/{ref}" if ref else ""),
              "repo": {"owner": owner, "name": name, "ref": ref or "HEAD"}, "status": "queued", "stage": None,
              "stages": {s: "todo" for s in STAGES}, "created": now(), "events": [],
-             "providers": [ref_p.describe() | {"role": "reference"}, tgt_p.describe() | {"role": "target"}]}
+             "providers": [ref_p.describe() | {"role": "reference"}, tgt_p.describe() | {"role": "target"}],
+             "goal": goal[:300], "group": group, "private": bool(token)}
         with self.lock:
             self.items[aid] = a
             self._save(a)
-        threading.Thread(target=self._run, args=(aid, ref_p, tgt_p), daemon=True, name=f"rise-analysis-{aid}").start()
+        threading.Thread(target=self._run, args=(aid, ref_p, tgt_p, token), daemon=True, name=f"rise-analysis-{aid}").start()
         return a
 
     def list(self) -> list[dict]:
         with self.lock:
             out = [{k: a.get(k) for k in ("id", "url", "repo", "status", "stage", "created", "finished", "score", "providers",
-                                          "duration_ms")}
+                                          "duration_ms", "decision", "group", "goal", "error")}
                    for a in self.items.values()]
         return sorted(out, key=lambda a: a["created"], reverse=True)
 
     def get(self, aid: str) -> dict | None:
         with self.lock:
             a = self.items.get(aid)
-            return json.loads(json.dumps(a)) if a else None
+            a = json.loads(json.dumps(a)) if a else None
+        if a and a.get("score") and "decision" not in a:  # analyses saved before decisions existed
+            a["decision"] = decide(a["score"], a.get("verdict") or {}, a.get("adaptation"))
+        return a
 
     def proof(self, aid: str) -> dict | None:
         a = self.get(aid)
@@ -77,7 +104,7 @@ class Analyses:
         doc = {"title": "RISE Portability Proof", "scope": "Only the behaviours listed were tested, on the providers listed. "
                "Not a certificate of universal compatibility.", **{k: a.get(k) for k in (
                    "id", "url", "repo", "created", "finished", "providers", "scan", "plan", "results",
-                   "results_before_adaptation", "adaptation", "score", "untested", "lockin", "events")}}
+                   "results_before_adaptation", "adaptation", "decision", "goal", "risks", "brief", "score", "untested", "lockin", "events")}}
         doc["digest_sha256"] = hashlib.sha256(json.dumps(doc, sort_keys=True, default=str).encode()).hexdigest()
         return doc
 
@@ -105,12 +132,12 @@ class Analyses:
             self._save(a)
             self.version += 1
 
-    def _run(self, aid, ref_p, tgt_p):
+    def _run(self, aid, ref_p, tgt_p, token=None):
         with self.run_lock:
             self._update(aid, status="running", started=now())
             t0 = time.perf_counter()
             try:
-                self._pipeline(aid, ref_p, tgt_p)
+                self._pipeline(aid, ref_p, tgt_p, token)
                 self._update(aid, status="done", finished=now(), duration_ms=round((time.perf_counter() - t0) * 1000))
             except repo.RepoError as e:
                 self._fail(aid, str(e))
@@ -124,11 +151,12 @@ class Analyses:
                 a["stages"][a["stage"]] = "fail"
         self._update(aid, status="error", error=msg[:500], finished=now())
 
-    def _pipeline(self, aid, P, T):  # P = reference provider, T = target provider
+    def _pipeline(self, aid, P, T, token=None):  # P = reference provider, T = target provider
         a = self.items[aid]
         # FETCH
         self._stage(aid, "fetch", "running", "Downloading the repository archive from GitHub")
-        r = repo.fetch(a["url"])
+        r = repo.fetch(a["url"], token)
+        del token
         files = r.pop("files")
         self._update(aid, repo={**a["repo"], **r, "files": len(files)})
         self._stage(aid, "fetch", "done", f"{len(files)} source files read ({r['archive_bytes'] // 1024} KB archive)")
@@ -141,11 +169,16 @@ class Analyses:
         code_region = regions[0] if regions else C.APP_REGION
         self._update(aid, scan={k: v for k, v in result.items() if k != "lockin"}, profile=prof,
                      lockin=result["lockin"], code_region={"value": code_region, "found": regions[:5]})
+        risks = riskscan.find(files, result)
+        self._update(aid, risks=risks)
+        # the plain-language briefing is written while the test plan is written: it adds no time
+        brief_f = POOL.submit(ai.brief, a.get("goal") or "", result, risks, a["providers"])
         if not result["uses_s3"]:
             self._stage(aid, "scan", "done", f"No S3 object-storage calls found in {len(files)} files; "
                                              f"{len(result['lockin'])} other cloud services detected")
             for s in ("plan", "test", "adapt"):
                 self._stage(aid, s, "skipped")
+            self._update(aid, brief=brief_f.result())
             self._report(aid)
             return
         self._stage(aid, "scan", "done", f"{sum(result['operations'].values())} S3 call sites, "
@@ -197,6 +230,7 @@ class Analyses:
             self._update(aid, adaptation=record)
         else:
             self._stage(aid, "adapt", "skipped", "Nothing to adapt: the target passed every test")
+        self._update(aid, brief=brief_f.result())
         self._report(aid)
 
     def _report(self, aid):
@@ -222,5 +256,6 @@ class Analyses:
                  "untested": sum(v == "untested" for v in verdict.values()),
                  "lockin_services": len(a.get("lockin") or [])}
         self._update(aid, verdict=verdict, score=score, untested=[k for k, v in verdict.items() if v == "untested"])
+        self._update(aid, decision=decide(score, verdict, a.get("adaptation")))
         self._stage(aid, "report", "done", f"{passed}/{len(verdict)} storage behaviours verified on the target"
                                            f" · {score['lockin_services']} other cloud services to plan for")

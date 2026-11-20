@@ -6,6 +6,10 @@
 /pitch       pitch visuals loaded through asset-service
 """
 import asyncio
+import base64
+import os
+import secrets
+import uuid
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, HTTPException, Request
@@ -14,7 +18,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 from . import config as C
-from . import connect
+from . import agent, connect
 from .analysis import Analyses
 from .journey import Journey, StepError
 from .link import Link
@@ -43,10 +47,35 @@ app.mount("/static", StaticFiles(directory=WEB), name="static")
 NO_STORE = {"Cache-Control": "no-store"}
 
 
+PASSWORD = os.environ.get("RISE_PASSWORD", "")  # set it before exposing RISE beyond localhost
+
+
+@app.middleware("http")
+async def require_password(request, call_next):
+    if PASSWORD:
+        try:
+            given = base64.b64decode(request.headers.get("authorization", "")[6:]).decode().partition(":")[2]
+        except Exception:
+            given = ""
+        if not secrets.compare_digest(given.encode(), PASSWORD.encode()):
+            return Response(status_code=401, headers={"WWW-Authenticate": 'Basic realm="RISE"'})
+    return await call_next(request)
+
+
+@app.middleware("http")
+async def revalidate_static(request, call_next):
+    # no-cache = browser revalidates (ETag), so UI edits show on a normal reload
+    r = await call_next(request)
+    if request.url.path.startswith("/static/"):
+        r.headers["Cache-Control"] = "no-cache"
+    return r
+
+
 @app.get("/")
 @app.get("/demo")
 @app.get("/connect")
 @app.get("/a/{aid}")
+@app.get("/c/{aid}")
 def spa(aid: str | None = None):
     return FileResponse(WEB / "index.html", headers=NO_STORE)
 
@@ -61,19 +90,26 @@ class AnalyzeIn(BaseModel):
     url: str
     reference: str = "source"
     target: str = "destination"
+    targets: list[str] | None = None  # several targets = a comparison
+    token: str | None = None  # GitHub token for a private repo: used for the download only
+    goal: str = ""
 
 
 @app.post("/api/analyses")
 def analyze(body: AnalyzeIn):
-    ref_p, tgt_p = connect.provider(body.reference), connect.provider(body.target)
-    if not ref_p or not tgt_p:
+    targets = list(dict.fromkeys(body.targets or [body.target]))[:4]
+    ref_p, tgt_ps = connect.provider(body.reference), [connect.provider(t) for t in targets]
+    if not ref_p or not all(tgt_ps):
         raise HTTPException(422, "Unknown connection. Pick a reference and a target from Connections.")
-    if body.reference == body.target:
-        raise HTTPException(422, "Reference and target must be two different connections.")
+    if body.reference in targets:
+        raise HTTPException(422, "The reference cannot also be a target. Pick two different connections.")
+    goal = agent.redact(body.goal.strip())[:300]  # the goal goes to the AI: strip anything key-like
+    group = uuid.uuid4().hex[:10] if len(tgt_ps) > 1 else None
     try:
-        return A.start(body.url, ref_p, tgt_p)
+        started = [A.start(body.url, ref_p, t, body.token, goal, group) for t in tgt_ps]
     except RepoError as e:
         raise HTTPException(422, str(e)) from e
+    return started[0] | {"compare": group, "ids": [a["id"] for a in started]}
 
 
 @app.get("/api/analyses")
@@ -111,7 +147,10 @@ def connections():
 
 @app.post("/api/connections")
 async def connection_add(request: Request):  # keys arrive once, are stored server-side, and are never returned
-    body = await request.json()
+    try:
+        body = await request.json()
+    except ValueError:  # includes bodies that are not UTF-8
+        raise HTTPException(422, "Expected a JSON object (UTF-8)") from None
     if not isinstance(body, dict):
         raise HTTPException(422, "Expected a JSON object")
     try:
@@ -135,6 +174,20 @@ def connection_test(cid: str):  # real S3 calls against the configured provider
     if not connect.provider(cid):
         raise HTTPException(404, f"Unknown connection {cid!r}")
     return connect.test(cid)
+
+
+# ---------- agent ----------
+class AgentIn(BaseModel):
+    messages: list[dict]
+    page: str = "/"
+
+
+@app.post("/api/agent")
+def agent_ask(body: AgentIn):
+    try:
+        return agent.ask(body.messages, body.page, A)
+    except Exception as e:  # noqa: BLE001 — the agent is optional; every page works without it
+        raise HTTPException(503, f"The RISE agent needs the AI (OpenRouter), which did not answer: {type(e).__name__}: {str(e)[:160]}") from e
 
 
 # ---------- live switch demo ----------

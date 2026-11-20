@@ -63,8 +63,8 @@ def _provider(prefix: str, pid: str, name: str, endpoint: str, region: str) -> P
     )
 
 
-SOURCE = _provider("SOURCE", "source", "Provider A", "http://127.0.0.1:9001", "us-east-1")
-DEST = _provider("DEST", "destination", "Provider B · EU", "http://127.0.0.1:3900", "nl-ams-1")
+SOURCE = _provider("SOURCE", "source", "moto S3 · local", "http://127.0.0.1:9001", "us-east-1")
+DEST = _provider("DEST", "destination", "Garage S3 · local", "http://127.0.0.1:3900", "nl-ams-1")
 
 # asset-service shipped with ONE region setting that it reuses for every S3 client.
 APP_REGION = env("APP_REGION", "us-east-1")

@@ -193,3 +193,55 @@ def adapt(failures: list[dict], app_cfg: dict, dest: dict) -> dict:
     except Exception as e:  # noqa: BLE001
         reason = f"{type(e).__name__}: {str(e)[:200]}"
     return _rules_adapt(failures, app_cfg, dest) | {"source": {"mode": "rules", "live_error": reason}}
+
+
+# ---------- briefing: the plain-language explanation for the person who asked ----------
+BRIEF_SCHEMA = {
+    "type": "object", "additionalProperties": False, "required": ["headline", "explanation", "actions"],
+    "properties": {
+        "headline": {"type": "string"},
+        "explanation": {"type": "string"},
+        "actions": {"type": "array", "items": {
+            "type": "object", "additionalProperties": False, "required": ["title", "detail", "risk_id"],
+            "properties": {"title": {"type": "string"}, "detail": {"type": "string"}, "risk_id": {"type": ["string", "null"]}}}},
+    },
+}
+BRIEF_SYSTEM = """You are RISE's advisor. A non-expert (a manager, a judge, a developer in a hurry) asked RISE to check
+a code repository against their goal. You get: their goal, what the code uses (object storage operations, other
+cloud services) and the architecture risks RISE found, each with file:line evidence, plus the providers involved.
+Write for that person:
+- headline: max 12 words, the most important thing about this code for their goal. No hype.
+- explanation: 2 short sentences, max 45 words, plain words, no jargon without a gloss.
+- actions: 2-4 concrete next steps in priority order. title max 8 words, detail max 25 words, risk_id = the id of the
+  risk it addresses or null.
+Rules: use only the facts given. Do NOT state test results and never say the move is blocked, impossible or safe:
+tests run separately and decide that. Frame risks as effort, fragility or exposure ("needs a code change", "one outage
+takes the app down").
+Never call a simulated provider a real cloud. Answer in the language of the goal (English if no goal). JSON only."""
+
+
+def _rules_brief(risks: list[dict], scan: dict) -> dict:
+    top = risks[0] if risks else None
+    return {"headline": top["title"] if top else ("No architecture risks found" if scan.get("uses_s3") else "No object storage found"),
+            "explanation": top["detail"] if top else "RISE found no hard-coded cloud choices or single points of failure in the code.",
+            "actions": [{"title": r["title"], "detail": r["detail"][:160], "risk_id": r["id"]} for r in risks[:3]]}
+
+
+def brief(goal: str, scan: dict, risks: list[dict], providers: list[dict]) -> dict:
+    user = {"goal": goal or "Check whether this code can move to the target provider.",
+            "storage_operations": scan.get("operations"), "storage_features": scan.get("features"),
+            "other_cloud_services": [x["service"] for x in scan.get("lockin") or []],
+            "risks": [{k: r[k] for k in ("id", "severity", "title", "detail")} | {"evidence": r["evidence"][:2]} for r in risks],
+            "providers": providers}
+    ids = {r["id"] for r in risks}
+    try:
+        raw, meta = _call(BRIEF_SYSTEM, user, "rise_brief", BRIEF_SCHEMA)
+        acts = [{"title": str(a.get("title", ""))[:80], "detail": str(a.get("detail", ""))[:220],
+                 "risk_id": a.get("risk_id") if a.get("risk_id") in ids else None}
+                for a in (raw.get("actions") or [])[:4] if isinstance(a, dict) and a.get("title")]
+        if not raw.get("headline"):
+            raise ValueError("empty headline")
+        return {"headline": str(raw["headline"])[:120], "explanation": str(raw.get("explanation", ""))[:400],
+                "actions": acts, "source": {"mode": "live", **meta}}
+    except Exception as e:  # noqa: BLE001 — the rule-based briefing is labelled RULES
+        return _rules_brief(risks, scan) | {"source": {"mode": "rules", "live_error": f"{type(e).__name__}: {str(e)[:200]}"}}

@@ -4,27 +4,10 @@ moto does not enforce the signing region, so the region incompatibility itself i
 against Garage in the live setup; here the adaptation logic is covered by unit checks.
 """
 import asyncio
-import os
-import socket
-import tempfile
 import threading
 
 
-def _port():
-    with socket.socket() as s:
-        s.bind(("127.0.0.1", 0))
-        return s.getsockname()[1]
-
-
-P_SRC, P_DST, P_LINK = _port(), _port(), _port()
-os.environ.update({
-    "SOURCE_ENDPOINT": f"http://127.0.0.1:{P_SRC}", "DEST_ENDPOINT": f"http://127.0.0.1:{P_DST}",
-    "DEST_REGION": "us-east-1", "SOURCE_LINK_PORT": str(P_LINK),
-    # both moto servers share one in-process backend, so bucket names must differ
-    "SOURCE_BUCKET": "rise-src", "SOURCE_TEST_BUCKET": "rise-src-test",
-    "DEST_BUCKET": "rise-dst", "DEST_TEST_BUCKET": "rise-dst-test",
-    "OPENROUTER_API_KEY": "", "RISE_DATA_DIR": tempfile.mkdtemp(),
-})
+from conftest import P_DST, P_LINK, P_SRC  # noqa: E402  (env is set in conftest.py)
 
 import boto3  # noqa: E402
 import pytest  # noqa: E402

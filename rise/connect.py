@@ -65,6 +65,9 @@ def _load() -> dict[str, dict]:
         return {}
 
 
+LOCAL = {"localhost", "127.0.0.1", "::1", "0.0.0.0"}
+
+
 def _save(items: dict[str, dict]) -> None:
     STORE.write_text(json.dumps(items, indent=1), encoding="utf-8")
     try:
@@ -76,7 +79,8 @@ def _save(items: dict[str, dict]) -> None:
 def _from_saved(cid: str, d: dict) -> C.Provider:
     ak, sk = _open(d["keys"])
     return C.Provider(id=cid, name=d["name"], endpoint=d["endpoint"], region=d["region"], bucket=d["bucket"],
-                      test_bucket=d["test_bucket"], access_key=ak, secret_key=sk, simulated=False)
+                      test_bucket=d["test_bucket"], access_key=ak, secret_key=sk,
+                      simulated=urlparse(d["endpoint"]).hostname in LOCAL)  # a server on this machine is not a cloud
 
 
 def provider(cid: str) -> C.Provider | None:
@@ -90,6 +94,8 @@ def add(body: dict) -> dict:
     """Validate and store a new connection. Raises ConnError with a message for the user."""
     name = (body.get("name") or "").strip()
     endpoint = (body.get("endpoint") or "").strip().rstrip("/")
+    if endpoint and "://" not in endpoint:
+        endpoint = "https://" + endpoint  # portals often show the host only (nl.object-storage.io)
     region = (body.get("region") or "").strip()
     bucket = (body.get("bucket") or "").strip()
     test_bucket = (body.get("test_bucket") or "").strip() or bucket
@@ -138,16 +144,28 @@ def _field(cid: str, f: str) -> str:
 
 def _hint(e: dict, p: C.Provider) -> str | None:
     f = lambda k: _field(p.id, k)  # noqa: E731
+    code = str(e.get("code") or "")
     if e["kind"] == "network":
+        if "SSL" in code or "SSL" in (e.get("message") or ""):
+            return f"The TLS handshake failed at {p.endpoint}. Check that {f('endpoint')} uses the right scheme (https:// or http://)."
+        if "Timeout" in code:
+            return f"{p.endpoint or 'AWS'} did not answer in time. Check {f('endpoint')} and that this machine can reach the internet."
         return f"Nothing answered at {p.endpoint or 'the default AWS endpoint'}. Check {f('endpoint')} and that the provider is reachable from this machine."
     if e.get("region") and e["region"] != p.region:
-        return f"The provider says it expects region '{e['region']}', but {f('region')} is '{p.region}'."
-    if e["code"] in {"AuthorizationHeaderMalformed", "InvalidRegion"}:
+        return f"This bucket lives in region '{e['region']}', but {f('region')} is '{p.region}'. Set the region to '{e['region']}'."
+    if code in {"PermanentRedirect", "301", "IllegalLocationConstraintException"}:
+        return f"The bucket is in another region than '{p.region}'. Copy the bucket's region from the provider's portal into {f('region')}."
+    if code in {"AuthorizationHeaderMalformed", "InvalidRegion"}:
         return f"The signing region '{p.region}' was rejected. Check {f('region')}."
-    if e["code"] in {"InvalidAccessKeyId", "SignatureDoesNotMatch", "AccessDenied", "403"}:
-        return f"The credentials were rejected. Check {f('access_key')} and {f('secret_key')}, and that the key may use this bucket."
-    if e["code"] in {"NoSuchBucket", "404"}:
+    if code in {"InvalidAccessKeyId", "SignatureDoesNotMatch", "InvalidToken", "ExpiredToken"}:
+        return f"The keys were rejected: check {f('access_key')} and {f('secret_key')} (no spaces, not expired, the secret matches the key)."
+    if code in {"AccessDenied", "403", "AllAccessDisabled"}:
+        return (f"The keys work, but they may not use bucket '{p.bucket}'. Give the key read/write on this bucket "
+                f"(or check that the bucket belongs to your account).")
+    if code in {"NoSuchBucket", "404"}:
         return f"The bucket does not exist. Create it at the provider, or change {f('bucket')} / {f('test_bucket')}."
+    if code in {"NotImplemented", "501"}:
+        return "The provider does not implement this S3 operation."
     return None
 
 

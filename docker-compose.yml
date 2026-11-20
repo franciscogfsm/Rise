@@ -1,0 +1,13 @@
+# docker compose up --build   →   http://localhost:8080
+# Keys come from your shell or a .env next to this file; nothing secret is baked into the image.
+services:
+  rise:
+    build: .
+    ports: ["${RISE_BIND:-127.0.0.1}:8080:8080"]   # RISE_BIND=0.0.0.0 only with RISE_PASSWORD set
+    environment:
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
+      RISE_PASSWORD: ${RISE_PASSWORD:-}
+    volumes: ["rise-data:/app/.rise"]  # analyses + encrypted connections survive restarts
+    restart: unless-stopped
+volumes:
+  rise-data:

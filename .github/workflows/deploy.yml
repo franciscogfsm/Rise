@@ -1,0 +1,31 @@
+# Every push to main: run the tests, then redeploy on the VM (only if the tests pass).
+# Repo → Settings → Secrets and variables → Actions: VM_HOST, VM_USER, VM_SSH_KEY (private key).
+name: test-and-deploy
+on:
+  push: { branches: [main] }
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12", cache: pip }
+      - run: pip install -r requirements.txt && python -m pytest -q
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    concurrency: deploy
+    steps:
+      - uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.VM_HOST }}
+          username: ${{ secrets.VM_USER }}
+          key: ${{ secrets.VM_SSH_KEY }}
+          script: |
+            set -e
+            cd ~/Rise
+            git fetch --quiet origin main && git reset --hard origin/main
+            docker compose up -d --build
+            for i in $(seq 30); do curl -fsS -o /dev/null http://127.0.0.1:8080/api/system && echo healthy && exit 0; sleep 2; done
+            docker compose logs --tail 50; exit 1

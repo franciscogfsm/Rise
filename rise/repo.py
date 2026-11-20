@@ -1,4 +1,4 @@
-"""Fetch a public GitHub repository as text, in memory. Repository content is untrusted data:
+"""Fetch a GitHub repository (public, or private with a read-only token) as text, in memory. Repository content is untrusted data:
 nothing is written to disk or executed; only bounded-size text files are read."""
 import io
 import re
@@ -17,6 +17,9 @@ MAX_FILE = 400 * 1024
 MAX_FILES = 4000
 
 
+TOKEN_RE = re.compile(r"^[A-Za-z0-9_]{20,255}$")  # ghp_…, github_pat_…, gho_…
+
+
 class RepoError(Exception):
     pass
 
@@ -28,14 +31,29 @@ def parse(url: str) -> tuple[str, str, str | None]:
     return m.group(1), m.group(2), m.group(3)
 
 
-def fetch(url: str) -> dict:
+def check_token(token: str | None) -> str | None:
+    token = (token or "").strip()
+    if token and not TOKEN_RE.match(token):
+        raise RepoError("That does not look like a GitHub token (ghp_… or github_pat_…).")
+    return token or None
+
+
+def fetch(url: str, token: str | None = None) -> dict:
+    """The token (private repos) is used for this one download only: never stored, logged or sent to the AI."""
     owner, name, ref = parse(url)
-    archive = f"https://github.com/{owner}/{name}/archive/{f'refs/heads/{ref}' if ref else 'HEAD'}.zip"
+    if token:  # the API zipball works for private repos; GitHub redirects to a short-lived signed download URL
+        archive, headers = f"https://api.github.com/repos/{owner}/{name}/zipball/{ref or ''}".rstrip("/"), {
+            "Authorization": f"Bearer {token}", "Accept": "application/vnd.github+json"}
+    else:
+        archive, headers = f"https://github.com/{owner}/{name}/archive/{f'refs/heads/{ref}' if ref else 'HEAD'}.zip", {}
     buf = io.BytesIO()
     try:
-        with httpx.stream("GET", archive, follow_redirects=True, timeout=60) as r:
+        with httpx.stream("GET", archive, headers=headers, follow_redirects=True, timeout=60) as r:
+            if r.status_code in (401, 403) and token:
+                raise RepoError("GitHub rejected the token. It needs read access (Contents: read) to this repository.")
             if r.status_code == 404:
-                raise RepoError(f"Repository {owner}/{name} not found or not public.")
+                raise RepoError(f"Repository {owner}/{name} not found. If it is private, add a GitHub token with read access."
+                                if not token else f"Repository {owner}/{name} not found, or the token cannot see it.")
             r.raise_for_status()
             for chunk in r.iter_bytes():
                 buf.write(chunk)

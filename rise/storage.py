@@ -22,7 +22,8 @@ def err_info(e: Exception) -> dict:
         md = r.get("ResponseMetadata", {})
         er = r.get("Error", {})
         return {"kind": "http", "code": er.get("Code"), "message": (er.get("Message") or "")[:300],
-                "status": md.get("HTTPStatusCode"), "request_id": md.get("RequestId"), "region": er.get("Region")}
+                "status": md.get("HTTPStatusCode"), "request_id": md.get("RequestId"),
+                "region": er.get("Region") or (md.get("HTTPHeaders") or {}).get("x-amz-bucket-region")}
     return {"kind": "network", "code": type(e).__name__, "message": str(e)[:300], "status": None,
             "request_id": None, "region": None}
 
@@ -53,7 +54,7 @@ def make_client(endpoint, region, access_key, secret_key, addressing_style="path
         aws_access_key_id=access_key, aws_secret_access_key=secret_key,
         config=Config(
             signature_version="s3v4", s3={"addressing_style": addressing_style},
-            retries={"max_attempts": 1, "mode": "standard"}, connect_timeout=2, read_timeout=10,
+            retries={"max_attempts": 2, "mode": "standard"}, connect_timeout=5, read_timeout=20,  # real clouds: TLS + distance
             # newer SDK default checksums are not implemented by every S3-compatible server
             request_checksum_calculation="when_required", response_checksum_validation="when_required",
         ),

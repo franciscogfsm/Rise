@@ -19,13 +19,4 @@ if [ ! -x "$BIN/garage" ]; then
 fi
 echo "✓ $("$BIN/garage" --version 2>/dev/null | head -1 || echo garage) in $BIN"
 
-if [ ! -f .env ]; then
-  cp .env.example .env
-  # Garage needs a GK-prefixed key id and a 64-hex secret; generated locally, never committed.
-  sed -i "s/^DEST_ACCESS_KEY=.*/DEST_ACCESS_KEY=GK$(openssl rand -hex 12)/" .env
-  sed -i "s/^DEST_SECRET_KEY=.*/DEST_SECRET_KEY=$(openssl rand -hex 32)/" .env
-  sed -i "s/^GARAGE_RPC_SECRET=.*/GARAGE_RPC_SECRET=$(openssl rand -hex 32)/" .env
-  echo "✓ .env created — add your OPENROUTER_API_KEY to it"
-else
-  echo "✓ .env already exists (left untouched)"
-fi
+bash scripts/env.sh
