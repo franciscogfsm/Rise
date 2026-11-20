@@ -2,7 +2,7 @@
 RISE.slide({
   id: "how",
   title: "How it works",
-  time: "0:40 – 1:15",
+  time: "0:35 – 1:05",
   notes: `
 "You give RISE three things: a repository, your goal, and the clouds: where you are and where you want to go. Up to four targets to compare."
 (acompanhar a linha)

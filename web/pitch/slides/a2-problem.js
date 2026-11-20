@@ -2,7 +2,7 @@
 RISE.slide({
   id: "problem",
   title: "Problem",
-  time: "0:15 – 0:40",
+  time: "0:15 – 0:35",
   notes: `
 "Leaseweb asked 800 senior leaders this month."
 "89% could not move their critical workloads off their largest provider within three weeks. 79% expect AI to make that dependence worse. And 73% would pay more to be independent."

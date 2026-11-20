@@ -4,7 +4,6 @@ RISE.slide({
   title: "Close",
   time: "4:45 – 5:00",
   notes: `
-"From 'we think we can move' to 'here is the proof', in ten seconds."
 (devagar) "Don't hope your migration works. Prove it."
 "RISE. Built to rise when clouds fall."
 (silêncio: deixar o júri perguntar)`,
@@ -21,7 +20,6 @@ RISE.slide({
           <path class="draw" style="--i:5;stroke:var(--accent)" d="M35 13h14v14" stroke-width="6.5"/>
         </svg>
       </span>
-      <p class="from rv" style="--i:2">From “we think we can move” to “here is the proof”. In 10 seconds.</p>
       <h2 class="display split"><span class="soft">Don't hope your migration works.</span> Prove it.</h2>
       <p class="sign rv" style="--i:9"><b>RISE</b>Built to rise when clouds fall.</p>
     </div>`,
@@ -32,8 +30,8 @@ RISE.slide({
     .hero-wrap { position: relative; display: block; height: 200px; }
     .halo { position: absolute; inset: -20%; border-radius: 50%; background: radial-gradient(closest-side, color-mix(in srgb, var(--accent) 20%, transparent), transparent); filter: blur(30px); }
     .hero { position: relative; display: block; height: 100%; width: auto; overflow: visible; }
-    .from { font-size: var(--t3); color: var(--muted); }
-    .display { font-size: var(--t6); max-width: 15ch; }
+    .display { font-size: var(--t6); max-width: none; }
+    .display .soft { display: block; white-space: nowrap; }
     .sign { display: flex; align-items: baseline; gap: 18px; font-size: var(--t3); color: var(--muted); }
     .sign b { color: var(--ink); font-weight: 700; letter-spacing: .14em; }`,
 

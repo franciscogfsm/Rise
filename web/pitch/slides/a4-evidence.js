@@ -2,7 +2,7 @@
 RISE.slide({
   id: "evidence",
   title: "AI reads evidence",
-  time: "1:15 – 1:40",
+  time: "1:05 – 1:25",
   notes: `
 "Why not just give the repository to an AI?"
 "A big repo doesn't fit in its context, so it samples and misses things. It can invent or forget dependencies, and it changes its mind between runs. Its proof is 'I think it uses SQS'."
@@ -14,7 +14,7 @@ RISE.slide({
     ["Large repo", "Doesn't fit. Samples and misses.", "Reads 100% of the files."],
     ["Result", "Invents or forgets. Changes every run.", "Deterministic. Same input, same output."],
     ["Proof", "“I think it uses SQS.”", "<code>src/queue.py:42</code>"],
-    ["Cost", "Grows with the repo. Millions of tokens.", "Fixed. About 3,700 tokens."],
+    ["Cost", "Grows with the repo. Millions of tokens.", "Fixed. ~3,700 tokens, under $0.0003."],
     ["Speed", "Minutes.", "Under 1 second."],
     ["Privacy", "All your code goes to an AI provider.", "Code never leaves. AI sees evidence, keys redacted."],
     ["Trust", "“The AI said yes.”", "Real tests and SHA-256."],

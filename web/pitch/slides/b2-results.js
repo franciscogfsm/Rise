@@ -8,7 +8,7 @@ RISE.slide({
 "On real AWS, in Stockholm: the answer was 'Ready, one change', in 12.4 seconds, with real AWS request IDs and SHA-256 verified on AWS."
 (a barra) "Here's where the time goes for a small repo: 1.2 seconds to fetch, 22 milliseconds to scan, 9 seconds of AI planning, and 1.1 seconds for 8 real tests."
 "Three providers compared in parallel: about 16 seconds. The live switch: 284 requests, zero failed, with the source cut."
-"No AI key, fresh clone: it still gives the right answer. And 40 automated tests pass."
+"No AI key, fresh clone: it still gives the right answer. And 106 automated tests pass."
 Só a AWS foi testada ao vivo hoje. Não dizer que testámos a Leaseweb real.`,
 
   BAR: [["Fetch", 1.2], ["Scan", 0.022], ["AI plan", 9.0], ["8 real tests", 1.1]],
@@ -27,7 +27,7 @@ Só a AWS foi testada ao vivo hoje. Não dizer que testámos a Leaseweb real.`,
           <li class="rv" style="--i:3"><b>~16 s</b><span>3 providers compared in parallel</span></li>
           <li class="rv" style="--i:4"><b>0 failed</b><span>of 284 live requests during the switch, source cut</span></li>
           <li class="rv" style="--i:5"><b>No AI key</b><span>still the right answer (rules fallback)</span></li>
-          <li class="rv" style="--i:6"><b>40</b><span>automated tests passing</span></li>
+          <li class="rv" style="--i:6"><b>106</b><span>automated tests passing</span></li>
         </ul>
       </div>
       <div class="bar-wrap rv" style="--i:7">
