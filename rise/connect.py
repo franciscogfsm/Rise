@@ -1,8 +1,9 @@
 """Connections: the S3-compatible providers RISE can test, and a real connection test for each.
 
 Two built-in connections come from the server environment (.env): `source` and `destination`.
-Users can add more from the UI. Their keys are stored only on the server (DATA/connections.json,
-git-ignored, owner-only permissions) and are never sent back to the browser.
+Users can add more from the UI. Their keys are encrypted at rest (Fernet: AES-128-CBC + HMAC-SHA256)
+in DATA/connections.json, with a master key from RISE_MASTER_KEY or DATA/master.key (owner-only).
+Keys are never sent back to the browser and never given to the AI.
 """
 import json
 import os
@@ -13,6 +14,7 @@ import uuid
 from urllib.parse import urlparse
 
 from botocore.exceptions import BotoCoreError, ClientError
+from cryptography.fernet import Fernet, InvalidToken
 
 from . import config as C
 from .storage import err_info, make_client, request_id, sha256
@@ -28,6 +30,32 @@ REGION_RE = re.compile(r"^[a-z0-9][a-z0-9-]{0,31}$")
 
 class ConnError(ValueError):
     pass
+
+
+def _fernet() -> Fernet:
+    key = os.environ.get("RISE_MASTER_KEY")
+    if not key:
+        f = C.DATA / "master.key"
+        if not f.exists():
+            f.write_bytes(Fernet.generate_key())
+            try:
+                os.chmod(f, 0o600)
+            except OSError:
+                pass
+        key = f.read_bytes().strip()
+    return Fernet(key)
+
+
+def _seal(ak: str, sk: str) -> str:
+    return _fernet().encrypt(json.dumps([ak, sk]).encode()).decode()
+
+
+def _open(token: str) -> tuple[str, str]:
+    try:
+        ak, sk = json.loads(_fernet().decrypt(token.encode()))
+        return ak, sk
+    except (InvalidToken, ValueError) as e:
+        raise ConnError("Stored keys cannot be decrypted (master key changed?). Remove and re-add this connection.") from e
 
 
 def _load() -> dict[str, dict]:
@@ -46,9 +74,9 @@ def _save(items: dict[str, dict]) -> None:
 
 
 def _from_saved(cid: str, d: dict) -> C.Provider:
+    ak, sk = _open(d["keys"])
     return C.Provider(id=cid, name=d["name"], endpoint=d["endpoint"], region=d["region"], bucket=d["bucket"],
-                      test_bucket=d["test_bucket"], access_key=d["access_key"], secret_key=d["secret_key"],
-                      simulated=False)
+                      test_bucket=d["test_bucket"], access_key=ak, secret_key=sk, simulated=False)
 
 
 def provider(cid: str) -> C.Provider | None:
@@ -83,7 +111,7 @@ def add(body: dict) -> dict:
     with _lock:
         items = _load()
         items[cid] = {"name": name, "endpoint": endpoint, "region": region, "bucket": bucket, "test_bucket": test_bucket,
-                      "access_key": ak, "secret_key": sk, "created": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())}
+                      "keys": _seal(ak, sk), "created": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())}
         _save(items)
     return overview_one(cid)
 
@@ -187,6 +215,7 @@ def overview_one(cid: str) -> dict:
         # whether keys are set, never their values
         "keys_set": bool(os.environ.get(f"{ENV_PREFIX[cid]}_ACCESS_KEY")) if builtin else True,
         "configured_in": ".env" if builtin else "RISE",
+        "key_storage": "server environment (.env)" if builtin else "encrypted at rest on this server (Fernet · AES-128 + HMAC-SHA256)",
         "last_test": RESULTS.get(cid),
     }
 

@@ -10,12 +10,14 @@ import re
 import threading
 import time
 import uuid
+from concurrent.futures import ThreadPoolExecutor
 
 from . import ai, config as C, repo, scan as scanner
 from .engine import COVERABLE, KINDS, TestSpec, run as run_test
 from .storage import make_client
 
 STAGES = ["fetch", "scan", "plan", "test", "adapt", "report"]
+POOL = ThreadPoolExecutor(max_workers=24, thread_name_prefix="rise-test")  # S3 calls are I/O-bound: run them all at once
 STORE = C.DATA / "analyses"
 STORE.mkdir(parents=True, exist_ok=True)
 REGION_LITERAL = re.compile(r"""(?:region_name|region|AWS_REGION|AWS_DEFAULT_REGION)\s*[=:]\s*['"]([a-z]{2}-[a-z]+-\d)['"]""")
@@ -32,6 +34,7 @@ class Analyses:
         self.run_lock = threading.Lock()  # one analysis exercises the providers at a time
         self.version = 0
         self.items: dict[str, dict] = {}
+        self._t: dict[tuple, float] = {}  # (analysis, stage) -> perf_counter at start
         for f in sorted(STORE.glob("*.json")):
             try:
                 a = json.loads(f.read_text(encoding="utf-8"))
@@ -57,7 +60,8 @@ class Analyses:
 
     def list(self) -> list[dict]:
         with self.lock:
-            out = [{k: a.get(k) for k in ("id", "url", "repo", "status", "stage", "created", "finished", "score", "providers")}
+            out = [{k: a.get(k) for k in ("id", "url", "repo", "status", "stage", "created", "finished", "score", "providers",
+                                          "duration_ms")}
                    for a in self.items.values()]
         return sorted(out, key=lambda a: a["created"], reverse=True)
 
@@ -92,6 +96,10 @@ class Analyses:
         with self.lock:
             a = self.items[aid]
             a["stage"], a["stages"][stage] = stage, status
+            if status == "running":
+                self._t[aid, stage] = time.perf_counter()
+            elif (aid, stage) in self._t:
+                a.setdefault("stage_ms", {})[stage] = round((time.perf_counter() - self._t.pop((aid, stage))) * 1000)
             if msg:
                 a["events"].append({"ts": now(), "stage": stage, "msg": msg, **({"data": data} if data else {})})
             self._save(a)
@@ -100,9 +108,10 @@ class Analyses:
     def _run(self, aid, ref_p, tgt_p):
         with self.run_lock:
             self._update(aid, status="running", started=now())
+            t0 = time.perf_counter()
             try:
                 self._pipeline(aid, ref_p, tgt_p)
-                self._update(aid, status="done", finished=now())
+                self._update(aid, status="done", finished=now(), duration_ms=round((time.perf_counter() - t0) * 1000))
             except repo.RepoError as e:
                 self._fail(aid, str(e))
             except Exception as e:  # noqa: BLE001 — surface any failure to the user with its type
@@ -157,11 +166,11 @@ class Analyses:
         # the reference signs as its provider documents; the target signs as the code does (that is the question)
         ref_c = make_client(P.endpoint, P.region, P.access_key, P.secret_key)
         tgt_c = make_client(T.endpoint, code_region, T.access_key, T.secret_key)
-        results = {"reference": [], "target": []}
-        for spec in specs:
-            results["reference"].append(run_test(spec, ref_c, P.test_bucket, aid, "reference"))
-            results["target"].append(run_test(spec, tgt_c, T.test_bucket, aid, "target"))
-            self._update(aid, results=results)
+        # every test on both providers at once; keys are unique per analysis, role and test, so nothing collides
+        jobs = {role: [POOL.submit(run_test, sp, c, b, f"{aid}/{role}", role) for sp in specs]
+                for role, c, b in (("reference", ref_c, P.test_bucket), ("target", tgt_c, T.test_bucket))}
+        results = {role: [f.result() for f in fs] for role, fs in jobs.items()}
+        self._update(aid, results=results)
         bad = [x for x in results["target"] if x["status"] != "pass"]
         self._stage(aid, "test", "done", f"Target passed {len(specs) - len(bad)}/{len(specs)}; "
                                          f"reference passed {sum(x['status'] == 'pass' for x in results['reference'])}/{len(specs)}")
@@ -176,7 +185,7 @@ class Analyses:
             if proposal["key"] != "none":
                 after = {**app_cfg["target"], proposal["key"]: proposal["value"]}
                 tgt2 = make_client(T.endpoint, after["region"], T.access_key, T.secret_key, after["addressing_style"])
-                retest = [run_test(sp, tgt2, T.test_bucket, aid, "target") for sp in specs]
+                retest = list(POOL.map(lambda sp: run_test(sp, tgt2, T.test_bucket, f"{aid}/retest", "target"), specs))
                 still = [x for x in retest if x["status"] != "pass"]
                 record |= {"applied": True, "before": app_cfg["target"], "after": after,
                            "retest": {"passed": len(retest) - len(still), "total": len(retest)}}
