@@ -2,7 +2,7 @@
 RISE.slide({
   id: "reveal",
   title: "Reveal",
-  time: "4:30 – 4:50",
+  time: "4:25 – 4:45",
   steps: 1,
   notes: `
 (passo 0: a imagem, pedida agora mesmo; a etiqueta diz quem a serviu)

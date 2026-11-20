@@ -229,7 +229,11 @@
     });
     fit();
     const [i, s] = fromHash();
-    show(i, s);
+    // A primeira entrada espera pelas fontes e por dois frames. Sem isto, a animação de abertura
+    // corria enquanto o browser ainda carregava e desenhava a página, perdia frames e parecia
+    // mais rápida do que nas entradas seguintes.
+    const settled = Promise.race([document.fonts?.ready ?? Promise.resolve(), new Promise(r => setTimeout(r, 1500))]);
+    settled.then(() => requestAnimationFrame(() => requestAnimationFrame(() => show(i, s))));
   }
 
   window.RISE = { slide, start, api };

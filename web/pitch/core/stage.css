@@ -91,7 +91,7 @@
 .slide .split[data-s] { --d0: 40ms; }
 
 /* traço SVG que se desenha (FX.draw mede --len) */
-.slide .draw { stroke-dasharray: var(--len, 1000); stroke-dashoffset: var(--len, 1000); transition: stroke-dashoffset 1.4s var(--e-inout); }
+.slide .draw { stroke-dasharray: var(--len, 1000); stroke-dashoffset: var(--len, 1000); transition: stroke-dashoffset 1.1s var(--e-inout); }
 .slide.cur .draw:not([data-s]), .slide.s1 .draw[data-s="1"], .slide.s2 .draw[data-s="2"], .slide.s3 .draw[data-s="3"] {
   stroke-dashoffset: 0; transition-delay: calc(var(--d0) + var(--i, 0) * 120ms);
 }

@@ -3,7 +3,7 @@
 RISE.slide({
   id: "cut",
   title: "Source cut",
-  time: "3:40 – 4:00",
+  time: "3:40 – 3:55",
   steps: 2,
   notes: `
 (→) "We cut the app's link to the source. RISE checked it: the source no longer answers."
@@ -78,15 +78,12 @@ Se o cabo não partir no ecrã, o Cut não correu no dashboard: não fingir. Diz
     el.querySelector(".src .detail").innerHTML = cut ? `
       <b class="bad-c">Source unreachable</b>
       <span>cut at ${esc(time(d.at))}</span>
-      <code>app: ${esc(String(d.app_probe?.result || "").split(":")[0])}</code>
-      <code>network: ${esc(d.tcp_probe?.result || "")}</code>`
+      <code>${esc(String(d.app_probe?.result || "").split(":")[0])}</code>`
       : `<span class="none">${d ? "The source still answers." : "The source has not been cut yet."}</span>`;
     el.querySelector(".dst .detail").innerHTML = op ? `
-      <b class="${live ? "ok-c" : "bad-c"}">${live ? "New write after the cut" : "New write did not verify"}</b>
+      <b class="${live ? "ok-c" : "bad-c"}">${live ? "New write works" : "New write did not verify"}</b>
       <code>${esc(op.key)}</code>
-      <code>served by ${esc(op.provider)}</code>
-      <code>sha256 ${esc(String(op.sha256_read || "").slice(0, 16))}…</code>
-      <code>req ${esc(String(op.get_request_id || "").slice(0, 16))}</code>`
+      <code>served by ${esc(op.provider)}</code>`
       : `<span class="none">No new operation yet.</span>`;
   },
 });

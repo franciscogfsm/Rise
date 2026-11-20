@@ -2,7 +2,7 @@
 RISE.slide({
   id: "integrity",
   title: "Integrity",
-  time: "3:20 – 3:40",
+  time: "3:25 – 3:40",
   notes: `
 "We don't ask you to trust us. For every object, RISE computed the SHA-256 of the actual bytes on the source and on the destination. Not ETags: the bytes."
 "Every pair matches."  (só se o número em baixo for igual ao total)
@@ -15,7 +15,7 @@ Mostramos os primeiros 16 caracteres de cada hash; os completos estão no Freedo
       <div class="left">
         <p class="kicker rv">Verify</p>
         <h2 class="title split">Every byte, checked.</h2>
-        <div class="score rv" style="--i:4"><div><b class="n big-num act-c">–</b><b class="of"></b></div><span class="unit">objects with the same SHA-256 on both sides</span></div>
+        <div class="score rv" style="--i:4"><div><b class="n big-num act-c"></b><b class="of"></b></div><span class="unit">identical objects (SHA-256)</span></div>
       </div>
       <div class="grid"></div>
     </div>`,
@@ -59,7 +59,7 @@ Mostramos os primeiros 16 caracteres de cada hash; os completos estão no Freedo
     const objs = pr?.integrity?.objects || [];
     if (!objs.length) {
       grid.innerHTML = `<div class="empty"><div><strong>No verified objects yet</strong>${api.live.online ? "Run Verify in the dashboard and come back to this slide." : "Open the pitch through RISE to show the real proof."}</div></div>`;
-      n.textContent = "–"; of.textContent = "";
+      n.textContent = ""; of.textContent = "";
       return;
     }
     const ok = objs.filter(o => o.match).length, file = k => String(k || "").split("/").pop();

@@ -18,8 +18,8 @@ Teclas:
 
 | Parte | Slides | Ficheiros |
 |---|---|---|
-| A: a história | Cover, Problem, How it works, Discover, AI test plan | `slides/a1-*.js` a `slides/a5-*.js` |
-| B: a prova | Live demo, Challenge to Adapt, Integrity, Source cut, Impact, Reveal, Close | `slides/b1-*.js` a `slides/b7-*.js` |
+| A: a história | Cover, Problem, How it works, AI reads evidence, Measured at scale | `slides/a1-*.js` a `slides/a5-*.js` |
+| B: a prova | Live demo, Results, Integrity, Source cut, Impact, Reveal, Close | `slides/b1-*.js` a `slides/b7-*.js` |
 | Partilhado | Motor, palco, motion, ligação à API | `core/`, `config.js`, `Rise_Pitch.html` |
 
 Regras para trabalharem os dois ao mesmo tempo sem conflitos:

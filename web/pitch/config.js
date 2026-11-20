@@ -7,7 +7,7 @@ window.RISE_CONFIG = {
   // Origem da API. Vazio = a mesma origem da página.
   apiBase: "",
   // Página da app mostrada no slide de demo.
-  dashboardPath: "/demo",
+  dashboardPath: "/",
   // Assets do pitch servidos pelo routing do RISE (criados em rise/seed.py).
   stats: ["slides/stat-89.svg", "slides/stat-79.svg", "slides/stat-73.svg"],
   revealAsset: "slides/independência.svg",

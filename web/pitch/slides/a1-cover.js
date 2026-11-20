@@ -6,7 +6,8 @@ RISE.slide({
   notes: `
 (silêncio 2 s enquanto o logótipo se desenha)
 "What would it take for your company to leave its cloud provider?"
-(pausa) "For most companies, the honest answer is: we don't know. Today we'll show you how to find out, with proof, live, inside this deck."`,
+(pausa) "For most companies, the honest answer is: we don't know."
+"RISE answers it. Paste a repo, pick the clouds, and in about ten seconds you get one answer: ready to migrate or not. Backed by real tests on real clouds."`,
 
   html: `
     <div class="cover">
@@ -25,7 +26,7 @@ RISE.slide({
       </div>
       <div class="copy">
         <h1 class="display split"><span class="soft">Don't hope your migration works.</span> Prove it.</h1>
-        <p class="tag rv" style="--i:8"><span class="dot act-c"></span>Live demo inside this deck</p>
+        <p class="what rv" style="--i:8">Paste a repo. In 10 seconds: ready to migrate or not, proven on real clouds.</p>
       </div>
     </div>`,
 
@@ -39,7 +40,8 @@ RISE.slide({
     .hero { position: relative; display: block; height: 100%; width: auto; overflow: visible; }
     .copy { display: grid; gap: 34px; justify-items: center; }
     .display { font-size: 64px; max-width: 30ch; letter-spacing: -.03em; }
-    .soft { color: var(--faint-ink); }`,
+    .soft { color: var(--faint-ink); }
+    .what { font-size: var(--t3); color: var(--muted); }`,
 
   globalCss: `#deck:has(.slide[data-slide="cover"].cur) > .brand { opacity: 0; transform: translateY(-8px); }`,
 

@@ -1,0 +1,422 @@
+<!doctype html>
+<!--
+  RISE · 5 direções visuais para escolher. Mesmo conteúdo (Problema + Como funciona), 5 maneiras de o mostrar.
+  Não faz parte do deck. Abrir com duplo clique.
+
+  TECLAS  → / espaço  passo seguinte     ←  anterior     1 a 5  saltar para a direção A a E
+          R  repetir o slide             F  ecrã inteiro
+  URL     ?static mostra cada slide no estado final
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RISE directions</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@300..800&family=Geist+Mono:wght@400;500;600&display=swap">
+<style>
+:root {
+  --ink: #121F35; --muted: #42506A; --faint: rgba(18,31,53,.08); --line: rgba(18,31,53,.12);
+  --pearl: #F7F8FA; --accent: #2563EB; --ok: #0A8A74; --ok-bg: #D2F4EC; --bad: #D4513B; --bad-bg: #FCE0D9;
+  --lav: #E9E4FF; --ice: #DCEBFF;
+  --eo: cubic-bezier(.16, 1, .3, 1); --io: cubic-bezier(.65, 0, .35, 1); --spring: cubic-bezier(.34, 1.4, .64, 1);
+  --sans: "Geist", system-ui, sans-serif; --mono: "Geist Mono", ui-monospace, monospace;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; overflow: hidden; background: #DDE1E8; font-family: var(--sans); color: var(--ink); -webkit-font-smoothing: antialiased; }
+#stage { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; transform-origin: 0 0; overflow: hidden; }
+.slide { position: absolute; inset: 0; opacity: 0; visibility: hidden; transition: opacity .45s var(--io), visibility 0s .45s; }
+.slide.cur { opacity: 1; visibility: visible; transition: opacity .45s var(--io); }
+#hud { position: fixed; left: 50%; bottom: 14px; translate: -50% 0; display: flex; gap: 14px; align-items: center; padding: 8px 16px; border-radius: 999px;
+  background: rgba(255,255,255,.92); box-shadow: 0 0 0 1px var(--line), 0 10px 30px -12px rgba(18,31,53,.3); font: 500 13px/1 var(--sans); color: var(--muted); z-index: 10; }
+#hud b { color: var(--ink); font-weight: 600; }
+html.still *, html.still *::before, html.still *::after { transition: none !important; animation: none !important; }
+
+/* ════════════ A · Kinetic type: números do tamanho do ecrã, palavras numa roda ════════════ */
+.A { background: #fff; }
+.a-stat { position: absolute; left: 120px; top: 110px; right: 120px; display: flex; align-items: flex-end; gap: 72px; }
+.a-num { display: flex; align-items: flex-end; font-size: 600px; line-height: .78; font-weight: 750; letter-spacing: -.075em; }
+.a-num .m { display: block; overflow: hidden; padding-bottom: .02em; }
+.a-num .m i { display: block; font-style: normal; transform: translateY(104%); transition: transform .95s var(--eo); }
+.a-num .m + .m i { transition-delay: .07s; }
+.a-num .pc { font-size: .34em; line-height: 1; margin: 0 0 .1em .08em; color: var(--accent); letter-spacing: -.04em; opacity: 0; transition: opacity .5s var(--eo) .3s; }
+.a-lab { font-size: 52px; line-height: 1.12; font-weight: 500; letter-spacing: -.025em; max-width: 13ch; margin-bottom: 30px; opacity: 0; transform: translateY(20px); transition: opacity .6s var(--eo) .35s, transform .9s var(--eo) .35s; }
+/* uma estatística de cada vez: entra por baixo, sai por cima */
+.A.cur:not(.s1) .a-stat[data-k="0"] i, .A.s1:not(.s2) .a-stat[data-k="1"] i, .A.s2:not(.s3) .a-stat[data-k="2"] i { transform: none; }
+.A.cur:not(.s1) .a-stat[data-k="0"] :is(.pc, .a-lab), .A.s1:not(.s2) .a-stat[data-k="1"] :is(.pc, .a-lab), .A.s2:not(.s3) .a-stat[data-k="2"] :is(.pc, .a-lab) { opacity: 1; transform: none; }
+.A.s1 .a-stat[data-k="0"] i, .A.s2 .a-stat[data-k="1"] i, .A.s3 .a-stat[data-k="2"] i { transform: translateY(-104%); transition-duration: .7s; }
+.a-row { position: absolute; left: 120px; right: 120px; bottom: 150px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 60px; }
+.a-row div { border-top: 3px solid var(--ink); padding-top: 26px; opacity: 0; transform: translateY(30px); transition: opacity .6s var(--eo), transform .9s var(--eo); }
+.a-row b { display: block; font-size: 150px; line-height: .9; font-weight: 750; letter-spacing: -.06em; }
+.a-row span { display: block; margin-top: 14px; font-size: 26px; line-height: 1.3; color: var(--muted); max-width: 22ch; }
+.a-title { position: absolute; left: 120px; top: 150px; font-size: 104px; line-height: 1; font-weight: 700; letter-spacing: -.045em; }
+.a-title .ln { display: block; overflow: hidden; padding-bottom: .08em; }
+.a-title .ln span { display: block; transform: translateY(105%); transition: transform 1s var(--eo); }
+.a-title .ln + .ln span { color: var(--muted); }
+.A.s3 .a-row div { opacity: 1; transform: none; }
+.A.s3 .a-row div:nth-child(2) { transition-delay: .08s; } .A.s3 .a-row div:nth-child(3) { transition-delay: .16s; }
+.A.s3 .a-title .ln span { transform: none; transition-delay: .25s; }
+.A.s3 .a-title .ln + .ln span { transition-delay: .35s; }
+.a-src { position: absolute; left: 120px; bottom: 70px; font: 400 18px var(--mono); color: var(--muted); }
+
+.a-wheel { position: absolute; left: 120px; top: 0; height: 1080px; width: 1000px; overflow: hidden;
+  -webkit-mask: linear-gradient(transparent, #000 30%, #000 70%, transparent); mask: linear-gradient(transparent, #000 30%, #000 70%, transparent); }
+.a-wheel ol { list-style: none; transform: translateY(calc(455px - var(--k, 0) * 170px)); transition: transform 1s var(--io); }
+.a-wheel li { height: 170px; font-size: 150px; line-height: 170px; font-weight: 750; letter-spacing: -.055em; color: rgba(18,31,53,.09); transition: color .6s var(--io); }
+.A[data-id="a-how"] li:nth-child(1) { color: var(--ink); }
+.A.s1 li:nth-child(1) { color: rgba(18,31,53,.09); } .A.s1 li:nth-child(2) { color: var(--ink); }
+.A.s2 li:nth-child(2) { color: rgba(18,31,53,.09); } .A.s2 li:nth-child(3) { color: var(--ink); }
+.A.s3 li:nth-child(3) { color: rgba(18,31,53,.09); } .A.s3 li:nth-child(4) { color: var(--ink); }
+.A.s4 li:nth-child(4) { color: rgba(18,31,53,.09); } .A.s4 li:nth-child(5) { color: var(--ok); }
+.A.s1 .a-wheel ol { --k: 1; } .A.s2 .a-wheel ol { --k: 2; } .A.s3 .a-wheel ol { --k: 3; } .A.s4 .a-wheel ol { --k: 4; }
+.a-side { position: absolute; left: 1180px; top: 470px; width: 620px; }
+.a-side .ix { font: 500 28px var(--mono); color: var(--accent); }
+.a-side p { position: absolute; top: 56px; left: 0; font-size: 48px; line-height: 1.12; font-weight: 500; letter-spacing: -.025em; opacity: 0; transform: translateY(18px); transition: opacity .5s var(--eo), transform .8s var(--eo); }
+.A[data-id="a-how"].cur:not(.s1) .a-side p[data-k="0"], .A.s1:not(.s2) .a-side p[data-k="1"], .A.s2:not(.s3) .a-side p[data-k="2"], .A.s3:not(.s4) .a-side p[data-k="3"], .A.s4 .a-side p[data-k="4"] { opacity: 1; transform: none; transition-delay: .25s; }
+.a-ticks { position: absolute; right: 120px; top: 440px; display: grid; gap: 14px; }
+.a-ticks i { width: 6px; height: 28px; border-radius: 3px; background: var(--line); transition: background .4s; }
+.A[data-id="a-how"].cur .a-ticks i:nth-child(1), .A.s1 .a-ticks i:nth-child(2), .A.s2 .a-ticks i:nth-child(3), .A.s3 .a-ticks i:nth-child(4), .A.s4 .a-ticks i:nth-child(5) { background: var(--ink); }
+.a-top { position: absolute; left: 1180px; top: 150px; font-size: 30px; font-weight: 600; letter-spacing: -.01em; color: var(--muted); }
+
+/* ════════════ B · Unit chart: cada ponto é uma pessoa; um pedido viaja pela pipeline ════════════ */
+.B { background: var(--pearl); }
+.b-left { position: absolute; left: 120px; top: 0; bottom: 0; width: 760px; }
+.b-stat { position: absolute; left: 0; top: 330px; opacity: 0; transform: translateY(24px); transition: opacity .5s var(--eo), transform .8s var(--eo); }
+.b-stat b { display: block; font-size: 260px; line-height: .85; font-weight: 750; letter-spacing: -.065em; color: var(--c); }
+.b-stat span { display: block; margin-top: 26px; font-size: 44px; line-height: 1.15; font-weight: 500; letter-spacing: -.02em; max-width: 15ch; }
+.B.cur:not(.s1) .b-stat[data-k="0"], .B.s1:not(.s2) .b-stat[data-k="1"], .B.s2:not(.s3) .b-stat[data-k="2"] { opacity: 1; transform: none; transition-delay: .2s; }
+.b-title { position: absolute; left: 0; top: 330px; font-size: 92px; line-height: 1.02; font-weight: 700; letter-spacing: -.045em; opacity: 0; transform: translateY(24px); transition: opacity .6s var(--eo) .2s, transform .9s var(--eo) .2s; }
+.B.s3 .b-title { opacity: 1; transform: none; }
+.b-grid { position: absolute; left: 1060px; top: 210px; display: grid; grid-template-columns: repeat(10, 48px); gap: 16px; }
+.b-grid i { width: 48px; height: 48px; border-radius: 50%; background: rgba(18,31,53,.1); transform: scale(0);
+  transition: transform .5s var(--spring), background .35s var(--io); transition-delay: calc(var(--w) * 14ms), calc(var(--i) * 9ms); }
+.B.cur .b-grid i { transform: scale(1); }
+.b-grid i.on { background: var(--c); }
+.b-cap { position: absolute; left: 1060px; top: 880px; font: 400 20px var(--mono); color: var(--muted); }
+
+.b-track { position: absolute; left: 120px; right: 120px; top: 430px; height: 140px; }
+.b-rail, .b-fill { position: absolute; left: 70px; top: 68px; height: 4px; border-radius: 2px; }
+.b-rail { right: 70px; background: var(--line); }
+.b-fill { width: calc(var(--k, 0) * 385px); background: var(--accent); transition: width 1s var(--io); }
+.b-st { position: absolute; z-index: 1; top: 0; width: 140px; height: 140px; margin-left: -70px; border-radius: 50%; background: #fff; box-shadow: inset 0 0 0 3px var(--line);
+  display: grid; place-items: center; font: 500 30px var(--mono); color: var(--muted); transition: box-shadow .5s var(--io), color .5s, background .5s; }
+.b-st h3 { position: absolute; top: 172px; left: 50%; translate: -50% 0; font: 650 40px/1 var(--sans); letter-spacing: -.03em; color: var(--ink); white-space: nowrap; }
+.b-st p { position: absolute; top: 226px; left: 50%; translate: -50% 0; width: 300px; text-align: center; font: 400 24px/1.35 var(--sans); color: var(--muted); }
+.b-st em { position: absolute; top: -56px; left: 50%; translate: -50% 0; font: 600 22px var(--sans); font-style: normal; white-space: nowrap; opacity: 0; transition: opacity .4s; }
+.b-st.on { box-shadow: inset 0 0 0 4px var(--accent); color: var(--accent); }
+.b-st.fail { box-shadow: inset 0 0 0 4px var(--bad); color: var(--bad); background: var(--bad-bg); }
+.b-st.fail em { opacity: 1; color: var(--bad); }
+.b-st.pass { box-shadow: inset 0 0 0 4px var(--ok); color: var(--ok); background: var(--ok-bg); }
+.b-st.pass em { opacity: 1; color: var(--ok); }
+.b-pk { position: absolute; top: 56px; left: 70px; width: 28px; height: 28px; margin-left: -14px; border-radius: 50%; background: var(--accent);
+  box-shadow: 0 0 0 10px rgba(37,99,235,.15), 0 0 30px rgba(37,99,235,.5); transition: left 1s var(--io), background .4s; z-index: 0; }
+.b-pk.done { background: var(--ok); box-shadow: 0 0 0 10px rgba(10,138,116,.15), 0 0 30px rgba(10,138,116,.5); }
+.b-head { position: absolute; left: 120px; top: 150px; font-size: 88px; line-height: 1; font-weight: 700; letter-spacing: -.045em; }
+
+/* ════════════ C · Metáfora: a app presa numa cloud; portões que abrem ════════════ */
+.C { background: linear-gradient(180deg, #fff 0%, var(--pearl) 100%); }
+.c-head { position: absolute; left: 120px; top: 140px; font-size: 88px; line-height: 1; font-weight: 700; letter-spacing: -.045em; max-width: 18ch; }
+.c-scene { position: absolute; left: 120px; right: 120px; top: 380px; height: 520px; }
+.c-box { position: absolute; top: 0; height: 520px; width: 600px; border-radius: 56px; }
+.c-box > span { position: absolute; left: 44px; top: 36px; font: 600 26px var(--sans); color: var(--muted); }
+.c-old { left: 0; background: #fff; box-shadow: inset 0 0 0 3px var(--ink), 0 30px 60px -30px rgba(18,31,53,.35); transition: opacity .8s, filter .8s; }
+.c-new { right: 0; box-shadow: inset 0 0 0 3px rgba(18,31,53,.25); background: repeating-linear-gradient(135deg, transparent 0 14px, rgba(18,31,53,.035) 14px 28px); transition: box-shadow .8s, background .8s; }
+.c-app { position: absolute; top: 200px; left: calc(150px + var(--x, 0px)); width: 300px; height: 120px; border-radius: 28px; background: var(--accent); color: #fff;
+  display: grid; place-items: center; font: 650 34px var(--sans); letter-spacing: -.02em; box-shadow: 0 24px 50px -20px rgba(37,99,235,.7); transition: left 1.1s var(--io); z-index: 3; }
+.c-path { position: absolute; left: 600px; right: 600px; top: 258px; border-top: 4px dashed rgba(18,31,53,.2); }
+.c-lock { position: absolute; top: 140px; width: 160px; margin-left: -80px; text-align: center; opacity: 0; transform: translateY(-30px) scale(.8); transition: opacity .4s, transform .6s var(--spring); }
+.c-lock svg { width: 84px; height: 96px; }
+.c-lock b { display: block; font-size: 64px; line-height: 1; font-weight: 750; letter-spacing: -.05em; color: var(--bad); margin-top: 6px; }
+.c-lock span { display: block; font-size: 21px; line-height: 1.3; color: var(--muted); margin-top: 6px; }
+.C.s1 .c-lock[data-k="0"], .C.s2 .c-lock[data-k="1"], .C.s2 .c-lock[data-k="0"], .C.s3 .c-lock { opacity: 1; transform: none; }
+.c-pull { position: absolute; right: 60px; top: 160px; width: 480px; text-align: right; opacity: 0; transition: opacity .6s; }
+.c-pull b { font-size: 120px; line-height: .9; font-weight: 750; letter-spacing: -.06em; color: var(--accent); }
+.c-pull span { display: block; font-size: 26px; color: var(--muted); margin-top: 8px; }
+.C.s3 .c-pull { opacity: 1; }
+.C[data-id="c-problem"].cur .c-app { animation: c-try 2.4s var(--io) .6s 1; }
+.C[data-id="c-problem"].s3 .c-app { animation: c-try2 2.2s var(--io) .3s 1; }
+@keyframes c-try { 0%, 100% { transform: none; } 35% { transform: translateX(170px); } 50% { transform: translateX(130px); } 60% { transform: translateX(160px); } }
+@keyframes c-try2 { 0%, 100% { transform: none; } 40% { transform: translateX(170px); } 48% { transform: translateX(150px) rotate(-2deg); } 56% { transform: translateX(165px); } }
+
+.c-gate { position: absolute; top: 160px; width: 18px; height: 200px; margin-left: -9px; }
+.c-gate i { position: absolute; inset: 0; border-radius: 9px; background: var(--ink); transform-origin: 50% 0; transition: transform .7s var(--spring), background .4s; }
+.c-gate span { position: absolute; top: -60px; left: 50%; translate: -50% 0; font: 650 26px var(--sans); white-space: nowrap; color: var(--muted); transition: color .4s; }
+.c-gate.open i { transform: scaleY(.12); background: var(--ok); }
+.c-gate.open span { color: var(--ok); }
+.c-wide .c-box { width: 460px; }
+.c-wide .c-path { left: 460px; right: 460px; }
+.c-wide .c-app { width: 260px; left: calc(100px + var(--x, 0px)); }
+.c-wide .c-gate span { font-size: 24px; }
+.C.s5 .c-old { opacity: .45; filter: grayscale(1); }
+.C.s5 .c-new { box-shadow: inset 0 0 0 4px var(--ok), 0 30px 60px -30px rgba(10,138,116,.45); background: #fff; }
+.C.s5 .c-app { background: var(--ok); box-shadow: 0 24px 50px -20px rgba(10,138,116,.7); }
+
+/* ════════════ D · Talão: a impressora imprime os factos; carimbo no fim ════════════ */
+.D { background: #EEF0F4; }
+.d-head { position: absolute; left: 120px; top: 190px; width: 760px; font-size: 104px; line-height: 1; font-weight: 700; letter-spacing: -.045em; }
+.d-head .later { display: block; color: var(--muted); opacity: 0; transform: translateY(20px); transition: opacity .6s var(--eo) .5s, transform .9s var(--eo) .5s; }
+.D.s4 .d-head .later, .D[data-id="d-how"].s5 .d-head .later { opacity: 1; transform: none; }
+.d-printer { position: absolute; left: 1040px; top: 120px; width: 760px; height: 44px; border-radius: 22px; background: var(--ink); box-shadow: 0 20px 40px -18px rgba(18,31,53,.6); z-index: 3; }
+.d-printer::after { content: ""; position: absolute; left: 60px; right: 60px; top: 18px; height: 8px; border-radius: 4px; background: #000; }
+.d-feed { position: absolute; left: 1080px; top: 142px; width: 680px; height: 900px; overflow: hidden; }
+.d-paper { position: absolute; left: 0; top: 0; width: 680px; background: #fff; padding: 56px 52px 70px; font: 500 23px/1.5 var(--mono); color: var(--ink);
+  transform: translateY(-100%); transition: transform 1.1s steps(14, end);
+  --teeth: linear-gradient(#000 0 0) top / 100% calc(100% - 14px) no-repeat, conic-gradient(from 135deg at top, #000 90deg, transparent 0) bottom / 28px 14px repeat-x;
+  -webkit-mask: var(--teeth); mask: var(--teeth);
+  box-shadow: 0 30px 60px -30px rgba(18,31,53,.35); }
+.d-paper .c { text-align: center; }
+.d-paper hr { border: 0; border-top: 2px dashed rgba(18,31,53,.3); margin: 22px 0; }
+.d-paper .r { display: flex; justify-content: space-between; gap: 24px; }
+.d-paper .r b { font-weight: 600; font-size: 34px; line-height: 1.1; }
+.d-paper .r.ok b { color: var(--ok); } .d-paper .r.no b { color: var(--bad); }
+.d-paper .sm { font-size: 18px; color: var(--muted); }
+.d-stamp { position: absolute; left: 1150px; top: 560px; padding: 18px 34px; border: 8px solid var(--c); border-radius: 18px; color: var(--c);
+  font: 800 84px/1 var(--sans); letter-spacing: .04em; transform: rotate(-12deg) scale(2.2); opacity: 0; z-index: 4; mix-blend-mode: multiply;
+  transition: transform .35s cubic-bezier(.5, 0, .75, 0), opacity .2s; }
+.D.s4 .d-stamp, .D[data-id="d-how"].s5 .d-stamp { transform: rotate(-12deg) scale(1); opacity: .92; }
+
+/* ════════════ E · Marcador: um parágrafo editorial; o marcador sublinha o que importa ════════════ */
+.E { background: #FBFAF7; }
+.e-text { position: absolute; left: 120px; top: 170px; width: 1640px; font-size: 80px; line-height: 1.14; font-weight: 650; letter-spacing: -.035em; color: rgba(18,31,53,.2); }
+.e-text .hl { color: rgba(18,31,53,.2); background: linear-gradient(var(--hc), var(--hc)) no-repeat 0 88% / 0% 42%;
+  -webkit-box-decoration-break: clone; box-decoration-break: clone; transition: background-size .9s var(--io), color .5s var(--io); }
+.e-text .hl.on { color: var(--ink); background-size: 100% 42%; }
+.e-text .num { font-variant-numeric: tabular-nums; }
+.e-text sup { font: 600 26px var(--mono); vertical-align: .9em; margin-right: 6px; color: var(--accent); opacity: 0; transition: opacity .4s; }
+.e-text .on sup { opacity: 1; }
+.e-src { position: absolute; left: 120px; bottom: 80px; font: 400 19px var(--mono); color: var(--muted); }
+.e-mark { position: absolute; left: 120px; top: 96px; display: flex; align-items: center; gap: 12px; font: 700 24px var(--sans); letter-spacing: .14em; }
+.e-mark svg { width: 34px; height: 34px; }
+</style>
+</head>
+<body>
+<main id="stage">
+
+<!-- ═══ A · Kinetic type ═══ -->
+<section class="slide A" data-id="a-problem" data-steps="3" data-dir="A" data-label="Kinetic type" data-name="Problem">
+  <div class="a-stat" data-k="0"><div class="a-num"><span class="m"><i>8</i></span><span class="m"><i>9</i></span><span class="pc">%</span></div><p class="a-lab">can't move critical workloads off their main provider in three weeks</p></div>
+  <div class="a-stat" data-k="1"><div class="a-num"><span class="m"><i>7</i></span><span class="m"><i>9</i></span><span class="pc">%</span></div><p class="a-lab">expect AI to deepen that dependence</p></div>
+  <div class="a-stat" data-k="2"><div class="a-num"><span class="m"><i>7</i></span><span class="m"><i>3</i></span><span class="pc">%</span></div><p class="a-lab">would pay 11% more to be independent</p></div>
+  <h2 class="a-title"><span class="ln"><span>They want out.</span></span><span class="ln"><span>Nobody can prove it's safe.</span></span></h2>
+  <div class="a-row"><div><b>89%</b><span>can't move critical workloads in three weeks</span></div><div><b>79%</b><span>expect AI to deepen the lock‑in</span></div><div><b>73%</b><span>would pay 11% more to be independent</span></div></div>
+  <p class="a-src">Leaseweb Digital Independence Survey 2026, 800 senior leaders</p>
+</section>
+
+<section class="slide A" data-id="a-how" data-steps="4" data-dir="A" data-label="Kinetic type" data-name="How it works">
+  <div class="a-wheel"><ol><li>Discover</li><li>Challenge</li><li>Adapt</li><li>Switch</li><li>Prove</li></ol></div>
+  <p class="a-top">How RISE proves it</p>
+  <div class="a-side"><span class="ix">0<span class="ixn">1</span> / 05</span>
+    <p data-k="0">Watch the real S3 calls your app makes.</p>
+    <p data-k="1">AI writes the tests. Both providers run them.</p>
+    <p data-k="2">Something breaks. RISE fixes it and tests again.</p>
+    <p data-k="3">Only then does the app move.</p>
+    <p data-k="4">Every byte hashed. The old cloud is cut.</p>
+  </div>
+  <div class="a-ticks"><i></i><i></i><i></i><i></i><i></i></div>
+</section>
+
+<!-- ═══ B · Unit chart ═══ -->
+<section class="slide B" data-id="b-problem" data-steps="3" data-dir="B" data-label="Unit chart" data-name="Problem">
+  <div class="b-left">
+    <div class="b-stat" data-k="0" style="--c: var(--bad)"><b>89%</b><span>can't move critical workloads off their main provider in three weeks</span></div>
+    <div class="b-stat" data-k="1" style="--c: var(--ink)"><b>79%</b><span>expect AI to deepen that dependence</span></div>
+    <div class="b-stat" data-k="2" style="--c: var(--accent)"><b>73%</b><span>would pay 11% more to be independent</span></div>
+    <h2 class="b-title">They want out. Nobody can prove it's safe.</h2>
+  </div>
+  <div class="b-grid"></div>
+  <p class="b-cap">Each dot is 8 of the 800 leaders Leaseweb surveyed.</p>
+</section>
+
+<section class="slide B" data-id="b-how" data-steps="4" data-dir="B" data-label="Unit chart" data-name="How it works">
+  <h2 class="b-head">Follow one request.</h2>
+  <div class="b-track">
+    <div class="b-rail"></div><div class="b-fill"></div>
+    <div class="b-st" style="left:70px">01<h3>Discover</h3><p>The real S3 calls, recorded.</p></div>
+    <div class="b-st" style="left:455px"><em>a test fails</em>02<h3>Challenge</h3><p>AI writes the tests. Both sides run them.</p></div>
+    <div class="b-st" style="left:840px"><em>fixed</em>03<h3>Adapt</h3><p>A constrained fix, then a retest.</p></div>
+    <div class="b-st" style="left:1225px">04<h3>Switch</h3><p>The app moves.</p></div>
+    <div class="b-st" style="left:1610px"><em>SHA-256 match</em>05<h3>Prove</h3><p>Every byte hashed. Source cut.</p></div>
+    <span class="b-pk"></span>
+  </div>
+</section>
+
+<!-- ═══ C · Metáfora ═══ -->
+<section class="slide C" data-id="c-problem" data-steps="3" data-dir="C" data-label="The locked box" data-name="Problem">
+  <h2 class="c-head">Your app wants to leave. Something keeps it in.</h2>
+  <div class="c-scene">
+    <div class="c-box c-old"><span>Your current cloud</span></div>
+    <div class="c-box c-new"><span>Another provider</span></div>
+    <div class="c-path"></div>
+    <div class="c-lock" data-k="0" style="left:760px"><svg viewBox="0 0 84 96" fill="none" stroke="#D4513B" stroke-width="7" stroke-linecap="round"><path d="M20 44V30a22 22 0 0 1 44 0v14"/><rect x="8" y="44" width="68" height="46" rx="12" fill="#FCE0D9"/></svg><b>89%</b><span>can't move in three weeks</span></div>
+    <div class="c-lock" data-k="1" style="left:920px"><svg viewBox="0 0 84 96" fill="none" stroke="#D4513B" stroke-width="7" stroke-linecap="round"><path d="M20 44V30a22 22 0 0 1 44 0v14"/><rect x="8" y="44" width="68" height="46" rx="12" fill="#FCE0D9"/></svg><b>79%</b><span>expect AI to tighten it</span></div>
+    <div class="c-pull"><b>73%</b><span>would pay 11% more to get out</span></div>
+    <div class="c-app">Your app</div>
+  </div>
+</section>
+
+<section class="slide C c-wide" data-id="c-how" data-steps="5" data-dir="C" data-label="The locked box" data-name="How it works">
+  <h2 class="c-head">RISE opens the way, one proof at a time.</h2>
+  <div class="c-scene">
+    <div class="c-box c-old"><span>Current cloud</span></div>
+    <div class="c-box c-new"><span>New provider</span></div>
+    <div class="c-path"></div>
+    <div class="c-gate" style="left:560px"><i></i><span>Discover</span></div>
+    <div class="c-gate" style="left:700px"><i></i><span>Challenge</span></div>
+    <div class="c-gate" style="left:840px"><i></i><span>Adapt</span></div>
+    <div class="c-gate" style="left:980px"><i></i><span>Switch</span></div>
+    <div class="c-gate" style="left:1120px"><i></i><span>Prove</span></div>
+    <div class="c-app">Your app</div>
+  </div>
+</section>
+
+<!-- ═══ D · Talão ═══ -->
+<section class="slide D" data-id="d-problem" data-steps="4" data-dir="D" data-label="The receipt" data-name="Problem">
+  <h2 class="d-head">What 800 leaders told Leaseweb.<span class="later">Nobody can prove it's safe to leave.</span></h2>
+  <div class="d-printer"></div>
+  <div class="d-feed"><div class="d-paper">
+    <div data-p="0"><p class="c">LEASEWEB</p><p class="c">DIGITAL INDEPENDENCE SURVEY</p><p class="c sm">2026, 800 senior leaders, UK US DE NL</p><hr></div>
+    <div data-p="1" class="r"><span>CAN'T MOVE CRITICAL<br>WORKLOADS IN 3 WEEKS</span><b>89%</b></div><hr data-p="1">
+    <div data-p="2" class="r"><span>EXPECT AI TO DEEPEN<br>THE LOCK-IN</span><b>79%</b></div><hr data-p="2">
+    <div data-p="3" class="r"><span>WOULD PAY 11% MORE<br>TO BE INDEPENDENT</span><b>73%</b></div><hr data-p="3">
+    <div data-p="3" class="r no"><span>PROOF IT'S SAFE<br>TO LEAVE</span><b>NONE</b></div>
+  </div></div>
+  <div class="d-stamp" style="--c: var(--bad)">NOT PROVEN</div>
+</section>
+
+<section class="slide D" data-id="d-how" data-steps="5" data-dir="D" data-label="The receipt" data-name="How it works">
+  <h2 class="d-head">RISE prints the proof.<span class="later">Before you move.</span></h2>
+  <div class="d-printer"></div>
+  <div class="d-feed"><div class="d-paper">
+    <div data-p="0"><p class="c">RISE</p><p class="c">FREEDOM PROOF</p><p class="c sm">asset-service, S3 object storage</p><hr></div>
+    <div data-p="1" class="r ok"><span>01 DISCOVER<br><i class="sm">real S3 calls recorded</i></span><b>✓</b></div><hr data-p="1">
+    <div data-p="2" class="r ok"><span>02 CHALLENGE<br><i class="sm">AI test plan, both sides</i></span><b>✓</b></div><hr data-p="2">
+    <div data-p="3" class="r ok"><span>03 ADAPT<br><i class="sm">failures fixed, retested</i></span><b>✓</b></div><hr data-p="3">
+    <div data-p="4" class="r ok"><span>04 SWITCH<br><i class="sm">app moved to destination</i></span><b>✓</b></div><hr data-p="4">
+    <div data-p="5" class="r ok"><span>05 PROVE<br><i class="sm">SHA-256 match, source cut</i></span><b>✓</b></div>
+  </div></div>
+  <div class="d-stamp" style="--c: var(--ok); left: 1220px; top: 700px">PROVEN</div>
+</section>
+
+<!-- ═══ E · Marcador ═══ -->
+<section class="slide E" data-id="e-problem" data-steps="4" data-dir="E" data-label="Highlighter" data-name="Problem">
+  <p class="e-text">Leaseweb asked 800 senior leaders about their cloud.
+    <span class="hl" data-k="1" style="--hc:#FCE0D9"><span class="num">89%</span> can't move critical workloads off their main provider in three weeks.</span>
+    <span class="hl" data-k="2" style="--hc:#E9E4FF"><span class="num">79%</span> expect AI to deepen the lock-in.</span>
+    <span class="hl" data-k="3" style="--hc:#DCEBFF"><span class="num">73%</span> would pay more to be free of it.</span>
+    <span class="hl" data-k="4" style="--hc:#D2F4EC">What's missing is proof that leaving is safe.</span></p>
+  <p class="e-src">Leaseweb Digital Independence Survey 2026. Survey responses.</p>
+</section>
+
+<section class="slide E" data-id="e-how" data-steps="5" data-dir="E" data-label="Highlighter" data-name="How it works">
+  <p class="e-mark"><svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M11 45c10.5 0 19.2-6.2 27.6-17.9L49 13" stroke-width="6.5"/><path d="M35 13h14v14" stroke-width="6.5"/><path d="M11 31.5c7.1-.2 12.5-2.9 17.4-7.9" stroke-width="5" opacity=".5"/></svg>RISE</p>
+  <p class="e-text">RISE
+    <span class="hl" data-k="1" style="--hc:#DCEBFF"><sup>01</sup>watches the real S3 calls your app makes,</span>
+    <span class="hl" data-k="2" style="--hc:#E9E4FF"><sup>02</sup>lets AI write the tests for both providers,</span>
+    <span class="hl" data-k="3" style="--hc:#FCE0D9"><sup>03</sup>fixes what breaks,</span>
+    <span class="hl" data-k="4" style="--hc:#DCEBFF"><sup>04</sup>moves the app</span> and
+    <span class="hl" data-k="5" style="--hc:#D2F4EC"><sup>05</sup>proves every byte arrived,</span> before you commit.</p>
+</section>
+
+</main>
+<div id="hud"></div>
+
+<script>
+(() => {
+  "use strict";
+  const STILL = new URLSearchParams(location.search).has("static") || matchMedia("(prefers-reduced-motion: reduce)").matches;
+  document.documentElement.classList.toggle("still", STILL);
+  const stage = document.getElementById("stage"), hud = document.getElementById("hud");
+  const slides = [...document.querySelectorAll(".slide")];
+  let cur = -1, step = 0;
+
+  /* ── comportamento por slide (o resto é CSS) ── */
+  const HOOKS = {
+    "a-how": (el, s) => { el.querySelector(".ixn").textContent = s + 1; },
+    "b-problem": {
+      init(el) {
+        const g = el.querySelector(".b-grid");
+        for (let i = 0; i < 100; i++) { const d = document.createElement("i"); d.style.setProperty("--i", i); d.style.setProperty("--w", (i % 10) + (i / 10 | 0)); g.append(d); }
+      },
+      step(el, s) {
+        const [n, c] = [[89, "var(--bad)"], [79, "var(--ink)"], [73, "var(--accent)"], [73, "var(--accent)"]][s];
+        el.querySelectorAll(".b-grid i").forEach((d, i) => { d.style.setProperty("--c", c); d.classList.toggle("on", i < n); });
+      },
+    },
+    "b-how": (el, s) => {
+      const st = [...el.querySelectorAll(".b-st")];
+      st.forEach((x, i) => { x.className = "b-st" + (i <= s ? " on" : ""); });
+      if (s >= 1) st[1].classList.add(s >= 2 ? "pass" : "fail");
+      st[1].querySelector("em").textContent = s >= 2 ? "retested" : "a test fails";
+      if (s >= 2) st[2].classList.add("pass");
+      if (s >= 4) st[4].classList.add("pass");
+      el.querySelector(".b-fill").style.setProperty("--k", s);
+      const pk = el.querySelector(".b-pk");
+      pk.style.left = (70 + s * 385) + "px";
+      pk.classList.toggle("done", s >= 4);
+    },
+    "c-how": (el, s) => {
+      el.querySelectorAll(".c-gate").forEach((g, i) => g.classList.toggle("open", i < s));
+      el.querySelector(".c-app").style.setProperty("--x", s >= 5 ? "1220px" : s ? `${180 + 140 * s}px` : "0px"); // a frente da app pára antes do próximo portão fechado
+    },
+    "d-problem": paper, "d-how": paper,
+    "e-problem": marker, "e-how": marker,
+  };
+
+  /* talão: mostra as linhas até ao passo s e faz o papel sair da impressora */
+  function paper(el, s) {
+    const p = el.querySelector(".d-paper");
+    let shown = 0;
+    p.querySelectorAll("[data-p]").forEach(n => { if (+n.dataset.p <= s) shown = Math.max(shown, n.offsetTop + n.offsetHeight); });
+    p.style.transform = `translateY(${shown + 70 - p.offsetHeight}px)`;
+  }
+  function marker(el, s) { el.querySelectorAll(".hl").forEach(h => h.classList.toggle("on", +h.dataset.k <= s)); }
+
+  const hook = id => HOOKS[id] || {};
+  const call = (el, s) => { const h = HOOKS[el.dataset.id]; (typeof h === "function" ? h : h?.step)?.(el, s); };
+  slides.forEach(el => hook(el.dataset.id).init?.(el));
+
+  function setStep(el, s) {
+    step = s;
+    for (let k = 1; k <= 6; k++) el.classList.toggle("s" + k, k <= s);
+    call(el, s);
+    const n = +el.dataset.steps;
+    hud.innerHTML = `<b>${el.dataset.dir}</b><span>${el.dataset.label}</span><span>${el.dataset.name}</span><span>step ${s} of ${n}</span><span>1 to 5 switch direction</span>`;
+  }
+
+  function show(i, s = 0) {
+    i = Math.max(0, Math.min(slides.length - 1, i));
+    const el = slides[i];
+    if (i !== cur) {
+      slides[cur]?.classList.remove("cur");
+      for (let k = 1; k <= 6; k++) el.classList.remove("s" + k);
+      cur = i; call(el, 0);
+      void el.offsetWidth;
+      el.classList.add("cur");
+    }
+    setStep(el, STILL ? +el.dataset.steps : s);
+    history.replaceState(null, "", "#" + el.dataset.id + (step ? "." + step : ""));
+  }
+  const next = () => step < +slides[cur].dataset.steps ? show(cur, step + 1) : show(cur + 1);
+  const prev = () => step > 0 ? show(cur, step - 1) : cur > 0 && show(cur - 1, +slides[cur - 1].dataset.steps);
+  const replay = () => { const i = cur; cur = -1; slides[i].classList.remove("cur"); show(i); };
+
+  addEventListener("keydown", e => {
+    const k = e.key;
+    if (["ArrowRight", " ", "PageDown", "Enter"].includes(k)) next();
+    else if (["ArrowLeft", "PageUp", "Backspace"].includes(k)) prev();
+    else if (/^[1-5]$/.test(k)) show(slides.findIndex(s => s.dataset.dir === "ABCDE"[k - 1]));
+    else if (k === "r" || k === "R") replay();
+    else if (k === "f" || k === "F") document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen?.();
+    else return;
+    e.preventDefault();
+  });
+  stage.addEventListener("click", next);
+
+  const fit = () => { const k = Math.min(innerWidth / 1920, innerHeight / 1080); stage.style.transform = `translate(${(innerWidth - 1920 * k) / 2}px, ${(innerHeight - 1080 * k) / 2}px) scale(${k})`; };
+  addEventListener("resize", fit); fit();
+  const [id, s] = decodeURIComponent(location.hash.slice(1)).split(".");
+  show(Math.max(0, slides.findIndex(x => x.dataset.id === id)), +s || 0);
+})();
+</script>
+</body>
+</html>
