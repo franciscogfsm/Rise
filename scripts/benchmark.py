@@ -27,6 +27,10 @@ ORACLE = re.compile(r"(?:\.|->|::)\s*(" + "|".join(_names) + r")(?:Async)?\(|\bn
 COMMENT = re.compile(r"^\s*(#|//|\*|/\*)")
 
 
+def real_call(line: str) -> bool:  # an official S3 call name, not inside a quoted message
+    return any(not scan.in_string(line, m.start()) for m in ORACLE.finditer(line))
+
+
 def accounted(line: str, path: str, s3_files: set) -> bool:
     if path not in s3_files:
         return False
@@ -54,7 +58,7 @@ def measure(group: str, url: str, files) -> dict:
         if not ORACLE.search(text):
             continue
         for n, line in enumerate(text.splitlines(), 1):
-            if len(line) > 400 or COMMENT.match(line) or not ORACLE.search(line):
+            if len(line) > 400 or COMMENT.match(line) or not real_call(line):
                 continue
             calls += 1
             if not accounted(line, path, s3):

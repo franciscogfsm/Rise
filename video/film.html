@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>RISE · film</title>
+<!--
+  RISE film · ENGINE. Open this file in Chrome to preview with sound (space = play, ←/→ = 1 s, click the bar to scrub,
+  ?t=12.5 jumps there). render.mjs opens it with ?render and photographs every frame.
+  Every animation is a CSS animation that the engine seeks to the current time: nothing depends on the wall clock,
+  so preview, scrubbing and the render show exactly the same frame.
+  Scenes: scenes.js · words and sounds: script.js · timing: build/timing.js (made by audio.py).
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@300..800&family=Geist+Mono:wght@400;500;600&display=block">
+<link rel="stylesheet" href="../web/rise.css">
+<style>
+:root {
+  --night: #060A14; --night2: #0C1424; --e-out: cubic-bezier(.16, 1, .3, 1); --e-io: cubic-bezier(.65, 0, .35, 1);
+  --e-spring: cubic-bezier(.34, 1.56, .64, 1); --coral: #FF6B4F; --mint: #2EE6B8; --sky: #6EA8FF;
+}
+html, body { margin: 0; height: 100%; background: #000; overflow: hidden; }
+#stage { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; overflow: hidden; transform-origin: 0 0;
+  font-family: var(--f-ui); color: var(--ink); background: var(--bg); }
+#world, #world > *, .scene, .cam { position: absolute; inset: 0; }
+#world .blob { position: absolute; border-radius: 50%; filter: blur(90px); will-change: transform; }
+#world .dark { background: radial-gradient(1200px 800px at 50% 40%, var(--night2), var(--night)); }
+#world .dark .blob { filter: blur(120px); opacity: .55; }
+#grain { position: absolute; inset: -60px; z-index: 50; pointer-events: none; opacity: .07; mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
+#vignette { position: absolute; inset: 0; z-index: 49; pointer-events: none; background: radial-gradient(130% 100% at 50% 50%, transparent 60%, rgba(6,10,20,.22)); }
+.scene { display: none; }
+.dk { color: #fff; }
+
+/* ---------- motion library: class="fx NAME" style="--at: seconds-into-scene; --d: length" ---------- */
+.fx { animation: var(--fx) var(--d, .8s) var(--ease, var(--e-out)) calc(var(--at, 0) * 1s) var(--n, 1) both; }
+.in     { --fx: fx-in; }      @keyframes fx-in { from { opacity: 0; transform: translateY(var(--y, 40px)); filter: blur(12px); } }
+.fade   { --fx: fx-fade; }    @keyframes fx-fade { from { opacity: 0; } }
+.slam   { --fx: fx-slam; --d: .6s; }
+@keyframes fx-slam { 0% { opacity: 0; transform: scale(var(--from, 2.6)); filter: blur(24px); } 55% { opacity: 1; transform: scale(.97); filter: blur(0); } 100% { transform: scale(1); } }
+.pop    { --fx: fx-pop; --d: .55s; --ease: var(--e-spring); }  @keyframes fx-pop { from { opacity: 0; transform: scale(.3); } }
+.mask   { --fx: fx-mask; --d: .9s; }  @keyframes fx-mask { from { clip-path: inset(-20% 100% -20% 0); } to { clip-path: inset(-20% -2% -20% 0); } }
+.rise-w { display: inline-block; overflow: hidden; vertical-align: top; padding: 0 .04em .12em; margin: 0 -.04em -.12em; }
+.rise-w > i { display: inline-block; font-style: normal; --fx: fx-up; --d: .7s; }
+@keyframes fx-up { from { transform: translateY(115%) rotate(7deg); } }
+.tilt   { --fx: fx-tilt; --d: 1.1s; }
+@keyframes fx-tilt { from { opacity: 0; transform: perspective(1600px) translateY(320px) rotateX(48deg) scale(.82); filter: blur(10px); } }
+.fly-l  { --fx: fx-fly-l; --d: .9s; } @keyframes fx-fly-l { from { opacity: 0; transform: perspective(1600px) translateX(-500px) rotateY(35deg); filter: blur(10px); } }
+.fly-r  { --fx: fx-fly-r; --d: .9s; } @keyframes fx-fly-r { from { opacity: 0; transform: perspective(1600px) translateX(500px) rotateY(-35deg); filter: blur(10px); } }
+.out    { --fx: fx-out; --d: .45s; --ease: var(--e-io); } @keyframes fx-out { to { opacity: 0; transform: scale(var(--to, 1.08)); filter: blur(14px); } }
+.gone   { --fx: fx-gone; --d: .3s; --ease: var(--e-io); } @keyframes fx-gone { to { opacity: 0; } }
+.push   { --fx: fx-push; --ease: linear; } @keyframes fx-push { from { transform: scale(var(--p0, 1)); } to { transform: scale(var(--p1, 1.06)); } }
+.drift  { --fx: fx-drift; --ease: linear; } @keyframes fx-drift { from { transform: translate(var(--x0, 0), var(--y0, 0)); } to { transform: translate(var(--x1, 0), var(--y1, 0)); } }
+.draw   { --fx: fx-draw; --d: 1s; --ease: var(--e-io); stroke-dasharray: var(--len, 400); } @keyframes fx-draw { from { stroke-dashoffset: var(--len, 400); } to { stroke-dashoffset: 0; } }
+.flash  { --fx: fx-flash; --d: .7s; position: absolute; inset: 0; background: #fff; z-index: 40; pointer-events: none; }
+@keyframes fx-flash { 0% { opacity: 0; } 8% { opacity: 1; } 100% { opacity: 0; } }
+.ring   { --fx: fx-ring; --d: 1.2s; position: absolute; left: 50%; top: 50%; width: 300px; height: 300px; margin: -150px; border-radius: 50%; border: 3px solid var(--rc, var(--accent)); }
+@keyframes fx-ring { from { transform: scale(.1); opacity: 1; } to { transform: scale(var(--s, 6)); opacity: 0; border-width: .5px; } }
+.shake  { --fx: fx-shake; --d: .5s; --ease: linear; }
+@keyframes fx-shake { 10% { transform: translate(-18px, 9px) rotate(-.6deg); } 20% { transform: translate(15px, -12px) rotate(.5deg); } 30% { transform: translate(-12px, -6px); }
+  45% { transform: translate(10px, 8px) rotate(.3deg); } 60% { transform: translate(-6px, 4px); } 80% { transform: translate(3px, -2px); } }
+.glitch { --fx: fx-glitch; --d: .9s; --ease: steps(1); }
+@keyframes fx-glitch { 0% { transform: translate(0); text-shadow: none; } 10% { transform: translate(-14px, 3px) skewX(-8deg); text-shadow: 10px 0 #FF2E63, -10px 0 #08F7FE; clip-path: inset(10% 0 40% 0); }
+  20% { transform: translate(12px, -4px); clip-path: inset(50% 0 5% 0); } 30% { transform: translate(-6px, 0) skewX(10deg); clip-path: inset(0 0 70% 0); text-shadow: -14px 0 #FF2E63, 14px 0 #08F7FE; }
+  45% { transform: translate(4px, 2px); clip-path: none; } 60% { transform: translate(-3px, 0); text-shadow: 4px 0 #FF2E63, -4px 0 #08F7FE; } 100% { transform: none; text-shadow: none; clip-path: none; } }
+.strike { --fx: fx-strike; --d: .45s; transform-origin: 0 50%; } @keyframes fx-strike { from { transform: scaleX(0); } }
+.sweep  { --fx: fx-sweep; --d: 1.2s; --ease: var(--e-io); position: absolute; inset: 0; pointer-events: none; z-index: 5;
+  background: linear-gradient(105deg, transparent 35%, rgba(255,255,255,.75) 50%, transparent 65%); background-size: 250% 100%; mix-blend-mode: soft-light; }
+@keyframes fx-sweep { from { background-position: 130% 0; } to { background-position: -30% 0; } }
+.blink  { --fx: fx-blink; --d: .9s; --n: infinite; --ease: steps(1); } @keyframes fx-blink { 50% { opacity: 0; } }
+.zoom   { --fx: fx-zoom; --d: .9s; --ease: var(--e-io); } @keyframes fx-zoom { to { transform: translate(var(--zx, 0), var(--zy, 0)) scale(var(--zs, 1.6)); } }
+.move   { --fx: fx-move; --d: .7s; --ease: var(--e-io); } @keyframes fx-move { to { transform: translate(var(--mx, 0), var(--my, 0)) scale(var(--ms, 1)); } }
+
+/* ---------- shared pieces ---------- */
+.shot { position: relative; overflow: hidden; border-radius: 22px; background: #fff;
+  box-shadow: 0 1px 0 rgba(255,255,255,.9) inset, 0 0 0 1px rgba(18,31,53,.07), 0 40px 120px -30px rgba(18,31,53,.45), 0 12px 40px -12px rgba(37,99,235,.25); }
+.shot img { position: absolute; display: block; max-width: none; }
+.center { position: absolute; inset: 0; display: grid; place-items: center; text-align: center; }
+.mono { font-family: var(--f-mono); }
+.kick { font: 600 24px/1 var(--f-mono); letter-spacing: .22em; text-transform: uppercase; }
+.foot { position: absolute; left: 0; right: 0; bottom: 46px; text-align: center; font: 500 19px/1.4 var(--f-mono); color: var(--muted); letter-spacing: .02em; }
+.dk .foot, .foot.dk { color: rgba(255,255,255,.55); }
+
+/* preview UI (hidden in render) */
+#ui { position: fixed; left: 0; right: 0; bottom: 0; height: 44px; background: #0b0f18; color: #cfd6e4; font: 13px/44px var(--f-mono); display: flex; gap: 14px; padding: 0 14px; z-index: 100; }
+#bar { flex: 1; position: relative; cursor: pointer; } #bar i { position: absolute; top: 20px; height: 4px; left: 0; background: #2563EB; border-radius: 2px; }
+#bar b { position: absolute; top: 14px; height: 16px; width: 1px; background: #445; } #bar span { position: absolute; top: -14px; font-size: 10px; color: #8893a8; }
+html.render #ui { display: none; }
+</style>
+</head>
+<body>
+<div id="stage">
+  <div id="world">
+    <div class="light"><i class="blob" id="b1"></i><i class="blob" id="b2"></i><i class="blob" id="b3"></i></div>
+    <div class="dark"><i class="blob" id="d1"></i><i class="blob" id="d2"></i></div>
+  </div>
+  <div id="scenes"></div>
+  <div id="vignette"></div>
+  <div id="grain"></div>
+</div>
+<div id="ui"><button id="play">▶</button><span id="tc">0.00</span><div id="bar"><i></i></div><span id="sc"></span></div>
+<audio id="aud" src="build/mix.wav" preload="auto"></audio>
+
+<script src="script.js"></script>
+<script src="build/timing.js"></script>
+<script>
+/* ---------- helpers for scenes.js ---------- */
+const SCENES = {};
+const SCENE = (id, def) => (SCENES[id] = def);
+const SHOT_W = 1600; // every screenshot is 1600 CSS px wide (2x files are scaled down)
+// crop of a real screenshot. box = [x, y, w, h] in the app's CSS px; W = width on screen
+function shot(name, box, W, extra = "") {
+  const [x, y, w, h] = box, k = W / w;
+  return `<div class="shot ${extra}" style="width:${W}px;height:${Math.round(h * k)}px"><img src="shots/${name}.png" style="width:${SHOT_W * k}px;left:${-x * k}px;top:${-y * k}px"></div>`;
+}
+// words that rise one after another
+function words(text, at, gap = 0.07, cls = "") {
+  return text.split(" ").map((w, i) => `<span class="rise-w ${cls}"><i class="fx" style="--at:${(at + i * gap).toFixed(2)}">${w}</i></span>`).join(" ");
+}
+const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
+const ease = (p) => 1 - Math.pow(1 - p, 4);
+</script>
+<script src="scenes.js"></script>
+<script>
+
+/* ---------- build ---------- */
+const S = window.SCRIPT, T = window.TIMING || { total: 60, scenes: {} };
+const list = [];
+(function build() {
+  // fallback timing if audio.py has not run yet: use the scene minimums
+  let t = 0;
+  for (const sc of S.scenes) {
+    const tm = T.scenes[sc.id] || { start: t, dur: sc.min };
+    t = tm.start + tm.dur;
+    const def = SCENES[sc.id] || { html: `<div class="center"><h1>${sc.id}</h1></div>` };
+    const el = document.createElement("section");
+    el.className = "scene" + (sc.act === "dark" ? " dk" : "");
+    el.dataset.scene = sc.id;
+    el.style.setProperty("--dur", tm.dur + "s");
+    el.innerHTML = `<div class="cam fx push" style="--d:${tm.dur}s;--p1:${def.push ?? 1.045}">${typeof def.html === "function" ? def.html(tm) : def.html}</div>`;
+    if (def.css || def.raw) { const st = document.createElement("style"); st.textContent = `[data-scene="${sc.id}"] { ${def.css || ""} }
+${def.raw || ""}`; document.head.append(st); }
+    document.getElementById("scenes").append(el);
+    list.push({ ...sc, ...tm, el, def });
+  }
+  if (!window.TIMING) T.total = t + 0.6;
+})();
+
+/* ---------- seek: the only place time enters ---------- */
+const $ = (s) => document.querySelector(s);
+const blob = (id, x, y, s, c) => { const b = $(id); b.style.cssText = `width:${s}px;height:${s}px;left:${x}px;top:${y}px;background:${c}`; };
+const PAL = { light: ["var(--blob-ice)", "var(--blob-lavender)", "var(--blob-aqua)"], proof: ["var(--ok-bg)", "var(--blob-ice)", "var(--blob-aqua)"] };
+let current = null;
+function seek(t) {
+  let cur = list[list.length - 1];
+  for (const s of list) if (t >= s.start && t < s.start + s.dur) { cur = s; break; }
+  for (const s of list) {
+    const on = s === cur;
+    if (on !== (s.el.style.display === "block")) s.el.style.display = on ? "block" : "none";
+  }
+  const local = t - cur.start;
+  for (const a of cur.el.getAnimations({ subtree: true })) { a.pause(); a.currentTime = Math.max(0, local * 1000); }
+  // generic data-driven bits
+  cur.el.querySelectorAll("[data-count]").forEach((e) => {
+    const p = ease(clamp((local - +e.dataset.at) / +(e.dataset.d || 1.2)));
+    const v = +e.dataset.count * p, dec = +(e.dataset.dec || 0);
+    e.textContent = (e.dataset.pre || "") + v.toLocaleString("en-US", { minimumFractionDigits: dec, maximumFractionDigits: dec }) + (e.dataset.suf || "");
+  });
+  cur.el.querySelectorAll("[data-type]").forEach((e) => {
+    const n = Math.floor(clamp((local - +e.dataset.at) * +(e.dataset.cps || 30), 0, e.dataset.type.length));
+    e.textContent = e.dataset.type.slice(0, n);
+  });
+  cur.def.tick?.(cur.el, local, cur.dur);
+  // world: dark ↔ light with a fast crossfade at scene starts, blobs drift with time
+  const i = list.indexOf(cur), prev = list[i - 1];
+  const dk = (s) => (s && s.act === "dark" ? 1 : 0);
+  const k = clamp(local / 0.25);
+  $("#world .dark").style.opacity = prev ? dk(prev) + (dk(cur) - dk(prev)) * k : dk(cur);
+  const pal = PAL[cur.act === "proof" ? "proof" : "light"];
+  blob("#b1", -260 + 120 * Math.sin(t * .23), -380 + 80 * Math.cos(t * .19), 1100, pal[0]);
+  blob("#b2", 1150 + 140 * Math.cos(t * .21), 120 + 90 * Math.sin(t * .17), 950, pal[1]);
+  blob("#b3", 560 + 160 * Math.sin(t * .15), 640 + 60 * Math.cos(t * .25), 900, pal[2]);
+  blob("#d1", -200 + 200 * Math.sin(t * .3), -200 + 100 * Math.cos(t * .2), 1000, cur.id === "fear" || cur.id === "stuck" ? "rgba(212,81,59,.55)" : "rgba(37,99,235,.45)");
+  blob("#d2", 1100 + 150 * Math.cos(t * .25), 500 + 120 * Math.sin(t * .22), 900, "rgba(110,80,255,.35)");
+  $("#grain").style.transform = `translate(${(Math.floor(t * 24) * 37) % 60}px, ${(Math.floor(t * 24) * 53) % 60}px)`;
+  current = cur;
+  return cur.id;
+}
+
+/* ---------- render hooks / preview player ---------- */
+const params = new URLSearchParams(location.search);
+window.FILM = { total: T.total, fps: S.fps, seek,
+  ready: Promise.all([document.fonts.ready, ...[...document.images].map((im) => im.decode().catch(() => {}))]).then(() => true) };
+if (params.has("render")) document.documentElement.classList.add("render");
+else {
+  const stage = $("#stage"), aud = $("#aud"), bar = $("#bar");
+  const fit = () => { const k = Math.min(innerWidth / 1920, (innerHeight - 44) / 1080); stage.style.transform = `scale(${k})`; };
+  addEventListener("resize", fit); fit();
+  bar.innerHTML = "<i></i>" + list.map((s) => `<b style="left:${(s.start / T.total) * 100}%"><span>${s.id}</span></b>`).join("");
+  let t = +(params.get("t") || 0), playing = false, t0 = 0, w0 = 0;
+  const draw = () => { seek(t); $("#tc").textContent = t.toFixed(2); $("#sc").textContent = current?.id; bar.querySelector("i").style.width = (t / T.total) * 100 + "%"; };
+  const loop = () => { if (!playing) return; t = aud.readyState >= 2 && !aud.paused ? aud.currentTime : w0 + (performance.now() - t0) / 1000;
+    if (t >= T.total) { playing = false; t = T.total - 0.01; } draw(); requestAnimationFrame(loop); };
+  const toggle = () => { playing = !playing; $("#play").textContent = playing ? "❚❚" : "▶";
+    if (playing) { aud.currentTime = t; aud.play().catch(() => {}); t0 = performance.now(); w0 = t; loop(); } else aud.pause(); };
+  $("#play").onclick = toggle;
+  addEventListener("keydown", (e) => { if (e.code === "Space") { e.preventDefault(); toggle(); }
+    if (e.code === "ArrowRight" || e.code === "ArrowLeft") { t = clamp(t + (e.code === "ArrowRight" ? 1 : -1), 0, T.total); aud.currentTime = t; w0 = t; t0 = performance.now(); draw(); } });
+  bar.onclick = (e) => { const r = bar.getBoundingClientRect(); t = ((e.clientX - r.left) / r.width) * T.total; aud.currentTime = t; w0 = t; t0 = performance.now(); draw(); };
+  window.FILM.ready.then(draw);
+}
+</script>
+</body>
+</html>

@@ -8,7 +8,8 @@ import zipfile
 import httpx
 
 URL_RE = re.compile(r"^https?://(?:www\.)?github\.com/([A-Za-z0-9_.-]{1,100})/([A-Za-z0-9_.-]{1,100}?)(?:\.git)?/?(?:tree/([^?#]{1,200}))?/?$")
-CODE_EXT = {".py", ".js", ".mjs", ".cjs", ".ts", ".tsx", ".jsx", ".go", ".java", ".kt", ".php", ".rb", ".cs", ".rs",
+CODE_EXT = {".py", ".js", ".mjs", ".cjs", ".ts", ".tsx", ".jsx", ".go", ".java", ".kt", ".kts", ".php", ".rb", ".cs", ".rs",
+            ".scala", ".swift", ".dart", ".cpp", ".cc", ".cxx", ".hpp", ".h", ".ex", ".exs",
             ".tf", ".yaml", ".yml", ".json", ".toml", ".env", ".ini", ".cfg", ".properties", ".sh"}
 SKIP_DIRS = {"node_modules", "vendor", ".git", "dist", "build", "__pycache__", ".venv", "venv", "site-packages", "third_party"}
 SKIP_FILES = {"package-lock.json", "yarn.lock", "pnpm-lock.yaml", "poetry.lock", "Pipfile.lock", "composer.lock",

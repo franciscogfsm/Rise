@@ -1,0 +1,1377 @@
+{
+  "labels": "Weak labels use recognized SDK imports and S3 operation-shaped calls plus high-confidence negatives. They are not human-reviewed ground truth. Four manually reviewed repositories supplement training; two calibrate it. Weak training and validation split by repository.",
+  "evaluation": "Five manually annotated public repositories from v1, untouched by v2 fitting and threshold selection. Small reviewed set; results cannot establish general precision. Scores are rankings, not verified S3 calls.",
+  "corpus": {
+    "repos": 63,
+    "files": 43089,
+    "lines": 8563513,
+    "candidates": 8124,
+    "weak_train_repos": 32,
+    "weak_training_examples": 591,
+    "weak_validation_repos": 9,
+    "weak_validation_examples": 1610,
+    "manual_training_examples": 93,
+    "manual_validation_examples": 13,
+    "download_errors": [],
+    "repositories": [
+      {
+        "url": "https://github.com/simonw/s3-credentials",
+        "sha": "4611f333407d2428b2e21771469e34fd52a5165d",
+        "files": 15,
+        "lines": 4637,
+        "candidates": 124,
+        "seconds": 1.14,
+        "labels": 29
+      },
+      {
+        "url": "https://github.com/liormizr/s3path",
+        "sha": "66546e09f37e1ca1c3ea73d90a86700ccff610f7",
+        "files": 14,
+        "lines": 4285,
+        "candidates": 264,
+        "seconds": 1.718,
+        "labels": 51
+      },
+      {
+        "url": "https://github.com/uploadcn/uploadcn",
+        "sha": "73dcf1baa4520572e33fb9e521002428d4ef12fb",
+        "files": 383,
+        "lines": 50310,
+        "candidates": 151,
+        "seconds": 4.946,
+        "labels": 1
+      },
+      {
+        "url": "https://github.com/VirtueSecurity/aws-extender-cli",
+        "sha": "a35115468193e6339b6b031f1f09a48074001864",
+        "files": 1,
+        "lines": 507,
+        "candidates": 27,
+        "seconds": 1.095,
+        "labels": 18
+      },
+      {
+        "url": "https://github.com/abhay-ramesh/pushduck",
+        "sha": "ba6f10ff6a97c5306ece16273c8a197b896daca3",
+        "files": 392,
+        "lines": 75785,
+        "candidates": 690,
+        "seconds": 41.383,
+        "labels": 29
+      },
+      {
+        "url": "https://github.com/TimMikeladze/next-upload",
+        "sha": "0394b8befeda47298863a27ecf86a7b622c906f6",
+        "files": 70,
+        "lines": 3169,
+        "candidates": 110,
+        "seconds": 2.298,
+        "labels": 13
+      },
+      {
+        "url": "https://github.com/timothymugayi/boto3-sqs-extended-client-lib",
+        "sha": "490d33f2b001d0dc36149520c5ff2d363735d79b",
+        "files": 23,
+        "lines": 6319,
+        "candidates": 92,
+        "seconds": 1.427,
+        "labels": 9
+      },
+      {
+        "url": "https://github.com/powerdot/easy-yandex-s3",
+        "sha": "6b09a7a5ff027b45f37c98acd5bee96874a234c4",
+        "files": 21,
+        "lines": 1928,
+        "candidates": 48,
+        "seconds": 1.077,
+        "labels": 10
+      },
+      {
+        "url": "https://github.com/rajeshdavidbabu/s3-upload-thing",
+        "sha": "e821c7f71f4f14e03091d8b481dcd8edb379af9f",
+        "files": 83,
+        "lines": 4934,
+        "candidates": 23,
+        "seconds": 45.223,
+        "labels": 9
+      },
+      {
+        "url": "https://github.com/alfonsof/aws-python-examples",
+        "sha": "fe88df550cc567b3d3951225fee7e4c2ceaf9577",
+        "files": 37,
+        "lines": 2182,
+        "candidates": 42,
+        "seconds": 0.916,
+        "labels": 12
+      },
+      {
+        "url": "https://github.com/datopian/r2-bucket-uploader",
+        "sha": "2537eb5f63225f758a621cb2512e94c0fe317c29",
+        "files": 8,
+        "lines": 494,
+        "candidates": 16,
+        "seconds": 0.761,
+        "labels": 7
+      },
+      {
+        "url": "https://github.com/ryand56/r2-upload-action",
+        "sha": "5947cd194791163d9b3083371bd621f53e415959",
+        "files": 14,
+        "lines": 780,
+        "candidates": 18,
+        "seconds": 2.027,
+        "labels": 7
+      },
+      {
+        "url": "https://github.com/thenickdude/snap-to-s3",
+        "sha": "538aad720c70caf91e8085c764cc559521fbffa8",
+        "files": 13,
+        "lines": 5530,
+        "candidates": 19,
+        "seconds": 1.095,
+        "labels": 6
+      },
+      {
+        "url": "https://github.com/goruck/smart-zoneminder",
+        "sha": "e2f7bf49f22f3aa00a082bc227de64237d8e7699",
+        "files": 41,
+        "lines": 7468,
+        "candidates": 21,
+        "seconds": 33.719,
+        "labels": 6
+      },
+      {
+        "url": "https://github.com/multiplegeorges/vue-cli-plugin-s3-deploy",
+        "sha": "81b114a03404aee4cc5e5a244789deab172b15f8",
+        "files": 11,
+        "lines": 922,
+        "candidates": 5,
+        "seconds": 0.945,
+        "labels": 1
+      },
+      {
+        "url": "https://github.com/ronald-d-dilley-jr/ceph-s3-examples",
+        "sha": "019140a534a56e8321d57bd2a8a09a210307ea2b",
+        "files": 11,
+        "lines": 435,
+        "candidates": 15,
+        "seconds": 0.915,
+        "labels": 7
+      },
+      {
+        "url": "https://github.com/ryanto/next-s3-upload",
+        "sha": "812044ceda11d42f2820855a0e683be4853491cb",
+        "files": 84,
+        "lines": 2889,
+        "candidates": 23,
+        "seconds": 31.77,
+        "labels": 5
+      },
+      {
+        "url": "https://github.com/nathanpeck/s3-upload-stream",
+        "sha": "cf6b82d44426dfe06fb3e3de1af0db6fa7ecdfa4",
+        "files": 5,
+        "lines": 922,
+        "candidates": 15,
+        "seconds": 0.748,
+        "labels": 0
+      },
+      {
+        "url": "https://github.com/smore-inc/tinys3",
+        "sha": "7fd6aa53bdf245a992af5e3c61a37fb5bf2acc62",
+        "files": 17,
+        "lines": 2851,
+        "candidates": 58,
+        "seconds": 1.194,
+        "labels": 0
+      },
+      {
+        "url": "https://github.com/tsileo/bakthat",
+        "sha": "33f0a9b56d4273fe7a74bdb50acbe5ea5d51c384",
+        "files": 15,
+        "lines": 2699,
+        "candidates": 26,
+        "seconds": 1.519,
+        "labels": 0
+      },
+      {
+        "url": "https://github.com/boto/boto3-sample",
+        "sha": "5a5b0e38074c65c84a7e3f4a259ece8f3f9dd136",
+        "files": 1,
+        "lines": 513,
+        "candidates": 13,
+        "seconds": 0.621,
+        "labels": 3
+      },
+      {
+        "url": "https://github.com/mardix/flask-cloudy",
+        "sha": "cf9f6f074e92af1d98f99fdf6ca458e29099e4b1",
+        "files": 10,
+        "lines": 1021,
+        "candidates": 38,
+        "seconds": 0.94,
+        "labels": 0
+      },
+      {
+        "url": "https://github.com/mumrah/s3-multipart",
+        "sha": "98b5b019ac32d03ee9df128369b301351811419c",
+        "files": 4,
+        "lines": 541,
+        "candidates": 1,
+        "seconds": 0.824,
+        "labels": 0
+      },
+      {
+        "url": "https://github.com/vratix-dev/vratix-expressjs-api-modules",
+        "sha": "328ce3b3754080098cfe1d93d79680703677ac68",
+        "files": 59,
+        "lines": 3934,
+        "candidates": 9,
+        "seconds": 1.76,
+        "labels": 3
+      },
+      {
+        "url": "https://github.com/hamzasaleem2/s3oosh",
+        "sha": "4efb1f6c2314bb4b36f7c84848acaef374107361",
+        "files": 29,
+        "lines": 1783,
+        "candidates": 6,
+        "seconds": 1.293,
+        "labels": 2
+      },
+      {
+        "url": "https://github.com/jeanbmar/payload-s3-upload",
+        "sha": "3e0417cfd871bfe00d742ae3cd79997efe17c261",
+        "files": 10,
+        "lines": 465,
+        "candidates": 9,
+        "seconds": 3.686,
+        "labels": 2
+      },
+      {
+        "url": "https://github.com/zerodha/frappe-attachments-s3",
+        "sha": "985365dc9b4e5128d0ff6f9149720f757567f0d7",
+        "files": 19,
+        "lines": 1064,
+        "candidates": 5,
+        "seconds": 0.734,
+        "labels": 5
+      },
+      {
+        "url": "https://github.com/MikaAK/s3-plugin-webpack",
+        "sha": "c189c1d2893b14f18540873e934439f292df1363",
+        "files": 10,
+        "lines": 1194,
+        "candidates": 21,
+        "seconds": 1.413,
+        "labels": 1
+      },
+      {
+        "url": "https://github.com/RafalWilinski/s3-uploader",
+        "sha": "a0d81fe669a4a5f6e3558292e2790ed061dfc9bc",
+        "files": 11,
+        "lines": 1247,
+        "candidates": 13,
+        "seconds": 0.985,
+        "labels": 1
+      },
+      {
+        "url": "https://github.com/janiko71/aws-inventory",
+        "sha": "ead1ccd6722e9c1700172bcb6338816fecb7fef0",
+        "files": 26,
+        "lines": 3930,
+        "candidates": 6,
+        "seconds": 1.198,
+        "labels": 1
+      },
+      {
+        "url": "https://github.com/jeffminsungkim/nestjs-multer-extended",
+        "sha": "45c45f6b62c8c8719dbeb8ce2e0c688050ed242c",
+        "files": 44,
+        "lines": 1764,
+        "candidates": 6,
+        "seconds": 3.175,
+        "labels": 0
+      },
+      {
+        "url": "https://github.com/jpetrucciani/bucketstore",
+        "sha": "6de7b252c9dbb8829f571a046e4a0ad0e5332759",
+        "files": 7,
+        "lines": 740,
+        "candidates": 46,
+        "seconds": 3.077,
+        "labels": 1
+      },
+      {
+        "url": "https://github.com/jvsteiner/s3-image-uploader",
+        "sha": "ad8163a09b7af39091c02dbdc01f91e55c01c8f9",
+        "files": 7,
+        "lines": 1394,
+        "candidates": 4,
+        "seconds": 0.933,
+        "labels": 1
+      },
+      {
+        "url": "https://github.com/leojuriolli7/t3-blog",
+        "sha": "68998ebdc94697c31de2ec3ead92929025e955f9",
+        "files": 225,
+        "lines": 17223,
+        "candidates": 24,
+        "seconds": 3.308,
+        "labels": 1
+      },
+      {
+        "url": "https://github.com/tensult/ngx-s3-upload",
+        "sha": "32a1370562214bf00bec1f4c48e68a10324b4c31",
+        "files": 53,
+        "lines": 2065,
+        "candidates": 9,
+        "seconds": 1.261,
+        "labels": 0
+      },
+      {
+        "url": "https://github.com/CulturalMe/meteor-slingshot",
+        "sha": "59a8b2eb637b25a904bd9ee28e3611892d5fccae",
+        "files": 14,
+        "lines": 1374,
+        "candidates": 3,
+        "seconds": 1.619,
+        "labels": 0
+      },
+      {
+        "url": "https://github.com/Lazytangent/AWS-S3-Flask-React",
+        "sha": "88e486ef51055d12fe0993279c5d6dadace6f941",
+        "files": 39,
+        "lines": 1435,
+        "candidates": 2,
+        "seconds": 1.304,
+        "labels": 1
+      },
+      {
+        "url": "https://github.com/Molunerfinn/PicGo",
+        "sha": "bf4069bd3bdbec9b33d43e37df6bc91265415d47",
+        "files": 413,
+        "lines": 53872,
+        "candidates": 19,
+        "seconds": 9.88,
+        "labels": 3
+      },
+      {
+        "url": "https://github.com/Nic13Gamer/better-upload",
+        "sha": "3eb14d45c1481aedca0525e80ac8c48f6a249f12",
+        "files": 162,
+        "lines": 9702,
+        "candidates": 94,
+        "seconds": 2.226,
+        "labels": 2
+      },
+      {
+        "url": "https://github.com/TTLabs/EvaporateJS",
+        "sha": "4d3bfb59cbc517713d591ec2027d7cfd8348542b",
+        "files": 40,
+        "lines": 7787,
+        "candidates": 34,
+        "seconds": 2.076,
+        "labels": 1
+      },
+      {
+        "url": "https://github.com/asafdav/ng-s3upload",
+        "sha": "c4c3225931117912c4cbd2a6ecf609b5c1b9cbc9",
+        "files": 8,
+        "lines": 471,
+        "candidates": 3,
+        "seconds": 0.894,
+        "labels": 0
+      },
+      {
+        "url": "https://github.com/bradleyg/django-s3direct",
+        "sha": "dadb400addba7f86d30b00bf50b55b89ea2694d5",
+        "files": 27,
+        "lines": 1655,
+        "candidates": 10,
+        "seconds": 1.437,
+        "labels": 0
+      },
+      {
+        "url": "https://github.com/charlesdaniel/s3_uploader",
+        "sha": "93114b0296041fc0905937927a6ef70672607972",
+        "files": 3,
+        "lines": 384,
+        "candidates": 1,
+        "seconds": 0.942,
+        "labels": 1
+      },
+      {
+        "url": "https://github.com/cinely/mule-uploader",
+        "sha": "b052b62627cea8ce116c699247a7d328ccb7661b",
+        "files": 9,
+        "lines": 2016,
+        "candidates": 19,
+        "seconds": 0.929,
+        "labels": 0
+      },
+      {
+        "url": "https://github.com/codingforentrepreneurs/Dive-into-AWS-Course---Direct-to-S3-via-Django-JavaScript",
+        "sha": "b6a5e61288ce745851848eb4853fb70b3e67f1f7",
+        "files": 25,
+        "lines": 961,
+        "candidates": 5,
+        "seconds": 11.281,
+        "labels": 2
+      },
+      {
+        "url": "https://github.com/codingjoe/django-s3file",
+        "sha": "5f62143bd01b119756334ba16ba78885af5b88da",
+        "files": 32,
+        "lines": 2560,
+        "candidates": 15,
+        "seconds": 1.016,
+        "labels": 0
+      },
+      {
+        "url": "https://github.com/datreeio/jira-backup-py",
+        "sha": "b1823676db40b128297177fd2f3011ca1ddffda7",
+        "files": 15,
+        "lines": 1355,
+        "candidates": 6,
+        "seconds": 1.186,
+        "labels": 1
+      },
+      {
+        "url": "https://github.com/dogsheep/dogsheep-photos",
+        "sha": "325aa38cb23d0757bb1335ee2ea94a082475a66e",
+        "files": 7,
+        "lines": 753,
+        "candidates": 7,
+        "seconds": 1.242,
+        "labels": 1
+      },
+      {
+        "url": "https://github.com/expo/image-upload-example",
+        "sha": "e8cfa5f3e162b12f9a3c6d4e22825613e3f0207f",
+        "files": 13,
+        "lines": 601,
+        "candidates": 0,
+        "seconds": 0.99,
+        "labels": 0
+      },
+      {
+        "url": "https://github.com/fortana-co/react-dropzone-uploader",
+        "sha": "89aa88acf753962398fee967d0e4b5ac5d53065a",
+        "files": 25,
+        "lines": 2391,
+        "candidates": 0,
+        "seconds": 4.303,
+        "labels": 0
+      },
+      {
+        "url": "https://github.com/frozenpandaman/s3s",
+        "sha": "732c91e5ac9b82a413f96bc75831996f8cf4f9ea",
+        "files": 4,
+        "lines": 2794,
+        "candidates": 7,
+        "seconds": 0.972,
+        "labels": 0
+      },
+      {
+        "url": "https://github.com/haierkeys/obsidian-custom-image-auto-uploader",
+        "sha": "190eab7d1538e632a000000c704405a6bd4f4611",
+        "files": 46,
+        "lines": 5064,
+        "candidates": 0,
+        "seconds": 1.626,
+        "labels": 0
+      },
+      {
+        "url": "https://github.com/jelmerdejong/simple-flask-s3-uploader",
+        "sha": "8dcd7759b96de7bd164673ef7e6af33cd3fdeb5d",
+        "files": 15,
+        "lines": 663,
+        "candidates": 5,
+        "seconds": 0.799,
+        "labels": 0
+      },
+      {
+        "url": "https://github.com/madhums/node-imager",
+        "sha": "a1cc3e6621e530d2784d0a21c0dee779968b5720",
+        "files": 5,
+        "lines": 400,
+        "candidates": 4,
+        "seconds": 2.113,
+        "labels": 0
+      },
+      {
+        "url": "https://github.com/nathanoehlman/knox-mpu",
+        "sha": "9fa25b929d63cc5f1e857a800323ecc18e0bed7a",
+        "files": 5,
+        "lines": 766,
+        "candidates": 6,
+        "seconds": 0.809,
+        "labels": 0
+      },
+      {
+        "url": "https://github.com/nukulb/s3-angular-file-upload",
+        "sha": "839e096e0085ea073ae84a43074897e92feb55b7",
+        "files": 26,
+        "lines": 1555,
+        "candidates": 4,
+        "seconds": 1.337,
+        "labels": 3
+      },
+      {
+        "url": "https://github.com/odysseyscience/react-s3-uploader",
+        "sha": "4faf574977f4123a9040602bdc38476cfb216e97",
+        "files": 6,
+        "lines": 612,
+        "candidates": 10,
+        "seconds": 1.173,
+        "labels": 1
+      },
+      {
+        "url": "https://github.com/sailshq/skipper",
+        "sha": "9fb93515c89e2046f0af09d03579f67411250979",
+        "files": 50,
+        "lines": 3866,
+        "candidates": 3,
+        "seconds": 1.107,
+        "labels": 0
+      },
+      {
+        "url": "https://github.com/yortz/carrierwave_jquery_file_upload",
+        "sha": "85abe7a45c51f5dab2a2d476e8d997e778d3ff3c",
+        "files": 29,
+        "lines": 831,
+        "candidates": 0,
+        "seconds": 1.142,
+        "labels": 0
+      },
+      {
+        "url": "https://github.com/youssef509/Platinum-Drive",
+        "sha": "c2b56bc3e6dccb343b3d67de7922362bceb3c5a2",
+        "files": 206,
+        "lines": 30021,
+        "candidates": 0,
+        "seconds": 8.157,
+        "labels": 0
+      },
+      {
+        "url": "https://github.com/apache/airflow",
+        "sha": "75026dce164ab70799290cbe9dcce39b7b181c75",
+        "files": 10607,
+        "lines": 2311883,
+        "candidates": 4679,
+        "seconds": 182.326,
+        "labels": 1564
+      },
+      {
+        "url": "https://github.com/getsentry/sentry",
+        "sha": "88f7004276bae67b2daf1ba63beb14f38ea4d39e",
+        "files": 20376,
+        "lines": 3735825,
+        "candidates": 487,
+        "seconds": 131.558,
+        "labels": 27
+      },
+      {
+        "url": "https://github.com/apache/superset",
+        "sha": "ca9e6d1c7bdf9e937c6fb81c8972fab5c82bfed6",
+        "files": 9109,
+        "lines": 2163992,
+        "candidates": 704,
+        "seconds": 206.026,
+        "labels": 353
+      }
+    ]
+  },
+  "fit": {
+    "seconds": 1.307,
+    "trials": 135,
+    "epoch_choices": [
+      8,
+      24,
+      48
+    ],
+    "selected_epochs": 48,
+    "threshold": 0.65,
+    "replay_multiplier": 8,
+    "learning_rate": 0.15,
+    "model_bytes": 1207,
+    "manual_calibration": {
+      "found": 8,
+      "outside_reference": 1,
+      "missed": 2
+    },
+    "weak_validation": {
+      "found": 145,
+      "outside_reference": 3,
+      "missed": 5
+    }
+  },
+  "timing_ms": {
+    "scanner_median": 94.93,
+    "model_extra_median": 18.64,
+    "hybrid_median": 113.59
+  },
+  "totals": {
+    "scanner": {
+      "found": 14,
+      "outside_reference": 9,
+      "missed": 8
+    },
+    "v1": {
+      "found": 19,
+      "outside_reference": 21,
+      "missed": 3
+    },
+    "v2": {
+      "found": 15,
+      "outside_reference": 20,
+      "missed": 7
+    }
+  },
+  "rows": [
+    {
+      "repo": "rxvt__s3fetch",
+      "revision": "228162c48c5f622e0fe385c542a712c7c7bb48b1",
+      "reference": [
+        [
+          "src/s3fetch/s3.py",
+          353
+        ],
+        [
+          "src/s3fetch/s3.py",
+          666
+        ]
+      ],
+      "scanner": {
+        "found": 1,
+        "outside_reference": 3,
+        "missed": 1
+      },
+      "v1": {
+        "found": 2,
+        "outside_reference": 9,
+        "missed": 0
+      },
+      "v2": {
+        "found": 2,
+        "outside_reference": 11,
+        "missed": 0
+      },
+      "v2_suggestions": [
+        {
+          "file": "src/s3fetch/api.py",
+          "line": 71,
+          "score": 0.907,
+          "in_reference": false
+        },
+        {
+          "file": "src/s3fetch/api.py",
+          "line": 110,
+          "score": 0.8689,
+          "in_reference": false
+        },
+        {
+          "file": "src/s3fetch/api.py",
+          "line": 173,
+          "score": 0.9999,
+          "in_reference": false
+        },
+        {
+          "file": "src/s3fetch/api.py",
+          "line": 213,
+          "score": 0.8009,
+          "in_reference": false
+        },
+        {
+          "file": "src/s3fetch/cli.py",
+          "line": 316,
+          "score": 0.907,
+          "in_reference": false
+        },
+        {
+          "file": "src/s3fetch/s3.py",
+          "line": 141,
+          "score": 0.7619,
+          "in_reference": false
+        },
+        {
+          "file": "src/s3fetch/s3.py",
+          "line": 308,
+          "score": 0.9907,
+          "in_reference": false
+        },
+        {
+          "file": "src/s3fetch/s3.py",
+          "line": 339,
+          "score": 0.9927,
+          "in_reference": false
+        },
+        {
+          "file": "src/s3fetch/s3.py",
+          "line": 353,
+          "score": 0.9352,
+          "in_reference": true
+        }
+      ]
+    },
+    {
+      "repo": "jkahn117__aws-presigned-url-upload",
+      "revision": "543dd92ef4807eea06e7991575518f0cbf074532",
+      "reference": [
+        [
+          "app/js/app.js",
+          26
+        ],
+        [
+          "server/api/index.js",
+          33
+        ]
+      ],
+      "scanner": {
+        "found": 1,
+        "outside_reference": 0,
+        "missed": 1
+      },
+      "v1": {
+        "found": 1,
+        "outside_reference": 0,
+        "missed": 1
+      },
+      "v2": {
+        "found": 1,
+        "outside_reference": 0,
+        "missed": 1
+      },
+      "v2_suggestions": []
+    },
+    {
+      "repo": "pfried__AWS-S3-Client-Upload-Example",
+      "revision": "3aa56ebfbcb8b20154b173f5fd4ba77ab3a8b20f",
+      "reference": [
+        [
+          "app.js",
+          92
+        ],
+        [
+          "app.js",
+          100
+        ],
+        [
+          "app.js",
+          115
+        ],
+        [
+          "views/js/s3.js",
+          63
+        ]
+      ],
+      "scanner": {
+        "found": 0,
+        "outside_reference": 0,
+        "missed": 4
+      },
+      "v1": {
+        "found": 3,
+        "outside_reference": 0,
+        "missed": 1
+      },
+      "v2": {
+        "found": 0,
+        "outside_reference": 0,
+        "missed": 4
+      },
+      "v2_suggestions": []
+    },
+    {
+      "repo": "aws-samples__amazon-s3-presigned-urls-aws-sam",
+      "revision": "406632184e787d9f48297e3f3f2f9192cf66c4cf",
+      "reference": [
+        [
+          "getSignedURL/app.js",
+          48
+        ]
+      ],
+      "scanner": {
+        "found": 1,
+        "outside_reference": 2,
+        "missed": 0
+      },
+      "v1": {
+        "found": 1,
+        "outside_reference": 2,
+        "missed": 0
+      },
+      "v2": {
+        "found": 1,
+        "outside_reference": 2,
+        "missed": 0
+      },
+      "v2_suggestions": []
+    },
+    {
+      "repo": "exanubes__file-handling-using-s3",
+      "revision": "347b79133b2d361442155583c3d59df4be359fdb",
+      "reference": [
+        [
+          "src/lib/api.js",
+          44
+        ],
+        [
+          "src/lib/s3.js",
+          29
+        ],
+        [
+          "src/lib/s3.js",
+          57
+        ],
+        [
+          "src/lib/s3.js",
+          59
+        ],
+        [
+          "src/lib/s3.js",
+          72
+        ],
+        [
+          "src/lib/s3.js",
+          97
+        ],
+        [
+          "src/lib/s3.js",
+          124
+        ],
+        [
+          "src/lib/s3.js",
+          139
+        ],
+        [
+          "src/lib/s3.js",
+          165
+        ],
+        [
+          "src/lib/s3.js",
+          169
+        ],
+        [
+          "src/lib/s3.js",
+          193
+        ],
+        [
+          "src/lib/s3.js",
+          213
+        ],
+        [
+          "src/lib/upload-to-s3.js",
+          16
+        ]
+      ],
+      "scanner": {
+        "found": 11,
+        "outside_reference": 4,
+        "missed": 2
+      },
+      "v1": {
+        "found": 12,
+        "outside_reference": 10,
+        "missed": 1
+      },
+      "v2": {
+        "found": 11,
+        "outside_reference": 7,
+        "missed": 2
+      },
+      "v2_suggestions": [
+        {
+          "file": "packages/functions/src/object-restored-notification-email.tsx",
+          "line": 70,
+          "score": 0.9167,
+          "in_reference": false
+        },
+        {
+          "file": "src/lib/api.js",
+          "line": 38,
+          "score": 0.9881,
+          "in_reference": false
+        },
+        {
+          "file": "src/lib/s3.js",
+          "line": 163,
+          "score": 0.8716,
+          "in_reference": false
+        }
+      ]
+    }
+  ],
+  "corroboration": {
+    "method": "Model score plus same-file evidence (Knox client binding, S3 paginator binding, or a browser upload shape). Suggestions never change the production scanner or a verdict. Browser matching is heuristic.",
+    "development_recheck": {
+      "counts": {
+        "scanner": {
+          "found": 14,
+          "alerts_outside_reference": 9
+        },
+        "v1_off": {
+          "found": 19,
+          "alerts_outside_reference": 21
+        },
+        "v2_off": {
+          "found": 15,
+          "alerts_outside_reference": 20
+        },
+        "v1_anchored": {
+          "found": 19,
+          "alerts_outside_reference": 9
+        },
+        "v2_anchored": {
+          "found": 15,
+          "alerts_outside_reference": 9
+        }
+      },
+      "median_total_ms": {
+        "scanner": 91.28,
+        "v1_off": 109.96,
+        "v2_off": 109.9,
+        "v1_anchored": 118.77,
+        "v2_anchored": 118.71
+      },
+      "rows": [
+        {
+          "repo": "rxvt__s3fetch",
+          "reference_size": 2,
+          "scanner": {
+            "found": 1,
+            "alerts_outside_reference": 3,
+            "added_locations": []
+          },
+          "v1_off": {
+            "found": 2,
+            "alerts_outside_reference": 9,
+            "added_locations": [
+              [
+                "src/s3fetch/api.py",
+                71
+              ],
+              [
+                "src/s3fetch/api.py",
+                110
+              ],
+              [
+                "src/s3fetch/api.py",
+                173
+              ],
+              [
+                "src/s3fetch/cli.py",
+                316
+              ],
+              [
+                "src/s3fetch/s3.py",
+                308
+              ],
+              [
+                "src/s3fetch/s3.py",
+                339
+              ],
+              [
+                "src/s3fetch/s3.py",
+                353
+              ]
+            ]
+          },
+          "v1_anchored": {
+            "found": 2,
+            "alerts_outside_reference": 3,
+            "added_locations": [
+              [
+                "src/s3fetch/s3.py",
+                353
+              ]
+            ]
+          },
+          "v2_off": {
+            "found": 2,
+            "alerts_outside_reference": 11,
+            "added_locations": [
+              [
+                "src/s3fetch/api.py",
+                71
+              ],
+              [
+                "src/s3fetch/api.py",
+                110
+              ],
+              [
+                "src/s3fetch/api.py",
+                173
+              ],
+              [
+                "src/s3fetch/api.py",
+                213
+              ],
+              [
+                "src/s3fetch/cli.py",
+                316
+              ],
+              [
+                "src/s3fetch/s3.py",
+                141
+              ],
+              [
+                "src/s3fetch/s3.py",
+                308
+              ],
+              [
+                "src/s3fetch/s3.py",
+                339
+              ],
+              [
+                "src/s3fetch/s3.py",
+                353
+              ]
+            ]
+          },
+          "v2_anchored": {
+            "found": 2,
+            "alerts_outside_reference": 3,
+            "added_locations": [
+              [
+                "src/s3fetch/s3.py",
+                353
+              ]
+            ]
+          }
+        },
+        {
+          "repo": "jkahn117__aws-presigned-url-upload",
+          "reference_size": 2,
+          "scanner": {
+            "found": 1,
+            "alerts_outside_reference": 0,
+            "added_locations": []
+          },
+          "v1_off": {
+            "found": 1,
+            "alerts_outside_reference": 0,
+            "added_locations": []
+          },
+          "v1_anchored": {
+            "found": 1,
+            "alerts_outside_reference": 0,
+            "added_locations": []
+          },
+          "v2_off": {
+            "found": 1,
+            "alerts_outside_reference": 0,
+            "added_locations": []
+          },
+          "v2_anchored": {
+            "found": 1,
+            "alerts_outside_reference": 0,
+            "added_locations": []
+          }
+        },
+        {
+          "repo": "pfried__AWS-S3-Client-Upload-Example",
+          "reference_size": 4,
+          "scanner": {
+            "found": 0,
+            "alerts_outside_reference": 0,
+            "added_locations": []
+          },
+          "v1_off": {
+            "found": 3,
+            "alerts_outside_reference": 0,
+            "added_locations": [
+              [
+                "app.js",
+                92
+              ],
+              [
+                "app.js",
+                100
+              ],
+              [
+                "app.js",
+                115
+              ]
+            ]
+          },
+          "v1_anchored": {
+            "found": 3,
+            "alerts_outside_reference": 0,
+            "added_locations": [
+              [
+                "app.js",
+                92
+              ],
+              [
+                "app.js",
+                100
+              ],
+              [
+                "app.js",
+                115
+              ]
+            ]
+          },
+          "v2_off": {
+            "found": 0,
+            "alerts_outside_reference": 0,
+            "added_locations": []
+          },
+          "v2_anchored": {
+            "found": 0,
+            "alerts_outside_reference": 0,
+            "added_locations": []
+          }
+        },
+        {
+          "repo": "aws-samples__amazon-s3-presigned-urls-aws-sam",
+          "reference_size": 1,
+          "scanner": {
+            "found": 1,
+            "alerts_outside_reference": 2,
+            "added_locations": []
+          },
+          "v1_off": {
+            "found": 1,
+            "alerts_outside_reference": 2,
+            "added_locations": []
+          },
+          "v1_anchored": {
+            "found": 1,
+            "alerts_outside_reference": 2,
+            "added_locations": []
+          },
+          "v2_off": {
+            "found": 1,
+            "alerts_outside_reference": 2,
+            "added_locations": []
+          },
+          "v2_anchored": {
+            "found": 1,
+            "alerts_outside_reference": 2,
+            "added_locations": []
+          }
+        },
+        {
+          "repo": "exanubes__file-handling-using-s3",
+          "reference_size": 13,
+          "scanner": {
+            "found": 11,
+            "alerts_outside_reference": 4,
+            "added_locations": []
+          },
+          "v1_off": {
+            "found": 12,
+            "alerts_outside_reference": 10,
+            "added_locations": [
+              [
+                "packages/functions/src/object-restored-notification-email.tsx",
+                70
+              ],
+              [
+                "src/lib/api.js",
+                38
+              ],
+              [
+                "src/lib/s3.js",
+                163
+              ],
+              [
+                "src/lib/upload-to-s3.js",
+                16
+              ],
+              [
+                "src/routes/+page.server.ts",
+                17
+              ],
+              [
+                "src/routes/+server.ts",
+                10
+              ],
+              [
+                "src/routes/documents/[id]/+server.ts",
+                33
+              ]
+            ]
+          },
+          "v1_anchored": {
+            "found": 12,
+            "alerts_outside_reference": 4,
+            "added_locations": [
+              [
+                "src/lib/upload-to-s3.js",
+                16
+              ]
+            ]
+          },
+          "v2_off": {
+            "found": 11,
+            "alerts_outside_reference": 7,
+            "added_locations": [
+              [
+                "packages/functions/src/object-restored-notification-email.tsx",
+                70
+              ],
+              [
+                "src/lib/api.js",
+                38
+              ],
+              [
+                "src/lib/s3.js",
+                163
+              ]
+            ]
+          },
+          "v2_anchored": {
+            "found": 11,
+            "alerts_outside_reference": 4,
+            "added_locations": []
+          }
+        }
+      ]
+    },
+    "new_reviewed_repos": {
+      "counts": {
+        "scanner": {
+          "found": 13,
+          "alerts_outside_reference": 0
+        },
+        "v1_off": {
+          "found": 14,
+          "alerts_outside_reference": 0
+        },
+        "v2_off": {
+          "found": 14,
+          "alerts_outside_reference": 0
+        },
+        "v1_anchored": {
+          "found": 13,
+          "alerts_outside_reference": 0
+        },
+        "v2_anchored": {
+          "found": 13,
+          "alerts_outside_reference": 0
+        }
+      },
+      "median_total_ms": {
+        "scanner": 13.1,
+        "v1_off": 15.58,
+        "v2_off": 15.55,
+        "v1_anchored": 17.26,
+        "v2_anchored": 17.25
+      },
+      "rows": [
+        {
+          "repo": "lmammino__s3-presigned-urls-examples",
+          "reference_size": 14,
+          "scanner": {
+            "found": 11,
+            "alerts_outside_reference": 0,
+            "added_locations": []
+          },
+          "v1_off": {
+            "found": 12,
+            "alerts_outside_reference": 0,
+            "added_locations": [
+              [
+                "examples/post.js",
+                10
+              ]
+            ]
+          },
+          "v1_anchored": {
+            "found": 11,
+            "alerts_outside_reference": 0,
+            "added_locations": []
+          },
+          "v2_off": {
+            "found": 12,
+            "alerts_outside_reference": 0,
+            "added_locations": [
+              [
+                "examples/post.js",
+                10
+              ]
+            ]
+          },
+          "v2_anchored": {
+            "found": 11,
+            "alerts_outside_reference": 0,
+            "added_locations": []
+          },
+          "revision": "30d2745101fd19b58681475667a6c89980166dd9",
+          "reference": {
+            "examples/list-buckets.js": [
+              9,
+              11
+            ],
+            "examples/list-objects.js": [
+              10,
+              14
+            ],
+            "examples/post-form.js": [
+              32
+            ],
+            "examples/get.js": [
+              10,
+              15
+            ],
+            "examples/delete-object.js": [
+              10,
+              15
+            ],
+            "examples/put.js": [
+              10,
+              15
+            ],
+            "examples/post.js": [
+              10
+            ],
+            "examples/post-form-ajax.js": [
+              62,
+              105
+            ]
+          }
+        },
+        {
+          "repo": "aws-samples__sample-securing-amazon-s3-presigned-urls-for-serverless-applications",
+          "reference_size": 2,
+          "scanner": {
+            "found": 2,
+            "alerts_outside_reference": 0,
+            "added_locations": []
+          },
+          "v1_off": {
+            "found": 2,
+            "alerts_outside_reference": 0,
+            "added_locations": []
+          },
+          "v1_anchored": {
+            "found": 2,
+            "alerts_outside_reference": 0,
+            "added_locations": []
+          },
+          "v2_off": {
+            "found": 2,
+            "alerts_outside_reference": 0,
+            "added_locations": []
+          },
+          "v2_anchored": {
+            "found": 2,
+            "alerts_outside_reference": 0,
+            "added_locations": []
+          },
+          "revision": "a7672888159ae65ac3fd15cc2367b7de2f091bf2",
+          "reference": {
+            "server/index.mjs": [
+              60,
+              68
+            ]
+          }
+        }
+      ]
+    }
+  }
+}

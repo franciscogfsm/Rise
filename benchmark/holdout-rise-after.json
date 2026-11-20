@@ -1,0 +1,528 @@
+{
+  "scope": "Six public repositories absent from benchmark/repos.json, picked from public search results before running RISE. Small examples in Python and JavaScript. No OpenRouter, repository execution or provider requests.",
+  "scoring": "Exact file and line. Count explicit S3 SDK operations, signing helpers, iterated S3 collections and direct S3 HTTP requests. Exclude wrappers' callers, lazy attribute access, setup, mocks and imports. Match location only. RISE predictions are call-location evidence exposed in its report (op or unrecognised).",
+  "limitations": "This Codex session froze its predictions before checking against a subsequent manual source audit. The same session also built the manual reference, which was fixed before running RISE. Small illustrative sample, not double-blind. Critical denotes a manually labeled operation on a primary workflow, not measured incident severity. The RISE changes were tuned on these six repositories. The after result is a regression check, not a holdout estimate.",
+  "timing": {
+    "rise_median_batch_seconds": 0.16374,
+    "rise_repeats": 9,
+    "openai_codex_batch_seconds": 19.792,
+    "ratio": 120.9,
+    "scope": "Both use already downloaded code. RISE measures local scan and risk analysis. Codex measures one assisted search, review and output session."
+  },
+  "totals": {
+    "rise": {
+      "tp": 45,
+      "fp": 1,
+      "fn": 0,
+      "critical_found": 18,
+      "critical_total": 18,
+      "recall": 1.0,
+      "precision": 0.9783
+    },
+    "openai_codex": {
+      "tp": 43,
+      "fp": 0,
+      "fn": 2,
+      "critical_found": 17,
+      "critical_total": 18,
+      "recall": 0.9556,
+      "precision": 1.0
+    }
+  },
+  "rows": [
+    {
+      "source": {
+        "owner": "ajyounguk",
+        "name": "aws-s3-client",
+        "ref": "HEAD",
+        "commit": "4c45398879f57cd5aa278c660aadbfe6658a92e7",
+        "archive_bytes": 213609,
+        "skipped": 0,
+        "url": "https://github.com/ajyounguk/aws-s3-client"
+      },
+      "files": 12,
+      "lines": 1314,
+      "rise_ms_median": 38.356,
+      "reference": [
+        {
+          "file": "controllers/s3Controller.js",
+          "line": 117,
+          "operation": "CreateBucket",
+          "critical": false
+        },
+        {
+          "file": "controllers/s3Controller.js",
+          "line": 128,
+          "operation": "ListBuckets",
+          "critical": false
+        },
+        {
+          "file": "controllers/s3Controller.js",
+          "line": 166,
+          "operation": "PutObject",
+          "critical": true
+        },
+        {
+          "file": "controllers/s3Controller.js",
+          "line": 189,
+          "operation": "ListObjectsV2",
+          "critical": false
+        },
+        {
+          "file": "controllers/s3Controller.js",
+          "line": 218,
+          "operation": "DeleteObject",
+          "critical": false
+        },
+        {
+          "file": "controllers/s3Controller.js",
+          "line": 230,
+          "operation": "DeleteBucket",
+          "critical": false
+        },
+        {
+          "file": "controllers/s3Controller.js",
+          "line": 258,
+          "operation": "PresignGet",
+          "critical": true
+        },
+        {
+          "file": "controllers/s3Controller.js",
+          "line": 259,
+          "operation": "PresignPut",
+          "critical": true
+        },
+        {
+          "file": "controllers/s3Controller.js",
+          "line": 260,
+          "operation": "PresignDelete",
+          "critical": false
+        }
+      ],
+      "rise": {
+        "tp": 9,
+        "fp": 0,
+        "fn": 0,
+        "critical_found": 3,
+        "critical_total": 3,
+        "misses": [],
+        "false_alarms": []
+      },
+      "openai_codex": {
+        "tp": 9,
+        "fp": 0,
+        "fn": 0,
+        "critical_found": 3,
+        "critical_total": 3,
+        "misses": [],
+        "false_alarms": []
+      }
+    },
+    {
+      "source": {
+        "owner": "aws-samples",
+        "name": "aws-python-sample",
+        "ref": "HEAD",
+        "commit": "83483a0a93b6ce0bd4a17a1c772458ca981e3457",
+        "archive_bytes": 10616,
+        "skipped": 0,
+        "url": "https://github.com/aws-samples/aws-python-sample"
+      },
+      "files": 1,
+      "lines": 132,
+      "rise_ms_median": 10.063,
+      "reference": [
+        {
+          "file": "s3_sample.py",
+          "line": 51,
+          "operation": "CreateBucket",
+          "critical": false
+        },
+        {
+          "file": "s3_sample.py",
+          "line": 55,
+          "operation": "ListBuckets",
+          "critical": false
+        },
+        {
+          "file": "s3_sample.py",
+          "line": 70,
+          "operation": "PutObject",
+          "critical": true
+        },
+        {
+          "file": "s3_sample.py",
+          "line": 78,
+          "operation": "PresignGet",
+          "critical": true
+        },
+        {
+          "file": "s3_sample.py",
+          "line": 109,
+          "operation": "GetObject",
+          "critical": true
+        },
+        {
+          "file": "s3_sample.py",
+          "line": 119,
+          "operation": "DeleteObjects",
+          "critical": false
+        },
+        {
+          "file": "s3_sample.py",
+          "line": 127,
+          "operation": "DeleteBucket",
+          "critical": false
+        }
+      ],
+      "rise": {
+        "tp": 7,
+        "fp": 0,
+        "fn": 0,
+        "critical_found": 3,
+        "critical_total": 3,
+        "misses": [],
+        "false_alarms": []
+      },
+      "openai_codex": {
+        "tp": 6,
+        "fp": 0,
+        "fn": 1,
+        "critical_found": 2,
+        "critical_total": 3,
+        "misses": [
+          [
+            "s3_sample.py",
+            109
+          ]
+        ],
+        "false_alarms": []
+      }
+    },
+    {
+      "source": {
+        "owner": "aws-samples",
+        "name": "sample-s3-listobjectversions-to-csv",
+        "ref": "HEAD",
+        "commit": "19e3b6a832d114fca76d8a559a8e531e90268d64",
+        "archive_bytes": 17920,
+        "skipped": 0,
+        "url": "https://github.com/aws-samples/sample-s3-listobjectversions-to-csv"
+      },
+      "files": 1,
+      "lines": 1007,
+      "rise_ms_median": 59.258,
+      "reference": [
+        {
+          "file": "s3_listobjectversions_to_csv.py",
+          "line": 446,
+          "operation": "ListObjectVersions",
+          "critical": true
+        },
+        {
+          "file": "s3_listobjectversions_to_csv.py",
+          "line": 588,
+          "operation": "GetBucketVersioning",
+          "critical": false
+        }
+      ],
+      "rise": {
+        "tp": 2,
+        "fp": 0,
+        "fn": 0,
+        "critical_found": 1,
+        "critical_total": 1,
+        "misses": [],
+        "false_alarms": []
+      },
+      "openai_codex": {
+        "tp": 2,
+        "fp": 0,
+        "fn": 0,
+        "critical_found": 1,
+        "critical_total": 1,
+        "misses": [],
+        "false_alarms": []
+      }
+    },
+    {
+      "source": {
+        "owner": "backblaze-b2-samples",
+        "name": "b2-python-s3-sample",
+        "ref": "HEAD",
+        "commit": "f5139d3922c5ee59533d928d9076a74d8e3e6649",
+        "archive_bytes": 8796,
+        "skipped": 0,
+        "url": "https://github.com/backblaze-b2-samples/b2-python-s3-sample"
+      },
+      "files": 2,
+      "lines": 448,
+      "rise_ms_median": 23.289,
+      "reference": [
+        {
+          "file": "sample.py",
+          "line": 45,
+          "operation": "CopyObject",
+          "critical": false
+        },
+        {
+          "file": "sample.py",
+          "line": 54,
+          "operation": "CreateBucket",
+          "critical": false
+        },
+        {
+          "file": "sample.py",
+          "line": 62,
+          "operation": "DeleteBucket",
+          "critical": false
+        },
+        {
+          "file": "sample.py",
+          "line": 73,
+          "operation": "DeleteObjects",
+          "critical": false
+        },
+        {
+          "file": "sample.py",
+          "line": 83,
+          "operation": "ListObjectVersions",
+          "critical": false
+        },
+        {
+          "file": "sample.py",
+          "line": 93,
+          "operation": "DeleteObjects",
+          "critical": false
+        },
+        {
+          "file": "sample.py",
+          "line": 99,
+          "operation": "DownloadFile",
+          "critical": true
+        },
+        {
+          "file": "sample.py",
+          "line": 128,
+          "operation": "PresignGet",
+          "critical": true
+        },
+        {
+          "file": "sample.py",
+          "line": 143,
+          "operation": "ListBuckets",
+          "critical": false
+        },
+        {
+          "file": "sample.py",
+          "line": 159,
+          "operation": "ListObjects",
+          "critical": false
+        },
+        {
+          "file": "sample.py",
+          "line": 192,
+          "operation": "UploadFile",
+          "critical": true
+        },
+        {
+          "file": "sample.py",
+          "line": 277,
+          "operation": "ListObjects",
+          "critical": false
+        },
+        {
+          "file": "sample.py",
+          "line": 314,
+          "operation": "CreateBucket",
+          "critical": false
+        },
+        {
+          "file": "sample.py",
+          "line": 339,
+          "operation": "CreateBucket",
+          "critical": false
+        },
+        {
+          "file": "sample.py",
+          "line": 356,
+          "operation": "ListObjects",
+          "critical": false
+        },
+        {
+          "file": "sample.py",
+          "line": 364,
+          "operation": "ListObjects",
+          "critical": false
+        },
+        {
+          "file": "sample.py",
+          "line": 373,
+          "operation": "ListObjects",
+          "critical": false
+        },
+        {
+          "file": "sample.py",
+          "line": 381,
+          "operation": "ListObjectVersions",
+          "critical": false
+        },
+        {
+          "file": "sample.py",
+          "line": 394,
+          "operation": "ListObjectVersions",
+          "critical": false
+        }
+      ],
+      "rise": {
+        "tp": 19,
+        "fp": 1,
+        "fn": 0,
+        "critical_found": 3,
+        "critical_total": 3,
+        "misses": [],
+        "false_alarms": [
+          [
+            "sample.py",
+            278
+          ]
+        ]
+      },
+      "openai_codex": {
+        "tp": 18,
+        "fp": 0,
+        "fn": 1,
+        "critical_found": 3,
+        "critical_total": 3,
+        "misses": [
+          [
+            "sample.py",
+            143
+          ]
+        ],
+        "false_alarms": []
+      }
+    },
+    {
+      "source": {
+        "owner": "iphren",
+        "name": "s3-uploader",
+        "ref": "HEAD",
+        "commit": "1498d2b419db2b5d0cb096a705d39a01dc6e1ba4",
+        "archive_bytes": 10639,
+        "skipped": 0,
+        "url": "https://github.com/iphren/s3-uploader"
+      },
+      "files": 4,
+      "lines": 499,
+      "rise_ms_median": 23.157,
+      "reference": [
+        {
+          "file": "app.js",
+          "line": 101,
+          "operation": "GetObject",
+          "critical": true
+        },
+        {
+          "file": "app.js",
+          "line": 264,
+          "operation": "PostObject",
+          "critical": true
+        },
+        {
+          "file": "generate_upload_link.py",
+          "line": 101,
+          "operation": "PresignPost",
+          "critical": true
+        },
+        {
+          "file": "generate_upload_link.py",
+          "line": 131,
+          "operation": "PutObject",
+          "critical": true
+        }
+      ],
+      "rise": {
+        "tp": 4,
+        "fp": 0,
+        "fn": 0,
+        "critical_found": 4,
+        "critical_total": 4,
+        "misses": [],
+        "false_alarms": []
+      },
+      "openai_codex": {
+        "tp": 4,
+        "fp": 0,
+        "fn": 0,
+        "critical_found": 4,
+        "critical_total": 4,
+        "misses": [],
+        "false_alarms": []
+      }
+    },
+    {
+      "source": {
+        "owner": "mallidimohan41297",
+        "name": "cloud-storage-notes-awscloud",
+        "ref": "HEAD",
+        "commit": "adf2a268daa29b3e7d23554a7d218a2d265a2964",
+        "archive_bytes": 4834,
+        "skipped": 0,
+        "url": "https://github.com/mallidimohan41297/cloud-storage-notes-awscloud"
+      },
+      "files": 3,
+      "lines": 143,
+      "rise_ms_median": 6.524,
+      "reference": [
+        {
+          "file": "src/s3_manager.py",
+          "line": 24,
+          "operation": "UploadFileobj",
+          "critical": true
+        },
+        {
+          "file": "src/s3_manager.py",
+          "line": 38,
+          "operation": "ListObjectsV2",
+          "critical": true
+        },
+        {
+          "file": "src/s3_manager.py",
+          "line": 57,
+          "operation": "PresignGet",
+          "critical": true
+        },
+        {
+          "file": "src/s3_manager.py",
+          "line": 70,
+          "operation": "DeleteObject",
+          "critical": true
+        }
+      ],
+      "rise": {
+        "tp": 4,
+        "fp": 0,
+        "fn": 0,
+        "critical_found": 4,
+        "critical_total": 4,
+        "misses": [],
+        "false_alarms": []
+      },
+      "openai_codex": {
+        "tp": 4,
+        "fp": 0,
+        "fn": 0,
+        "critical_found": 4,
+        "critical_total": 4,
+        "misses": [],
+        "false_alarms": []
+      }
+    }
+  ],
+  "rise_checkout": {
+    "head": "d9f33b675bafb69d1a143bc627aee9c39f779c0b",
+    "scan_py_sha256": "d97796480532e4552d418bc1885443d7fe4531747fc76bde48bda03f3aafd2c9",
+    "working_tree_scanner_modified": true
+  }
+}

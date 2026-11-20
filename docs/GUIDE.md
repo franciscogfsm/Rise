@@ -155,7 +155,7 @@ bash scripts/run.sh       # providers + RISE on 127.0.0.1:8080
 bash scripts/stop.sh      # stop the providers
 ```
 
-**Tests:** `python -m pytest -q`. They run 106 tests, including an end-to-end journey on two real S3 servers in-process and the real link cut.
+**Tests:** `python -m pytest -q`. They run 115 tests, including an end-to-end journey on two real S3 servers in-process and the real link cut.
 
 ### From Claude Code: `/rise` (MCP)
 

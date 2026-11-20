@@ -53,7 +53,7 @@ The risks found in the code:
 
 1. **Fetch.** The repo archive is read **in memory**. Nothing is written to disk and **no repo code is ever executed**.
 2. **Scan** (no AI). It finds every S3 call and the behaviours each one relies on, with `file:line`.
-   - **10 languages, 19 SDK styles:** Python (boto3 client and resource, aioboto3, MinIO, pandas/s3fs), JS/TS (AWS SDK v2/v3, MinIO), Go (v1/v2, MinIO), Java (v1/v2), Kotlin, PHP (AWS SDK, Laravel), Ruby, C#, Rust.
+   - **15 languages, 24 SDK styles:** Python (boto3 client and resource, aioboto3, MinIO, pandas/s3fs), JS/TS (AWS SDK v2/v3, MinIO), Go (v1/v2, MinIO), Java (v1/v2), Kotlin, PHP (AWS SDK, Laravel), Ruby, C#, Rust, Scala, Swift (Soto), Dart, C++ (AWS SDK), Elixir (ExAws).
    - **Finds the client wherever it was made:** a file that never imports the SDK but calls `self.s3.put_object(...)` is still read.
    - **Safety net:** RISE knows all **116 operations of the official S3 API**. Any call to one it does not test (`restore_object`, `putObjectRetention`, `CreateBucket`...) is listed as *not tested* with `file:line`, and the answer can no longer be "Ready". Nothing is dropped silently.
    - **Fast:** each rule runs once over each file in C, on every CPU core; the result is byte-identical to one core (a test checks it).
@@ -99,7 +99,7 @@ The risks found in the code:
 | **Scanner benchmark** | **185 real GitHub repos** (Sentry, Discourse, Airflow, aws-cli, Superset, Ray, Nextcloud, rclone, SeaweedFS… + the 156 top S3 repos in 10 languages): **35,252,281 lines in 40.4 s**, 10,444 S3 calls found with `file:line`, 4,604 untested storage calls flagged |
 | **Scanner accuracy** | Independent check: every call to the 116 official S3 API operations (from AWS's own model), in every file: 11,422 calls. The 152 the scanner did not read were reviewed by hand: 151 are not S3 (JDBC `getObject`, web `create_session`, Azure/GCS/Swift backends), 1 was real and is fixed. **0 real S3 calls missed.** Data in `benchmark/` |
 | Biggest single repos | Sentry **3.7 M lines in 1.3 s** · Discourse 2.7 M in 2.3 s · Airflow 2.3 M in 3.1 s · aws-cli 2.2 M in 2.9 s |
-| Automated tests | **106 passing**, including an end-to-end journey on two real S3 servers, the real link cut, and a 19-SDK accuracy corpus |
+| Automated tests | **115 passing**, including an end-to-end journey on two real S3 servers, the real link cut, and a 19-SDK accuracy corpus |
 
 ## 8. Why it is different (map to the judging criteria)
 
@@ -107,7 +107,7 @@ The risks found in the code:
 |---|---|
 | **Innovation** | Not a migration tool, not a checklist: an **evidence engine**. It turns *"we think we can move"* into *"here is the proof"* in seconds. |
 | **Applicability** | Any repo, any S3-compatible cloud, Leaseweb included, with **one Docker command** and no account. It answers the 89% problem directly. |
-| **Technical complexity** | A static scan across 10 languages, benchmarked on 185 real repos (35 M lines in 40 s, 0 real S3 calls missed), AI with strict JSON schema + validation + fallbacks, 13 real test kinds in parallel on 2–5 clouds, constrained auto-adaptation, encrypted keys (Fernet), a live traffic switch with a real network cut, CI that tests and deploys on push. |
+| **Technical complexity** | A static scan across 15 languages, benchmarked on 185 real repos (35 M lines in 40 s, 0 real S3 calls missed), AI with strict JSON schema + validation + fallbacks, 13 real test kinds in parallel on 2–5 clouds, constrained auto-adaptation, encrypted keys (Fernet), a live traffic switch with a real network cut, CI that tests and deploys on push. |
 | **Use of AI** | Two layers: an AI coding agent (Claude, via MCP) asks RISE for **proof**, and inside RISE the AI **plans and explains**; deterministic code **runs and decides**. It never runs a shell, never sees secrets, never owns the switch. That makes the AI safe to trust. |
 | **Use of cloud infra** | Real calls on real clouds (AWS proven), with presets for 7 providers. It ships as a self-contained Docker image with a health check and one-click free deploy (Render) or a VM auto-deploy. |
 | **Presentation** | One answer in big type, then the evidence. Every number on screen comes from a real event. |

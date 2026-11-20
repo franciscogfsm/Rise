@@ -25,17 +25,17 @@ S3_RULES = [
     (CALL + r"(?i:download_?file(?:obj)?)\(|NewDownloader", "GetObject", "op"),
     (CALL + r"(?i:head_?object|stat_?object|get_?object_?metadata|does_?object_?exists?(?:v2)?|object_?exists)(?:Async)?\(|HeadObject(?:Command|Input|Request)\b|"
      + LARAVEL + r"(?:exists|size)\(", "HeadObject", "op"),
-    (CALL + r"(?i:list_?objects(?:_?v2)?)(?:Paginator|Iterable|Async)?\(|ListObjects(?:V2)?(?:Command|Input|Request)\b|get_paginator\(\s*['\"]list_objects|"
-     r"paginateListObjectsV2|NewListObjectsV2Paginator|\.objects\.(?:filter|all|page_size)\(|\.objects\(\s*prefix:|"
+    (CALL + r"(?i:list_?objects(?:_?v2)?)(?:Paginator|Iterable|Async)?\(|ListObjects(?:V2)?(?:Command|Input|Request)\b|"
+     r"paginateListObjectsV2\s*\(|NewListObjectsV2Paginator|\.objects\.(?:filter|all|page_size)\(|\.objects\(\s*prefix:|"
      + LARAVEL + r"(?:files|allFiles)\(", "ListObjectsV2", "op"),
     (CALL + r"(?i:delete_?(?:matching_?)?objects?|remove_?objects?)(?:Async)?\(|DeleteObjects?(?:Command|Input|Request)\b|\.Object\([^)]*\)\.delete\(|"
      + LARAVEL + r"delete\(", "DeleteObject", "op"),
     (r"generate_presigned_(?:url|post)|generatePresignedUrl|(?i:getSignedUrl)|createPresignedPost|createPresignedRequest|PresignClient|"
-     r"S3Presigner|(?i:presign(?:ed)?_?(?:get|put)_?object)|GetPreSignedURL|presigned_url\(|presignedUrl\(|PresigningConfig|"
+     r"S3Presigner|(?i:presign(?:ed)?_?(?:get|put)_?object)|GetPreSignedURL|\bpresigned_url\(|\bpresignedUrl\(|PresigningConfig|"
      + LARAVEL + r"temporaryUrl\(", "GeneratePresignedUrl", "op"),
     (CALL + r"(?i:copy_?object)(?:Async)?\(|CopyObject(?:Command|Input|Request)\b|\.copy\(\s*\{?\s*['\"]?Bucket", "CopyObject", "op"),
     (r"create_multipart_upload|upload_part\(|(?i:createMultipartUpload|initiateMultipartUpload|uploadPart)(?:Async)?\(|"
-     r"(?:CreateMultipartUpload|InitiateMultipartUpload|UploadPart)(?:Command|Input|Request)\b|TransferConfig\(|multipart_threshold",
+     r"(?:CreateMultipartUpload|InitiateMultipartUpload|UploadPart)(?:Command|Input|Request)\b|multipart_threshold",
      "MultipartUpload", "op"),
     # --- behaviours ---
     (r"\bMetadata\s*[=:]|x-amz-meta-|\.metadata\(", "user-metadata", "behaviour"),
@@ -62,7 +62,9 @@ S3_RULES = [
 DETECT_S3 = re.compile(r"boto3|botocore|client\(\s*['\"]s3['\"]|resource\(\s*['\"]s3['\"]|@aws-sdk/client-s3|aws-sdk|S3Client|"
                        r"aws-sdk-go(?:-v2)?/service/s3|software\.amazon\.awssdk\.services\.s3|com\.amazonaws\.services\.s3|Aws\\S3|"
                        r"Aws::S3|Amazon\.S3|IAmazonS3|aws_sdk_s3|minio|aws_s3_bucket|s3fs|S3FileSystem|disk\(\s*['\"]s3['\"]|"
-                       r"['\"]s3a?://|boto\.s3|S3Connection|\bs3::|\bS3::|tinys3")
+                       r"['\"]s3a?://|boto\.s3|S3Connection|\bs3::|\bS3::|tinys3|"
+                       r"ExAws\.S3|SotoS3|aws_s3_api|Genbox\.SimpleS3|"  # Elixir, Swift, Dart, .NET SimpleS3
+                       r"AWS4-HMAC-SHA256")  # hand-signed S3 requests (SigV4), no SDK at all
 
 # Other cloud services the code depends on: real lock-in RISE does not test yet.
 # (pattern, cloud, literals): a pattern can only match text holding one of its literals (substring test: a fast prefilter)
@@ -161,12 +163,35 @@ def untested_call(name: str, command: bool = False) -> bool:
 
 
 COMMENT = re.compile(r"^\s*(#|//|\*|/\*)")
+EVIDENCE_PER_ITEM = 24
 IMPORT = re.compile(r"^\s*(import\b|from\s+\S+\s+import\b|export\s+\{|.*\brequire\()")
+PY_DEF = re.compile(r"^\s*(?:async\s+)?def\s+\w+\s*\(")
+JS_TYPE = re.compile(r"\w+(?:Command|Input|Request)\b")
+JS_NEW = re.compile(r"\bnew\s*$")
+CALL_ARGS = re.compile(r"\s*\(")
+JS_FILES = (".js", ".jsx", ".mjs", ".cjs", ".ts", ".tsx")
+VERSION_CALL = re.compile(r"\.(?:list_object_versions|listObjectVersions|ListObjectVersions)(?:Async)?\s*\(")
+S3_PAGER = r"""\.get_paginator\(\s*['"](list_objects(?:_v2)?|list_object_versions)['"]\s*\)"""
+PAGER_BINDING = re.compile(r"(?m)^[ \t]*(\w+)\s*=\s*[\w.]+" + S3_PAGER)
+PAGER_INLINE = re.compile(S3_PAGER + r"\.paginate\s*\(")
+KNOX_BINDING = re.compile(r"\b(\w+)\s*=\s*knox\.createClient\s*\(")
+KNOX_IMPORT = re.compile(r"""\bknox\s*=\s*require\(\s*['"]knox['"]\s*\)""")
+SIGNED_FORM_URL = re.compile(r"\{\s*(\w+)\s*,\s*fields\s*\}\s*=\s*(?:await\s+)?createPresignedPost\s*\(")
+SIGNED_FORM_SUBMIT = re.compile(r"\bfetch\(\s*this\.action\s*,\s*\{[^}]{0,300}\bmethod\s*:\s*this\.method\b")
+SIGNED_PUT = re.compile(r"""\bfetch\(\s*(?:pre)?signedUrl\s*,\s*\{[^}]{0,240}\bmethod\s*:\s*['"]PUT['"]""", re.IGNORECASE)
+FETCH_POST = re.compile(r"""\bfetch\(\s*\w+\s*,\s*\{[^}]{0,240}\bmethod\s*:\s*['"]POST['"]""")
+AJAX_PUT = re.compile(r"""\$\s*\.ajax\(\s*\{[^}]{0,240}\btype\s*:\s*['"]PUT['"]""")
+BUCKET_REF = re.compile(r"\b[\w.]+\.Bucket\([^()\n]*\)")
+BUCKET_ASSIGN = re.compile(r"(?m)^[ \t]*(\w+)\s*=\s*" + BUCKET_REF.pattern)
+S3_HTTP_URL = r"https://(?:[\w.$\{\}-]+\.)?s3(?:[.-][\w.$\{\}-]+)?\.amazonaws\.com/"
+S3_URL_ASSIGN = re.compile(r"""(?m)^[ \t]*(?:(?:const|let|var)\s+)?(\w+)\s*=\s*['"\x60]""" + S3_HTTP_URL)
+PRESIGNED_FORM = re.compile(r"\bObject\.entries\(\s*(\w+)\.fields\s*\)")
 NOT_LOCKIN = {"s3", "s3control", "core", "config", "credential-providers", "sts", "sso", "sso-oidc", "cognito-identity"}
 
 
 def detected(text: str) -> bool:
-    return any(s in text for s in DETECT_NEEDS) and bool(DETECT_S3.search(text)) or bool(sdks_in(text))
+    return (any(s in text for s in DETECT_NEEDS) and bool(DETECT_S3.search(text))
+            or ("knox" in text and bool(KNOX_IMPORT.search(text))) or bool(sdks_in(text)))
 
 
 def wrapper(text: str) -> bool:
@@ -193,6 +218,89 @@ def scan(files: dict[str, str]) -> dict:
     return finish(raw(files))
 
 
+def in_string(line: str, i: int) -> bool:
+    """Is column i inside a '...' or "..." literal? Error text like "S3::putObject(): failed" is not a call.
+    shortcut: one line at a time, backticks ignored (JS `${s3.send()}` stays a call)."""
+    quote, k = None, 0
+    while k < i:
+        c = line[k]
+        if c == "\\":
+            k += 1
+        elif quote is None and c in "'\"":
+            quote = c
+        elif c == quote:
+            quote = None
+        k += 1
+    return quote is not None
+
+
+def contextual_calls(path: str, text: str, is_s3: bool, repo_s3: bool) -> list[tuple[int, tuple[str, str]]]:
+    """Find calls whose operation depends on a receiver or request defined elsewhere in the file."""
+    calls = []
+
+    def find(pattern, item, category="unrecognised"):
+        calls.extend((m.start(), (item, category)) for m in re.finditer(pattern, text))
+
+    if is_s3 and path.endswith(".py"):
+        if ".get_paginator(" in text:
+            for pager in PAGER_BINDING.finditer(text):
+                item = ("call:list_object_versions", "unrecognised") if pager[2] == "list_object_versions" else ("ListObjectsV2", "op")
+                for invocation in re.compile(r"\b" + pager[1] + r"\.paginate\s*\(").finditer(text, pager.end()):
+                    calls.append((invocation.start(), item))
+            for invocation in PAGER_INLINE.finditer(text):
+                item = ("call:list_object_versions", "unrecognised") if invocation[1] == "list_object_versions" else ("ListObjectsV2", "op")
+                calls.append((invocation.start(), item))
+        if ".Bucket(" in text:
+            aliases = [m[1] for m in BUCKET_ASSIGN.finditer(text)]
+            bucket = r"(?:" + BUCKET_REF.pattern
+            if aliases:
+                bucket += r"|\b(?:" + "|".join(sorted(set(aliases))) + r")"
+            bucket += ")"
+            find(bucket + r"\.copy\s*\(", "CopyObject", "op")
+            find(bucket + r"\.delete\s*\(", "call:delete_bucket")
+            find(bucket + r"\.objects\.delete\s*\(", "DeleteObject", "op")
+            find(bucket + r"\.object_versions\.(?:all|filter)\s*\(", "call:list_object_versions")
+
+    if path.endswith(JS_FILES) and "knox.createClient" in text and KNOX_IMPORT.search(text):
+        for binding in KNOX_BINDING.finditer(text):
+            for invocation in re.compile(r"\b" + binding[1] + r"\.(list|signedUrl)\s*\(").finditer(text, binding.end()):
+                calls.append((invocation.start(), ("ListObjectsV2" if invocation[1] == "list" else "GeneratePresignedUrl", "op")))
+
+    if path.endswith(JS_FILES) and "@aws-sdk/s3-presigned-post" in text and "new FormData(this)" in text:
+        for binding in SIGNED_FORM_URL.finditer(text):
+            form = re.compile(r"""<form\b[^>]*\baction\s*=\s*['"]\x24\{""" + binding[1]
+                              + r"""\}['"][^>]*\bmethod\s*=\s*['"]post['"]""", re.IGNORECASE)
+            target = form.search(text, binding.end())
+            if target:
+                calls.extend((m.start(), ("call:browser_presigned_post", "unrecognised"))
+                             for m in SIGNED_FORM_SUBMIT.finditer(text, target.end()))
+
+    if repo_s3 and path.endswith(JS_FILES):
+        if "signedUrls" in text and "ToS3" in text:
+            calls.extend((m.start(), ("call:browser_presigned_put", "unrecognised")) for m in SIGNED_PUT.finditer(text))
+        if "uploadToS3(" in text and "new FormData(" in text and "Object.entries(fields)" in text:
+            calls.extend((m.start(), ("call:browser_presigned_post", "unrecognised")) for m in FETCH_POST.finditer(text))
+        if ".then((url)" in text and "/signedurl?" in text and "$.ajax" in text:
+            calls.extend((m.start(), ("call:browser_presigned_put", "unrecognised")) for m in AJAX_PUT.finditer(text))
+        if all(marker in text for marker in ("data.s3Key", "data.signature", "data.policy")):
+            find(r"\b\w+\.submit\s*\(", "call:browser_presigned_post")
+
+    if path.endswith(JS_FILES) and ".amazonaws.com/" in text:
+        urls = {m[1] for m in S3_URL_ASSIGN.finditer(text)}
+        for url in urls:
+            for request in re.finditer(r"\bfetch\(\s*" + url + r"\s*(?:,\s*(\{[^{}]*\}))?\s*\)", text):
+                if not re.search(r"\bmethod\b", request[1] or ""):
+                    calls.append((request.start(), ("GetObject", "op")))
+        if urls and "XMLHttpRequest" in text and "FormData" in text:
+            bodies = {m[1] for m in re.finditer(r"\b(\w+)\s*=\s*new\s+FormData\(", text)}
+            for form in {m[1] for m in PRESIGNED_FORM.finditer(text)}:
+                for request in re.finditer(r"""\b(\w+)\.open\(\s*['"]POST['"]\s*,\s*""" + form + r"\.url\b", text):
+                    send = re.search(r"\b" + request[1] + r"\.send\(\s*(\w+)\s*\)", text[request.end():])
+                    if send and send[1] in bodies:
+                        calls.append((request.end() + send.start(), ("call:browser_presigned_post", "unrecognised")))
+    return calls
+
+
 def raw(files: dict[str, str], repo_s3: bool | None = None) -> tuple:
     """Scan one set of files. Results of consecutive (path-sorted) chunks combine with merge() into exactly scan(all),
     given the same repo_s3 (does any file of the whole repository import an S3 SDK)."""
@@ -205,13 +313,25 @@ def raw(files: dict[str, str], repo_s3: bool | None = None) -> tuple:
     s3_files = []
     for path, text in sorted(files.items()):
         is_s3 = detected(text) or (repo_s3 and wrapper(text))
-        if is_s3:
+        contextual = contextual_calls(path, text, is_s3, repo_s3)
+        if is_s3 or contextual:
             s3_files.append(path)
         # each rule runs once over the whole file at C speed; line numbers are worked out only where something matched
-        hits = []  # (pos, group, order, payload): group 0 = S3 rule, 1 = untested call, 2 = lock-in, as in reading order
+        hits = [(pos, 0, 0, payload) for pos, payload in contextual]
+        is_js = path.endswith(JS_FILES)
+        # (pos, group, order, payload): group 0 = S3 rule, 1 = untested call, 2 = lock-in
         if is_s3:
             for i, (rx, item, cat) in enumerate(rules):
-                hits += [(m.start(), 0, i, (item, cat)) for m in rx.finditer(text)]
+                for m in rx.finditer(text):
+                    if is_js and cat == "op" and JS_TYPE.fullmatch(m[0]):
+                        if not JS_NEW.search(text[max(0, m.start() - 24):m.start()]) or not CALL_ARGS.match(text, m.end()):
+                            continue
+                    hits.append((m.start(), 0, i, (item, cat)))
+            if "Versions" in text or "list_object_versions" in text:
+                hits += [(m.start(), 0, 0, ("call:list_object_versions", "unrecognised")) for m in VERSION_CALL.finditer(text)]
+            if is_js and "paginateListBuckets" in text:
+                hits += [(m.start(), 0, 0, ("call:list_buckets", "unrecognised"))
+                         for m in re.finditer(r"\bpaginateListBuckets\s*\(", text)]
             for k in sdks_in(text):
                 for i, (rx, item, cat) in enumerate(sdk_rules[k]):
                     hits += [(m.start(), 0, 1000 + i, (item, cat)) for m in rx.finditer(text)]
@@ -241,10 +361,12 @@ def raw(files: dict[str, str], repo_s3: bool | None = None) -> tuple:
             if group < 2:
                 if (n, group, payload) in seen or IMPORT.match(line):  # one count per line; imports are not call sites
                     continue
+                if payload[1] in {"op", "unrecognised"} and (in_string(line, pos - start) or PY_DEF.match(line)):
+                    continue
                 seen.add((n, group, payload))
                 item, cat = payload
                 counts[item] += 1
-                if counts[item] <= 6:  # keep evidence bounded per item
+                if counts[item] <= EVIDENCE_PER_ITEM:
                     evidence.append({"item": item, "category": cat, "file": path, "line": n, "code": line.strip()[:180]})
             else:
                 svc, cloud = payload
@@ -259,12 +381,14 @@ def raw(files: dict[str, str], repo_s3: bool | None = None) -> tuple:
 def merge(parts: list[tuple]) -> tuple:
     """Combine raw() results of consecutive chunks, in order, applying the same per-item caps as one pass would."""
     n, s3_files, evidence, counts, lock = 0, [], [], Counter(), defaultdict(list)
+    evidence_counts = Counter()
     for pn, ps3, pev, pcounts, plock in parts:
         n += pn
         s3_files += ps3
-        for e in pev:  # a chunk keeps its first 6 per item, so the global first 6 are among them
-            if sum(1 for x in evidence if x["item"] == e["item"]) < 6:
+        for e in pev:
+            if evidence_counts[e["item"]] < EVIDENCE_PER_ITEM:
                 evidence.append(e)
+                evidence_counts[e["item"]] += 1
         counts.update(pcounts)
         for name, ev in plock.items():
             lock[name].extend(ev[:4 - len(lock[name])])

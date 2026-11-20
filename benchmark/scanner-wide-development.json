@@ -1,0 +1,923 @@
+{
+  "summary": {
+    "repositories": 53,
+    "not_downloaded": 0,
+    "files": 53471,
+    "lines": 10690070,
+    "scan_seconds_total": 10.7,
+    "repos_using_s3": 35,
+    "s3_calls_read": 3371,
+    "untested_calls_flagged": 1609,
+    "official_api_calls": 3703,
+    "unaccounted": 39
+  },
+  "rows": [
+    {
+      "url": "https://github.com/apache/airflow",
+      "group": "large",
+      "files": 10607,
+      "lines": 2311883,
+      "scan_ms": 2645.8,
+      "cores": 16,
+      "s3_files": 686,
+      "s3_calls_read": 286,
+      "untested_calls_flagged": 188,
+      "official_api_calls": 362,
+      "unaccounted": [
+        {
+          "file": "providers/amazon/src/airflow/providers/amazon/aws/secrets/secrets_manager.py",
+          "line": 178
+        },
+        {
+          "file": "providers/amazon/src/airflow/providers/amazon/aws/secrets/systems_manager.py",
+          "line": 136
+        },
+        {
+          "file": "providers/anthropic/src/airflow/providers/anthropic/operators/agent.py",
+          "line": 171
+        },
+        {
+          "file": "providers/anthropic/tests/unit/anthropic/hooks/test_anthropic.py",
+          "line": 357
+        },
+        {
+          "file": "providers/anthropic/tests/unit/anthropic/hooks/test_anthropic.py",
+          "line": 365
+        },
+        {
+          "file": "providers/anthropic/tests/unit/anthropic/hooks/test_anthropic.py",
+          "line": 372
+        },
+        {
+          "file": "providers/anthropic/tests/unit/anthropic/hooks/test_anthropic.py",
+          "line": 566
+        },
+        {
+          "file": "providers/anthropic/tests/unit/anthropic/hooks/test_anthropic.py",
+          "line": 591
+        },
+        {
+          "file": "providers/common/ai/src/airflow/providers/common/ai/example_dags/example_adk_agent.py",
+          "line": 87
+        },
+        {
+          "file": "providers/common/ai/tests/unit/common/ai/tools/test_adk.py",
+          "line": 88
+        },
+        {
+          "file": "providers/informatica/src/airflow/providers/informatica/extractors/informatica.py",
+          "line": 37
+        },
+        {
+          "file": "providers/informatica/src/airflow/providers/informatica/extractors/informatica.py",
+          "line": 69
+        },
+        {
+          "file": "providers/informatica/src/airflow/providers/informatica/extractors/informatica.py",
+          "line": 78
+        },
+        {
+          "file": "providers/informatica/src/airflow/providers/informatica/extractors/informatica.py",
+          "line": 84
+        },
+        {
+          "file": "providers/informatica/src/airflow/providers/informatica/lineage/validation.py",
+          "line": 119
+        },
+        {
+          "file": "providers/informatica/tests/unit/informatica/extractors/test_informatica.py",
+          "line": 59
+        },
+        {
+          "file": "providers/informatica/tests/unit/informatica/hooks/test_edc.py",
+          "line": 149
+        }
+      ],
+      "risks": 5
+    },
+    {
+      "url": "https://github.com/getsentry/sentry",
+      "group": "large",
+      "files": 20376,
+      "lines": 3735825,
+      "scan_ms": 818.5,
+      "cores": 16,
+      "s3_files": 13,
+      "s3_calls_read": 13,
+      "untested_calls_flagged": 1,
+      "official_api_calls": 5,
+      "unaccounted": [
+        {
+          "file": "src/sentry/testutils/fixtures.py",
+          "line": 218
+        },
+        {
+          "file": "src/sentry/testutils/requests.py",
+          "line": 56
+        }
+      ],
+      "risks": 6
+    },
+    {
+      "url": "https://github.com/apache/superset",
+      "group": "large",
+      "files": 9109,
+      "lines": 2163992,
+      "scan_ms": 686.6,
+      "cores": 16,
+      "s3_files": 13,
+      "s3_calls_read": 7,
+      "untested_calls_flagged": 0,
+      "official_api_calls": 2,
+      "unaccounted": [],
+      "risks": 4
+    },
+    {
+      "url": "https://github.com/FoundatioFx/Foundatio",
+      "group": "C#",
+      "files": 340,
+      "lines": 63781,
+      "scan_ms": 33.0,
+      "cores": 16,
+      "s3_files": 0,
+      "s3_calls_read": 0,
+      "untested_calls_flagged": 0,
+      "official_api_calls": 0,
+      "unaccounted": [],
+      "risks": 0
+    },
+    {
+      "url": "https://github.com/emgarten/Sleet",
+      "group": "C#",
+      "files": 276,
+      "lines": 36680,
+      "scan_ms": 166.8,
+      "cores": 1,
+      "s3_files": 22,
+      "s3_calls_read": 77,
+      "untested_calls_flagged": 59,
+      "official_api_calls": 113,
+      "unaccounted": [],
+      "risks": 3
+    },
+    {
+      "url": "https://github.com/Lucas7yoshi/TomodachiDrawer",
+      "group": "C#",
+      "files": 61,
+      "lines": 8727,
+      "scan_ms": 37.5,
+      "cores": 1,
+      "s3_files": 0,
+      "s3_calls_read": 0,
+      "untested_calls_flagged": 0,
+      "official_api_calls": 0,
+      "unaccounted": [],
+      "risks": 0
+    },
+    {
+      "url": "https://github.com/sitkoru/Sitko.Core",
+      "group": "C#",
+      "files": 678,
+      "lines": 46894,
+      "scan_ms": 106.2,
+      "cores": 1,
+      "s3_files": 8,
+      "s3_calls_read": 15,
+      "untested_calls_flagged": 3,
+      "official_api_calls": 9,
+      "unaccounted": [],
+      "risks": 2
+    },
+    {
+      "url": "https://github.com/managedcode/Storage",
+      "group": "C#",
+      "files": 427,
+      "lines": 44532,
+      "scan_ms": 107.3,
+      "cores": 1,
+      "s3_files": 17,
+      "s3_calls_read": 32,
+      "untested_calls_flagged": 24,
+      "official_api_calls": 40,
+      "unaccounted": [
+        {
+          "file": "Storages/ManagedCode.Storage.Azure/AzureStorage.ObjectOperations.cs",
+          "line": 46
+        },
+        {
+          "file": "Tests/ManagedCode.Storage.Tests/Storages/Azure/AzureMetadataEncodingTests.cs",
+          "line": 77
+        },
+        {
+          "file": "Tests/ManagedCode.Storage.Tests/Storages/Azure/AzureObjectStorageTests.cs",
+          "line": 217
+        },
+        {
+          "file": "Tests/ManagedCode.Storage.Tests/Storages/Azure/AzureObjectStorageTests.cs",
+          "line": 220
+        },
+        {
+          "file": "Tests/ManagedCode.Storage.Tests/Storages/Azure/AzureObjectStorageTests.cs",
+          "line": 224
+        },
+        {
+          "file": "Tests/ManagedCode.Storage.Tests/Storages/Azure/AzureObjectStorageTests.cs",
+          "line": 225
+        }
+      ],
+      "risks": 5
+    },
+    {
+      "url": "https://github.com/benbjohnson/litestream",
+      "group": "Go",
+      "files": 224,
+      "lines": 98119,
+      "scan_ms": 160.8,
+      "cores": 16,
+      "s3_files": 42,
+      "s3_calls_read": 41,
+      "untested_calls_flagged": 3,
+      "official_api_calls": 21,
+      "unaccounted": [],
+      "risks": 6
+    },
+    {
+      "url": "https://github.com/kahing/goofys",
+      "group": "Go",
+      "files": 44,
+      "lines": 20044,
+      "scan_ms": 200.4,
+      "cores": 1,
+      "s3_files": 16,
+      "s3_calls_read": 31,
+      "untested_calls_flagged": 17,
+      "official_api_calls": 21,
+      "unaccounted": [],
+      "risks": 6
+    },
+    {
+      "url": "https://github.com/knadh/koanf",
+      "group": "Go",
+      "files": 97,
+      "lines": 14001,
+      "scan_ms": 28.7,
+      "cores": 1,
+      "s3_files": 0,
+      "s3_calls_read": 0,
+      "untested_calls_flagged": 0,
+      "official_api_calls": 0,
+      "unaccounted": [],
+      "risks": 1
+    },
+    {
+      "url": "https://github.com/peak/s5cmd",
+      "group": "Go",
+      "files": 89,
+      "lines": 29113,
+      "scan_ms": 460.1,
+      "cores": 1,
+      "s3_files": 39,
+      "s3_calls_read": 41,
+      "untested_calls_flagged": 15,
+      "official_api_calls": 32,
+      "unaccounted": [],
+      "risks": 9
+    },
+    {
+      "url": "https://github.com/offen/docker-volume-backup",
+      "group": "Go",
+      "files": 138,
+      "lines": 9765,
+      "scan_ms": 24.1,
+      "cores": 1,
+      "s3_files": 1,
+      "s3_calls_read": 3,
+      "untested_calls_flagged": 0,
+      "official_api_calls": 1,
+      "unaccounted": [],
+      "risks": 2
+    },
+    {
+      "url": "https://github.com/gaul/s3proxy",
+      "group": "Java",
+      "files": 227,
+      "lines": 68102,
+      "scan_ms": 411.3,
+      "cores": 16,
+      "s3_files": 107,
+      "s3_calls_read": 1062,
+      "untested_calls_flagged": 361,
+      "official_api_calls": 971,
+      "unaccounted": [],
+      "risks": 8
+    },
+    {
+      "url": "https://github.com/dromara/x-file-storage",
+      "group": "Java",
+      "files": 219,
+      "lines": 32654,
+      "scan_ms": 457.7,
+      "cores": 1,
+      "s3_files": 33,
+      "s3_calls_read": 365,
+      "untested_calls_flagged": 142,
+      "official_api_calls": 265,
+      "unaccounted": [
+        {
+          "file": "x-file-storage-core/src/main/java/org/dromara/x/file/storage/core/platform/FtpFileStorageClientFactory.java",
+          "line": 128
+        },
+        {
+          "file": "x-file-storage-core/src/main/java/org/dromara/x/file/storage/core/platform/FtpFileStorageClientFactory.java",
+          "line": 139
+        },
+        {
+          "file": "x-file-storage-core/src/main/java/org/dromara/x/file/storage/core/platform/SftpFileStorageClientFactory.java",
+          "line": 111
+        },
+        {
+          "file": "x-file-storage-core/src/main/java/org/dromara/x/file/storage/core/platform/SftpFileStorageClientFactory.java",
+          "line": 136
+        },
+        {
+          "file": "x-file-storage-core/src/main/java/org/dromara/x/file/storage/core/platform/SftpFileStorageClientFactory.java",
+          "line": 146
+        }
+      ],
+      "risks": 5
+    },
+    {
+      "url": "https://github.com/scireum/s3ninja",
+      "group": "Java",
+      "files": 47,
+      "lines": 7400,
+      "scan_ms": 151.8,
+      "cores": 1,
+      "s3_files": 11,
+      "s3_calls_read": 48,
+      "untested_calls_flagged": 4,
+      "official_api_calls": 28,
+      "unaccounted": [],
+      "risks": 4
+    },
+    {
+      "url": "https://github.com/Ramos-dev/OSSTunnel",
+      "group": "Java",
+      "files": 8,
+      "lines": 1839,
+      "scan_ms": 27.6,
+      "cores": 1,
+      "s3_files": 2,
+      "s3_calls_read": 25,
+      "untested_calls_flagged": 5,
+      "official_api_calls": 12,
+      "unaccounted": [],
+      "risks": 3
+    },
+    {
+      "url": "https://github.com/pig-mesh/oss-spring-boot-starter",
+      "group": "Java",
+      "files": 10,
+      "lines": 971,
+      "scan_ms": 19.6,
+      "cores": 1,
+      "s3_files": 3,
+      "s3_calls_read": 33,
+      "untested_calls_flagged": 8,
+      "official_api_calls": 19,
+      "unaccounted": [],
+      "risks": 3
+    },
+    {
+      "url": "https://github.com/TTLabs/EvaporateJS",
+      "group": "JavaScript",
+      "files": 40,
+      "lines": 7787,
+      "scan_ms": 53.1,
+      "cores": 1,
+      "s3_files": 0,
+      "s3_calls_read": 0,
+      "untested_calls_flagged": 0,
+      "official_api_calls": 0,
+      "unaccounted": [],
+      "risks": 0
+    },
+    {
+      "url": "https://github.com/odysseyscience/react-s3-uploader",
+      "group": "JavaScript",
+      "files": 6,
+      "lines": 612,
+      "scan_ms": 7.5,
+      "cores": 1,
+      "s3_files": 2,
+      "s3_calls_read": 2,
+      "untested_calls_flagged": 0,
+      "official_api_calls": 0,
+      "unaccounted": [],
+      "risks": 3
+    },
+    {
+      "url": "https://github.com/ryanto/next-s3-upload",
+      "group": "JavaScript",
+      "files": 84,
+      "lines": 2889,
+      "scan_ms": 20.1,
+      "cores": 1,
+      "s3_files": 8,
+      "s3_calls_read": 7,
+      "untested_calls_flagged": 1,
+      "official_api_calls": 5,
+      "unaccounted": [],
+      "risks": 5
+    },
+    {
+      "url": "https://github.com/CulturalMe/meteor-slingshot",
+      "group": "JavaScript",
+      "files": 14,
+      "lines": 1374,
+      "scan_ms": 4.8,
+      "cores": 1,
+      "s3_files": 0,
+      "s3_calls_read": 0,
+      "untested_calls_flagged": 0,
+      "official_api_calls": 0,
+      "unaccounted": [],
+      "risks": 0
+    },
+    {
+      "url": "https://github.com/MikaAK/s3-plugin-webpack",
+      "group": "JavaScript",
+      "files": 10,
+      "lines": 1194,
+      "scan_ms": 18.4,
+      "cores": 1,
+      "s3_files": 4,
+      "s3_calls_read": 4,
+      "untested_calls_flagged": 0,
+      "official_api_calls": 1,
+      "unaccounted": [],
+      "risks": 4
+    },
+    {
+      "url": "https://github.com/adobe/S3Mock",
+      "group": "Kotlin",
+      "files": 426,
+      "lines": 48097,
+      "scan_ms": 661.7,
+      "cores": 1,
+      "s3_files": 66,
+      "s3_calls_read": 256,
+      "untested_calls_flagged": 201,
+      "official_api_calls": 324,
+      "unaccounted": [],
+      "risks": 9
+    },
+    {
+      "url": "https://github.com/dev2ex/twig",
+      "group": "Kotlin",
+      "files": 789,
+      "lines": 178306,
+      "scan_ms": 135.3,
+      "cores": 16,
+      "s3_files": 6,
+      "s3_calls_read": 0,
+      "untested_calls_flagged": 0,
+      "official_api_calls": 1,
+      "unaccounted": [
+        {
+          "file": "app/src/main/kotlin/com/twig/app/ui/ApkBundleInstall.kt",
+          "line": 143
+        }
+      ],
+      "risks": 0
+    },
+    {
+      "url": "https://github.com/zimly/zimly-backup",
+      "group": "Kotlin",
+      "files": 116,
+      "lines": 11310,
+      "scan_ms": 87.2,
+      "cores": 1,
+      "s3_files": 15,
+      "s3_calls_read": 18,
+      "untested_calls_flagged": 8,
+      "official_api_calls": 24,
+      "unaccounted": [
+        {
+          "file": "app/src/main/java/app/zimly/backup/ui/screens/sync/DocumentsFolderContainer.kt",
+          "line": 114
+        },
+        {
+          "file": "app/src/test/java/app/zimly/backup/data/media/LocalDocumentsResolverTest.kt",
+          "line": 70
+        },
+        {
+          "file": "app/src/test/java/app/zimly/backup/data/s3/AwsIntegrationTest.kt",
+          "line": 85
+        },
+        {
+          "file": "app/src/test/java/app/zimly/backup/data/s3/TencentIntegrationTest.kt",
+          "line": 93
+        }
+      ],
+      "risks": 3
+    },
+    {
+      "url": "https://github.com/fcavalcantirj/droidputer",
+      "group": "Kotlin",
+      "files": 220,
+      "lines": 30025,
+      "scan_ms": 164.3,
+      "cores": 1,
+      "s3_files": 0,
+      "s3_calls_read": 0,
+      "untested_calls_flagged": 0,
+      "official_api_calls": 0,
+      "unaccounted": [],
+      "risks": 0
+    },
+    {
+      "url": "https://github.com/brenpoly/polymo",
+      "group": "Kotlin",
+      "files": 168,
+      "lines": 35456,
+      "scan_ms": 75.9,
+      "cores": 1,
+      "s3_files": 0,
+      "s3_calls_read": 0,
+      "untested_calls_flagged": 0,
+      "official_api_calls": 0,
+      "unaccounted": [],
+      "risks": 0
+    },
+    {
+      "url": "https://github.com/humanmade/S3-Uploads",
+      "group": "PHP",
+      "files": 14,
+      "lines": 3340,
+      "scan_ms": 57.9,
+      "cores": 1,
+      "s3_files": 6,
+      "s3_calls_read": 13,
+      "untested_calls_flagged": 5,
+      "official_api_calls": 12,
+      "unaccounted": [],
+      "risks": 6
+    },
+    {
+      "url": "https://github.com/backup-manager/backup-manager",
+      "group": "PHP",
+      "files": 88,
+      "lines": 3411,
+      "scan_ms": 6.6,
+      "cores": 1,
+      "s3_files": 2,
+      "s3_calls_read": 0,
+      "untested_calls_flagged": 0,
+      "official_api_calls": 0,
+      "unaccounted": [],
+      "risks": 0
+    },
+    {
+      "url": "https://github.com/thephpleague/flysystem-aws-s3-v3",
+      "group": "PHP",
+      "files": 4,
+      "lines": 617,
+      "scan_ms": 11.4,
+      "cores": 1,
+      "s3_files": 2,
+      "s3_calls_read": 7,
+      "untested_calls_flagged": 0,
+      "official_api_calls": 0,
+      "unaccounted": [],
+      "risks": 5
+    },
+    {
+      "url": "https://github.com/andrii-kryvoviaz/slink",
+      "group": "PHP",
+      "files": 2486,
+      "lines": 164576,
+      "scan_ms": 57.2,
+      "cores": 16,
+      "s3_files": 3,
+      "s3_calls_read": 6,
+      "untested_calls_flagged": 0,
+      "official_api_calls": 8,
+      "unaccounted": [
+        {
+          "file": "services/api/src/Slink/Shared/Infrastructure/Persistence/Doctrine/Listener/ViewSanitizationListener.php",
+          "line": 20
+        },
+        {
+          "file": "services/api/src/Slink/Shared/Infrastructure/Persistence/Doctrine/Listener/ViewSanitizationListener.php",
+          "line": 24
+        }
+      ],
+      "risks": 1
+    },
+    {
+      "url": "https://github.com/tpyo/amazon-s3-php-class",
+      "group": "PHP",
+      "files": 6,
+      "lines": 3044,
+      "scan_ms": 61.8,
+      "cores": 1,
+      "s3_files": 5,
+      "s3_calls_read": 6,
+      "untested_calls_flagged": 6,
+      "official_api_calls": 9,
+      "unaccounted": [],
+      "risks": 5
+    },
+    {
+      "url": "https://github.com/simonw/s3-credentials",
+      "group": "Python",
+      "files": 15,
+      "lines": 4637,
+      "scan_ms": 87.0,
+      "cores": 1,
+      "s3_files": 7,
+      "s3_calls_read": 30,
+      "untested_calls_flagged": 23,
+      "official_api_calls": 47,
+      "unaccounted": [],
+      "risks": 5
+    },
+    {
+      "url": "https://github.com/liormizr/s3path",
+      "group": "Python",
+      "files": 14,
+      "lines": 4285,
+      "scan_ms": 108.1,
+      "cores": 1,
+      "s3_files": 9,
+      "s3_calls_read": 123,
+      "untested_calls_flagged": 48,
+      "official_api_calls": 51,
+      "unaccounted": [],
+      "risks": 3
+    },
+    {
+      "url": "https://github.com/localemu/localemu",
+      "group": "Python",
+      "files": 3641,
+      "lines": 993086,
+      "scan_ms": 1520.5,
+      "cores": 16,
+      "s3_files": 589,
+      "s3_calls_read": 698,
+      "untested_calls_flagged": 479,
+      "official_api_calls": 1218,
+      "unaccounted": [],
+      "risks": 10
+    },
+    {
+      "url": "https://github.com/jpetrucciani/bucketstore",
+      "group": "Python",
+      "files": 7,
+      "lines": 740,
+      "scan_ms": 11.6,
+      "cores": 1,
+      "s3_files": 2,
+      "s3_calls_read": 6,
+      "untested_calls_flagged": 1,
+      "official_api_calls": 1,
+      "unaccounted": [],
+      "risks": 5
+    },
+    {
+      "url": "https://github.com/janiko71/aws-inventory",
+      "group": "Python",
+      "files": 26,
+      "lines": 3930,
+      "scan_ms": 81.2,
+      "cores": 1,
+      "s3_files": 18,
+      "s3_calls_read": 0,
+      "untested_calls_flagged": 1,
+      "official_api_calls": 1,
+      "unaccounted": [],
+      "risks": 2
+    },
+    {
+      "url": "https://github.com/backup/backup",
+      "group": "Ruby",
+      "files": 199,
+      "lines": 32626,
+      "scan_ms": 113.2,
+      "cores": 1,
+      "s3_files": 6,
+      "s3_calls_read": 10,
+      "untested_calls_flagged": 1,
+      "official_api_calls": 11,
+      "unaccounted": [],
+      "risks": 2
+    },
+    {
+      "url": "https://github.com/shrinerb/shrine",
+      "group": "Ruby",
+      "files": 156,
+      "lines": 25752,
+      "scan_ms": 51.2,
+      "cores": 1,
+      "s3_files": 3,
+      "s3_calls_read": 23,
+      "untested_calls_flagged": 0,
+      "official_api_calls": 3,
+      "unaccounted": [],
+      "risks": 4
+    },
+    {
+      "url": "https://github.com/AssetSync/asset_sync",
+      "group": "Ruby",
+      "files": 34,
+      "lines": 3698,
+      "scan_ms": 10.2,
+      "cores": 1,
+      "s3_files": 0,
+      "s3_calls_read": 0,
+      "untested_calls_flagged": 0,
+      "official_api_calls": 0,
+      "unaccounted": [],
+      "risks": 0
+    },
+    {
+      "url": "https://github.com/tilo/smarter_csv",
+      "group": "Ruby",
+      "files": 109,
+      "lines": 20403,
+      "scan_ms": 13.3,
+      "cores": 1,
+      "s3_files": 0,
+      "s3_calls_read": 0,
+      "untested_calls_flagged": 0,
+      "official_api_calls": 0,
+      "unaccounted": [],
+      "risks": 0
+    },
+    {
+      "url": "https://github.com/dwilkie/carrierwave_direct",
+      "group": "Ruby",
+      "files": 40,
+      "lines": 3662,
+      "scan_ms": 8.9,
+      "cores": 1,
+      "s3_files": 0,
+      "s3_calls_read": 0,
+      "untested_calls_flagged": 0,
+      "official_api_calls": 0,
+      "unaccounted": [],
+      "risks": 0
+    },
+    {
+      "url": "https://github.com/Qovery/Replibyte",
+      "group": "Rust",
+      "files": 104,
+      "lines": 15385,
+      "scan_ms": 58.8,
+      "cores": 1,
+      "s3_files": 14,
+      "s3_calls_read": 6,
+      "untested_calls_flagged": 3,
+      "official_api_calls": 9,
+      "unaccounted": [],
+      "risks": 2
+    },
+    {
+      "url": "https://github.com/roapi/roapi",
+      "group": "Rust",
+      "files": 97,
+      "lines": 14134,
+      "scan_ms": 117.2,
+      "cores": 1,
+      "s3_files": 8,
+      "s3_calls_read": 0,
+      "untested_calls_flagged": 0,
+      "official_api_calls": 0,
+      "unaccounted": [],
+      "risks": 0
+    },
+    {
+      "url": "https://github.com/Barre/ZeroFS",
+      "group": "Rust",
+      "files": 516,
+      "lines": 171850,
+      "scan_ms": 96.6,
+      "cores": 16,
+      "s3_files": 22,
+      "s3_calls_read": 0,
+      "untested_calls_flagged": 0,
+      "official_api_calls": 0,
+      "unaccounted": [],
+      "risks": 0
+    },
+    {
+      "url": "https://github.com/veeso/termscp",
+      "group": "Rust",
+      "files": 221,
+      "lines": 45459,
+      "scan_ms": 179.5,
+      "cores": 1,
+      "s3_files": 2,
+      "s3_calls_read": 0,
+      "untested_calls_flagged": 0,
+      "official_api_calls": 0,
+      "unaccounted": [],
+      "risks": 0
+    },
+    {
+      "url": "https://github.com/parseablehq/parseable",
+      "group": "Rust",
+      "files": 202,
+      "lines": 95714,
+      "scan_ms": 139.3,
+      "cores": 16,
+      "s3_files": 12,
+      "s3_calls_read": 73,
+      "untested_calls_flagged": 2,
+      "official_api_calls": 75,
+      "unaccounted": [
+        {
+          "file": "src/storage/azure_blob.rs",
+          "line": 278
+        },
+        {
+          "file": "src/storage/gcs.rs",
+          "line": 245
+        }
+      ],
+      "risks": 1
+    },
+    {
+      "url": "https://github.com/Molunerfinn/PicGo",
+      "group": "TypeScript",
+      "files": 413,
+      "lines": 53872,
+      "scan_ms": 94.8,
+      "cores": 1,
+      "s3_files": 2,
+      "s3_calls_read": 1,
+      "untested_calls_flagged": 0,
+      "official_api_calls": 0,
+      "unaccounted": [],
+      "risks": 2
+    },
+    {
+      "url": "https://github.com/Nic13Gamer/better-upload",
+      "group": "TypeScript",
+      "files": 162,
+      "lines": 9702,
+      "scan_ms": 23.9,
+      "cores": 1,
+      "s3_files": 2,
+      "s3_calls_read": 0,
+      "untested_calls_flagged": 0,
+      "official_api_calls": 0,
+      "unaccounted": [],
+      "risks": 0
+    },
+    {
+      "url": "https://github.com/fortana-co/react-dropzone-uploader",
+      "group": "TypeScript",
+      "files": 25,
+      "lines": 2391,
+      "scan_ms": 4.4,
+      "cores": 1,
+      "s3_files": 0,
+      "s3_calls_read": 0,
+      "untested_calls_flagged": 0,
+      "official_api_calls": 0,
+      "unaccounted": [],
+      "risks": 0
+    },
+    {
+      "url": "https://github.com/hamzasaleem2/s3oosh",
+      "group": "TypeScript",
+      "files": 29,
+      "lines": 1783,
+      "scan_ms": 5.1,
+      "cores": 1,
+      "s3_files": 3,
+      "s3_calls_read": 3,
+      "untested_calls_flagged": 0,
+      "official_api_calls": 2,
+      "unaccounted": [],
+      "risks": 2
+    },
+    {
+      "url": "https://github.com/expo/image-upload-example",
+      "group": "TypeScript",
+      "files": 13,
+      "lines": 601,
+      "scan_ms": 0.7,
+      "cores": 1,
+      "s3_files": 0,
+      "s3_calls_read": 0,
+      "untested_calls_flagged": 0,
+      "official_api_calls": 0,
+      "unaccounted": [],
+      "risks": 0
+    }
+  ],
+  "scope": "Broad development run. It started before the final browser and evidence-limit changes; this is not a benchmark of the final scanner revision. Official API pattern candidates are heuristic and unaccounted items are not adjudicated."
+}

@@ -1,0 +1,357 @@
+{
+  "scope": "Experimental assistant for review. Five separate public repositories; manual explicit application-source call-site labels; no code executed. One reviewer and small sample. Labels exclude test/setup scripts, helper callers, comments and raw HTML forms.",
+  "training": {
+    "repos": 6,
+    "examples": 106,
+    "positive": 44,
+    "feature_ms": 45.2,
+    "fit_ms": 3.11,
+    "model_bytes": 1292
+  },
+  "eval": {
+    "threshold": 0.8,
+    "scanner_ms": 80.97,
+    "hybrid_ms": 107.71
+  },
+  "totals": {
+    "scanner": {
+      "found": 14,
+      "outside_reference": 9
+    },
+    "hybrid": {
+      "found": 19,
+      "outside_reference": 21
+    }
+  },
+  "rows": [
+    {
+      "repo": "rxvt__s3fetch",
+      "revision": "228162c48c5f622e0fe385c542a712c7c7bb48b1",
+      "gold": [
+        [
+          "src/s3fetch/s3.py",
+          353
+        ],
+        [
+          "src/s3fetch/s3.py",
+          666
+        ]
+      ],
+      "scanner": {
+        "found": 1,
+        "outside_reference": 3,
+        "missed": [
+          [
+            "src/s3fetch/s3.py",
+            353
+          ]
+        ]
+      },
+      "hybrid": {
+        "found": 2,
+        "outside_reference": 9,
+        "missed": []
+      },
+      "suggestions": [
+        {
+          "file": "src/s3fetch/api.py",
+          "line": 71,
+          "score": 0.836,
+          "in_reference": false
+        },
+        {
+          "file": "src/s3fetch/api.py",
+          "line": 110,
+          "score": 0.8311,
+          "in_reference": false
+        },
+        {
+          "file": "src/s3fetch/api.py",
+          "line": 173,
+          "score": 0.9999,
+          "in_reference": false
+        },
+        {
+          "file": "src/s3fetch/cli.py",
+          "line": 316,
+          "score": 0.836,
+          "in_reference": false
+        },
+        {
+          "file": "src/s3fetch/s3.py",
+          "line": 308,
+          "score": 0.9944,
+          "in_reference": false
+        },
+        {
+          "file": "src/s3fetch/s3.py",
+          "line": 339,
+          "score": 0.9077,
+          "in_reference": false
+        },
+        {
+          "file": "src/s3fetch/s3.py",
+          "line": 353,
+          "score": 0.9654,
+          "in_reference": true
+        }
+      ]
+    },
+    {
+      "repo": "jkahn117__aws-presigned-url-upload",
+      "revision": "543dd92ef4807eea06e7991575518f0cbf074532",
+      "gold": [
+        [
+          "app/js/app.js",
+          26
+        ],
+        [
+          "server/api/index.js",
+          33
+        ]
+      ],
+      "scanner": {
+        "found": 1,
+        "outside_reference": 0,
+        "missed": [
+          [
+            "app/js/app.js",
+            26
+          ]
+        ]
+      },
+      "hybrid": {
+        "found": 1,
+        "outside_reference": 0,
+        "missed": [
+          [
+            "app/js/app.js",
+            26
+          ]
+        ]
+      },
+      "suggestions": []
+    },
+    {
+      "repo": "pfried__AWS-S3-Client-Upload-Example",
+      "revision": "3aa56ebfbcb8b20154b173f5fd4ba77ab3a8b20f",
+      "gold": [
+        [
+          "app.js",
+          92
+        ],
+        [
+          "app.js",
+          100
+        ],
+        [
+          "app.js",
+          115
+        ],
+        [
+          "views/js/s3.js",
+          63
+        ]
+      ],
+      "scanner": {
+        "found": 0,
+        "outside_reference": 0,
+        "missed": [
+          [
+            "app.js",
+            92
+          ],
+          [
+            "app.js",
+            100
+          ],
+          [
+            "app.js",
+            115
+          ],
+          [
+            "views/js/s3.js",
+            63
+          ]
+        ]
+      },
+      "hybrid": {
+        "found": 3,
+        "outside_reference": 0,
+        "missed": [
+          [
+            "views/js/s3.js",
+            63
+          ]
+        ]
+      },
+      "suggestions": [
+        {
+          "file": "app.js",
+          "line": 92,
+          "score": 0.997,
+          "in_reference": true
+        },
+        {
+          "file": "app.js",
+          "line": 100,
+          "score": 0.9974,
+          "in_reference": true
+        },
+        {
+          "file": "app.js",
+          "line": 115,
+          "score": 0.9974,
+          "in_reference": true
+        }
+      ]
+    },
+    {
+      "repo": "aws-samples__amazon-s3-presigned-urls-aws-sam",
+      "revision": "406632184e787d9f48297e3f3f2f9192cf66c4cf",
+      "gold": [
+        [
+          "getSignedURL/app.js",
+          48
+        ]
+      ],
+      "scanner": {
+        "found": 1,
+        "outside_reference": 2,
+        "missed": []
+      },
+      "hybrid": {
+        "found": 1,
+        "outside_reference": 2,
+        "missed": []
+      },
+      "suggestions": []
+    },
+    {
+      "repo": "exanubes__file-handling-using-s3",
+      "revision": "347b79133b2d361442155583c3d59df4be359fdb",
+      "gold": [
+        [
+          "src/lib/api.js",
+          44
+        ],
+        [
+          "src/lib/s3.js",
+          29
+        ],
+        [
+          "src/lib/s3.js",
+          57
+        ],
+        [
+          "src/lib/s3.js",
+          59
+        ],
+        [
+          "src/lib/s3.js",
+          72
+        ],
+        [
+          "src/lib/s3.js",
+          97
+        ],
+        [
+          "src/lib/s3.js",
+          124
+        ],
+        [
+          "src/lib/s3.js",
+          139
+        ],
+        [
+          "src/lib/s3.js",
+          165
+        ],
+        [
+          "src/lib/s3.js",
+          169
+        ],
+        [
+          "src/lib/s3.js",
+          193
+        ],
+        [
+          "src/lib/s3.js",
+          213
+        ],
+        [
+          "src/lib/upload-to-s3.js",
+          16
+        ]
+      ],
+      "scanner": {
+        "found": 11,
+        "outside_reference": 4,
+        "missed": [
+          [
+            "src/lib/api.js",
+            44
+          ],
+          [
+            "src/lib/upload-to-s3.js",
+            16
+          ]
+        ]
+      },
+      "hybrid": {
+        "found": 12,
+        "outside_reference": 10,
+        "missed": [
+          [
+            "src/lib/api.js",
+            44
+          ]
+        ]
+      },
+      "suggestions": [
+        {
+          "file": "packages/functions/src/object-restored-notification-email.tsx",
+          "line": 70,
+          "score": 0.996,
+          "in_reference": false
+        },
+        {
+          "file": "src/lib/api.js",
+          "line": 38,
+          "score": 0.9774,
+          "in_reference": false
+        },
+        {
+          "file": "src/lib/s3.js",
+          "line": 163,
+          "score": 0.9778,
+          "in_reference": false
+        },
+        {
+          "file": "src/lib/upload-to-s3.js",
+          "line": 16,
+          "score": 0.8493,
+          "in_reference": true
+        },
+        {
+          "file": "src/routes/+page.server.ts",
+          "line": 17,
+          "score": 0.9963,
+          "in_reference": false
+        },
+        {
+          "file": "src/routes/+server.ts",
+          "line": 10,
+          "score": 0.9963,
+          "in_reference": false
+        },
+        {
+          "file": "src/routes/documents/[id]/+server.ts",
+          "line": 33,
+          "score": 0.964,
+          "in_reference": false
+        }
+      ]
+    }
+  ]
+}

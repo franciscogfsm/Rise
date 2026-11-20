@@ -13,7 +13,7 @@ Paste a GitHub repository. RISE finds every object-storage call in the code, has
 <p align="center">
   <img src="https://img.shields.io/badge/license-Apache--2.0-0A8A74" alt="license Apache-2.0">
   <img src="https://img.shields.io/badge/python-3.12-2563EB" alt="python 3.12">
-  <img src="https://img.shields.io/badge/tests-106%20passing-0A8A74" alt="106 tests passing">
+  <img src="https://img.shields.io/badge/tests-118%20passing-0A8A74" alt="118 tests passing">
   <img src="https://img.shields.io/badge/storage-any%20S3--compatible-121F35" alt="any S3-compatible storage">
   <img src="https://img.shields.io/badge/AI-OpenRouter%20%C2%B7%20strict%20JSON-7C5CFF" alt="AI: OpenRouter, strict JSON">
   <img src="https://img.shields.io/badge/InfraHack-Portugal%202026-D4513B" alt="InfraHack Portugal 2026">
@@ -107,9 +107,36 @@ flowchart LR
 | **Adapt** | At most one allowed config change per failure, then a full retest. |
 | **Report** | The answer, a portability score, failures, unsupported features, **untested** items, lock-in, and the proof (`/api/analyses/{id}/proof`). |
 
-**Scanner benchmark.** 185 public repositories (Sentry, Discourse, Airflow, aws-cli, Superset, Ray, Nextcloud, rclone… and 156 top S3 repositories in 10 languages): **35,252,281 lines read in 40.4 s**, 10,444 S3 calls found with `file:line`. An independent check against all 116 operations of the official S3 API found **0 real calls missed**. Data, method and how to reproduce: [benchmark/README.md](benchmark/README.md).
+**Scanner benchmark.** 185 public repositories (Sentry, Discourse, Airflow, aws-cli, Superset, Ray, Nextcloud, rclone… and 156 top S3 repositories in 10 languages): **35,252,281 lines read in 40.4 s**, 10,444 S3 calls found with `file:line`. An independent check against all 116 operations of the official S3 API found **0 real calls missed**. Data, method and how to reproduce: [benchmark/README.md](benchmark/README.md). All numbers, and RISE against Claude: [benchmark/STATS.md](benchmark/STATS.md).
 
 **Speed.** A 10-file TypeScript repository took **11.3 s** from URL to proof (fetch 1.2 s, scan 22 ms, AI plan 9.0 s, 8 real S3 tests 1.1 s). Simple repositories finish in about **6 s**. A three-provider comparison took about **16 s**.
+
+### Local ML for S3 call review
+
+RISE ships an experimental **1.3 KB local classifier** that ranks ambiguous S3 call sites in Python and JavaScript/TypeScript. It runs on CPU, works offline on a checked-out folder, and returns a score with each file and line. The optional source check narrows suggestions to recognizable code structures, such as a client binding or a paginator used later in the file. The main scan and migration verdict use deterministic rules and real provider tests.
+
+To review a local repository, use the shipped weights and keep a separate copy if you want to train on your own feedback.
+
+`python scripts/s3_model.py benchmark/s3-model-weights.json path/to/repo --min-score 0.8 --corroborated`
+
+To update local weights, add `--feedback path/to/review.json` to a run with your model copy. The feedback file is a JSON list of reviewed locations such as `{"file":"src/storage.py","line":42,"is_s3":true}`. Only reviewed labels update the weights. Repository source stays local in this workflow.
+
+The scale experiment scanned **63 public repositories and 8.56 million lines** to collect candidates. On five reviewed repositories, the smaller model with source checks increased coverage from **14/22 to 19/22** without adding alerts outside the reference. Those repositories informed the source checks. On two additional reviewed repositories, it matched the scanner at **13/14**. The larger training run did not beat the smaller model on that five-repository comparison. [Training and evaluation details](benchmark/s3-model-scale-experiment.json)
+
+### Same-source comparison
+
+We compared the scanner with Claude Sonnet 5.5 and OpenAI Codex on **25 selected public files from 13 repositories** and **83 manually annotated call sites**.
+
+| System | Reference sites found | Alerts outside reference | Time |
+|---|---:|---:|---:|
+| RISE scanner | **83/83** | **0** | **0.13 s** |
+| Claude Sonnet 5.5 | 80/83 | 7 | 19.30 s |
+| OpenAI Codex (`gpt-6.2-sol`) | **83/83** | 1 | 20.00 s |
+
+The files were used to improve the scanner, so this is a regression comparison. RISE time is the median of nine local runs. Claude and Codex each received the same numbered source once. The times exclude downloading the repositories and include the respective analysis and output steps. This measures static discovery, separate from executing provider tests. [Reference locations, timings and method](benchmark/scanner-head-to-head.json)
+
+
+A separate check of the final scanner on **33 complete public snapshots** covered **75,915 lines in 1.50 s**. All 442 locations flagged by the official API-name heuristic were accounted for. This check measures coverage of the heuristic. [Full-repository regression](benchmark/scanner-cached-regression.json)
 
 ### The live switch (`/demo`)
 
@@ -223,7 +250,7 @@ rise/
 web/            React 18 + htm, no build step, works offline (Light Liquid Glass design)
 scripts/        setup · env · providers · run · stop · benchmark
 benchmark/      scanner benchmark: 185 real repos, 35 M lines, every leftover call reviewed
-tests/          106 tests: end-to-end journey on two real S3 servers, scanner accuracy corpus (19 SDK styles), risks, connections, agent, auth
+tests/          118 tests: end-to-end journey on two real S3 servers, scanner accuracy corpus (24 SDK styles), risks, connections, agent, auth
 ```
 
 **API:** `POST /api/analyses` · `GET /api/analyses/{id}` · `GET /api/analyses/{id}/proof` · `GET|POST|DELETE /api/connections` · `POST /api/connections/{id}/test` · `POST /api/agent` · `GET /api/events` (SSE)

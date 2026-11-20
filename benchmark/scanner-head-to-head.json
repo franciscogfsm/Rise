@@ -1,0 +1,343 @@
+{
+  "method": "Both agents received the same numbered text for 25 selected public source files from 13 repositories. RISE scanned the exact file contents grouped by repository. Exact file and line matches compare to previously hand-annotated sites. Claude and Codex each ran once. RISE used the median of nine local runs. Files were selected from prior annotated sets and used to improve RISE, so this is a regression comparison, not an unseen test. No repo code or provider requests were executed.",
+  "prompt_sha256": "87ee9bd7689020acfa5beee7409a9069e20aad5fcbe3631be5e731478a36da1f",
+  "source_sha256": {
+    "1": "9e444ab72007ff41cfec13d0a9302b729d34a4773e81fcd497a0b7f9ef436257",
+    "2": "c72ce42dd2ec7d58cf6a97d24fcdd7323149e321e53bb60af2ac838d7f9fc35e",
+    "3": "c7b13cb3a53b8ebb9ce252bc7880fbb14884ad8dccb77c7916d5d60419f1c9b5",
+    "4": "95a8d2f64f8e408afefca13c77bc40498d65739f702c14b3684e8216dacff29c",
+    "5": "f19105c43ddde13a6595465fd723db88cd89292afbab8bdb947e93f9bdea854a",
+    "6": "541828631e864b197e3d7fc0dca33dbbe83760f9863fbdd17e4e1787547e7d1d",
+    "7": "119aca9d24ef86e96bae309174096ef59d14a173dacdc739268dbe1f9f5c7f5e",
+    "8": "c41e3e81e60e1d3c8b41e5d52690b1dd0b6c812e4d42f52be49c018132e37266",
+    "9": "0c09511705ab1882e3a6b7443b79232fc5c6e1afbdc50bbcd7802dbee69d2b89",
+    "10": "75f4d8fcc5ade55521d5ce05541c268dc81e921dd9f602208273c39d71442485",
+    "11": "71eb81f3c16743d5cc688837e14a46e0ce18b584ef09b2405474dda0fb704640",
+    "12": "aa2f3282851c0e72f34787209d35a59215d46a68a3e8590eb405e4725fe53da6",
+    "13": "e2f598927eac65a2626a4e018841d257dd2794ac3d283cce5460c33934d4b8d0",
+    "14": "2f0436226e2a041ff7e40372eea075d1c6c93b6ee8fce0e70fe7ed8ac3fced51",
+    "15": "bddc40715d9728676ccbee5bda778f937e780c2acaba4f7ea728f33a17b15fd7",
+    "16": "64503133e33bf27fb1cf6b36589d5fd85500a6fb9b97171b1f70d83188e06ec8",
+    "17": "55b8c0e4343e8c52a3d2aefc71d84bfee5899afbc3dca635aef944b2c82e7466",
+    "18": "452cc83b153b4648708a010ffd19aa3a655fc5ce28648a3b5a8b41b966873f08",
+    "19": "3e084e10c56045509581235113b419a981ab8b5d2fd4c719de02e969c83f141e",
+    "20": "220474429db274495f4790f8bae01cf091c1a298322a723591adb929232f1120",
+    "21": "62a3be8cab25b152e044047f5906e080bf48c3ce673e9314f3926048cc70196b",
+    "22": "68eb2dfbd671c13553bc3884589beff8c39bd30252d10938632b098590949684",
+    "23": "760ac124491a6b46e1a5ce81358f30c4be30791a94cce460089de65752089ea1",
+    "24": "c490d7bcd113f06972b0ce137f067ccbd2c52516cfe945dfd0e6175691fdbe52",
+    "25": "f084454afc3d2f6b6207ad44e5afe448f9ebf244a72fa9c98a3a7ddc19a734fc"
+  },
+  "reference": {
+    "1": {
+      "repo": "ajyounguk__aws-s3-client",
+      "file": "controllers/s3Controller.js",
+      "lines": [
+        117,
+        128,
+        166,
+        189,
+        218,
+        230,
+        258,
+        259,
+        260
+      ]
+    },
+    "2": {
+      "repo": "aws-samples__aws-python-sample",
+      "file": "s3_sample.py",
+      "lines": [
+        51,
+        55,
+        70,
+        78,
+        109,
+        119,
+        127
+      ]
+    },
+    "3": {
+      "repo": "aws-samples__sample-s3-listobjectversions-to-csv",
+      "file": "s3_listobjectversions_to_csv.py",
+      "lines": [
+        446,
+        588
+      ]
+    },
+    "4": {
+      "repo": "backblaze-b2-samples__b2-python-s3-sample",
+      "file": "sample.py",
+      "lines": [
+        45,
+        54,
+        62,
+        73,
+        83,
+        93,
+        99,
+        128,
+        143,
+        159,
+        192,
+        277,
+        314,
+        339,
+        356,
+        364,
+        373,
+        381,
+        394
+      ]
+    },
+    "5": {
+      "repo": "iphren__s3-uploader",
+      "file": "app.js",
+      "lines": [
+        101,
+        264
+      ]
+    },
+    "6": {
+      "repo": "iphren__s3-uploader",
+      "file": "generate_upload_link.py",
+      "lines": [
+        101,
+        131
+      ]
+    },
+    "7": {
+      "repo": "mallidimohan41297__cloud-storage-notes-awscloud",
+      "file": "src/s3_manager.py",
+      "lines": [
+        24,
+        38,
+        57,
+        70
+      ]
+    },
+    "8": {
+      "repo": "rxvt__s3fetch",
+      "file": "src/s3fetch/s3.py",
+      "lines": [
+        353,
+        666
+      ]
+    },
+    "9": {
+      "repo": "jkahn117__aws-presigned-url-upload",
+      "file": "app/js/app.js",
+      "lines": [
+        26
+      ]
+    },
+    "10": {
+      "repo": "jkahn117__aws-presigned-url-upload",
+      "file": "server/api/index.js",
+      "lines": [
+        33
+      ]
+    },
+    "11": {
+      "repo": "pfried__AWS-S3-Client-Upload-Example",
+      "file": "app.js",
+      "lines": [
+        92,
+        100,
+        115
+      ]
+    },
+    "12": {
+      "repo": "pfried__AWS-S3-Client-Upload-Example",
+      "file": "views/js/s3.js",
+      "lines": [
+        63
+      ]
+    },
+    "13": {
+      "repo": "aws-samples__amazon-s3-presigned-urls-aws-sam",
+      "file": "getSignedURL/app.js",
+      "lines": [
+        48
+      ]
+    },
+    "14": {
+      "repo": "exanubes__file-handling-using-s3",
+      "file": "src/lib/api.js",
+      "lines": [
+        44
+      ]
+    },
+    "15": {
+      "repo": "exanubes__file-handling-using-s3",
+      "file": "src/lib/s3.js",
+      "lines": [
+        29,
+        57,
+        59,
+        72,
+        97,
+        124,
+        139,
+        165,
+        169,
+        193,
+        213
+      ]
+    },
+    "16": {
+      "repo": "exanubes__file-handling-using-s3",
+      "file": "src/lib/upload-to-s3.js",
+      "lines": [
+        16
+      ]
+    },
+    "17": {
+      "repo": "lmammino__s3-presigned-urls-examples",
+      "file": "examples/delete-object.js",
+      "lines": [
+        10,
+        15
+      ]
+    },
+    "18": {
+      "repo": "lmammino__s3-presigned-urls-examples",
+      "file": "examples/get.js",
+      "lines": [
+        10,
+        15
+      ]
+    },
+    "19": {
+      "repo": "lmammino__s3-presigned-urls-examples",
+      "file": "examples/list-buckets.js",
+      "lines": [
+        9,
+        11
+      ]
+    },
+    "20": {
+      "repo": "lmammino__s3-presigned-urls-examples",
+      "file": "examples/list-objects.js",
+      "lines": [
+        10,
+        14
+      ]
+    },
+    "21": {
+      "repo": "lmammino__s3-presigned-urls-examples",
+      "file": "examples/post-form-ajax.js",
+      "lines": [
+        62,
+        105
+      ]
+    },
+    "22": {
+      "repo": "lmammino__s3-presigned-urls-examples",
+      "file": "examples/post-form.js",
+      "lines": [
+        32
+      ]
+    },
+    "23": {
+      "repo": "lmammino__s3-presigned-urls-examples",
+      "file": "examples/post.js",
+      "lines": [
+        10
+      ]
+    },
+    "24": {
+      "repo": "lmammino__s3-presigned-urls-examples",
+      "file": "examples/put.js",
+      "lines": [
+        10,
+        15
+      ]
+    },
+    "25": {
+      "repo": "aws-samples__sample-securing-amazon-s3-presigned-urls-for-serverless-applications",
+      "file": "server/index.mjs",
+      "lines": [
+        60,
+        68
+      ]
+    }
+  },
+  "metrics": {
+    "rise": {
+      "found": 83,
+      "total_reference": 83,
+      "outside_reference": 0,
+      "missed": [],
+      "extra": [],
+      "seconds": 0.12614920000123675
+    },
+    "claude": {
+      "found": 80,
+      "total_reference": 83,
+      "outside_reference": 7,
+      "missed": [
+        [
+          "5",
+          264
+        ],
+        [
+          "12",
+          63
+        ],
+        [
+          "21",
+          105
+        ]
+      ],
+      "extra": [
+        [
+          "5",
+          219
+        ],
+        [
+          "15",
+          74
+        ],
+        [
+          "15",
+          99
+        ],
+        [
+          "15",
+          126
+        ],
+        [
+          "15",
+          141
+        ],
+        [
+          "15",
+          195
+        ],
+        [
+          "15",
+          215
+        ]
+      ],
+      "seconds": 19.2974508,
+      "model": [
+        "claude-sonnet-5-5"
+      ]
+    },
+    "codex": {
+      "found": 83,
+      "total_reference": 83,
+      "outside_reference": 1,
+      "missed": [],
+      "extra": [
+        [
+          "11",
+          41
+        ]
+      ],
+      "seconds": 19.9958801,
+      "model": "gpt-6.2-sol"
+    }
+  }
+}

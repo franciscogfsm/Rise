@@ -160,7 +160,7 @@
   }
 
   function fit() {
-    const s = Math.min(innerWidth / W, innerHeight / H);
+    const s = Math.max(innerWidth / W, innerHeight / H);
     deck.style.transform = `translate(${(innerWidth - W * s) / 2}px, ${(innerHeight - H * s) / 2}px) scale(${s})`;
   }
 

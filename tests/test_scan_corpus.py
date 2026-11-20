@@ -296,3 +296,148 @@ def test_client_returned_by_a_call():
              "upgrade.php": "<?php\n$this->as3cf->get_provider_client( $provider_object['region'], true )->get_object( $args );\n"}
     r = scan.scan(files)
     assert "upgrade.php" in r["s3_files"] and r["operations"] == {G: 1}
+
+
+def test_call_names_inside_strings_are_not_calls():
+    """amazon-s3-php-class: error messages quote the method name. Only the real call counts; quoted options still count."""
+    files = {"S3.php": "<?php use Aws\S3\S3Client;\n"
+                       "$r = $s3->putObject(['ACL' => 'public-read']);\n"
+                       "trigger_error(sprintf(\"S3::putObject(): [%s] %s\", $code, $msg));\n"
+                       "echo 'S3::deleteObject(): failed\n';\n"
+                       "$s3->deleteObject($args); // done\n"}
+    r = scan.scan(files)
+    assert r["operations"] == {"PutObject": 1, "DeleteObject": 1}
+    assert r["features"].get("acl") == 1
+    assert scan.in_string('x = "a.b(" + s3.get_object(', 18) is False
+    assert scan.in_string('log("it\\"s s3.get_object(")', 14) is True
+
+
+def test_javascript_requires_command_construction_or_paginator_call():
+    code = """const {
+    PutObjectCommand,
+    paginateListObjectsV2
+} = require('@aws-sdk/client-s3');
+mock.on(PutObjectCommand).resolves({});
+s3.send(new PutObjectCommand({Bucket, Key, Body}));
+for await (const page of paginateListObjectsV2({client: s3}, {Bucket})) {}
+for await (const page of paginateListBuckets({client: s3}, {})) {}
+"""
+    result = scan.scan({"routes.js": code})
+    assert result["operations"] == {"PutObject": 1, "ListObjectsV2": 1}
+    assert result["unrecognised"] == {"list_buckets": 1}
+
+
+def test_boto_bucket_resources_and_version_paginator_have_call_evidence():
+    code = """import boto3
+s3 = boto3.resource('s3')
+bucket = s3.Bucket(name)
+bucket.copy(source, key)
+bucket.objects.delete()
+bucket.object_versions.all()
+bucket.delete()
+client = boto3.client('s3')
+pager = client.get_paginator('list_object_versions')
+for page in pager.paginate(Bucket=name):
+    print(page)
+client.list_object_versions(Bucket=name)
+"""
+    result = scan.scan({"storage.py": code})
+    assert result["operations"] == {"CopyObject": 1, "DeleteObject": 1}
+    assert result["unrecognised"] == {"delete_bucket": 1, "list_object_versions": 3}
+    assert {e["line"] for e in result["evidence"] if e["category"] == "unrecognised"} == {6, 7, 10, 12}
+
+
+def test_browser_storage_requests_expose_untested_presigned_post():
+    code = """const url = "https://s3.us-east-1.amazonaws.com/my-bucket/link.json";
+const config = await fetch(url).then(response => response.json());
+const form = new FormData();
+for (const [key, value] of Object.entries(config.fields)) form.append(key, value);
+const request = new XMLHttpRequest();
+request.open("POST", config.url, true);
+request.send(form);
+await fetch(url, { method: "DELETE" });
+"""
+    result = scan.scan({"upload.js": code, "other.js": code.replace("s3.us-east-1.amazonaws.com", "example.com")})
+    assert result["s3_files"] == ["upload.js"]
+    assert result["operations"] == {"GetObject": 1}
+    assert result["unrecognised"] == {"browser_presigned_post": 1}
+    assert {e["line"] for e in result["evidence"]} == {2, 7}
+
+
+def test_sdk_bindings_reveal_real_calls_not_paginator_setup():
+    files = {
+        "cloud.js": """const knox = require('knox');
+const bucket = knox.createClient(options);
+bucket.list(callback);
+bucket.signedUrl(key, expiry);
+other.list(callback);
+""",
+        "cloud.py": """import boto3
+s3 = boto3.client('s3')
+pager = s3.get_paginator('list_objects_v2')
+other.paginate()
+for page in pager.paginate(Bucket=name):
+    print(page)
+""",
+    }
+    result = scan.scan(files)
+    assert result["operations"] == {"ListObjectsV2": 2, "GeneratePresignedUrl": 1}
+    assert {(e["file"], e["line"]) for e in result["evidence"] if e["category"] == "op"} == {
+        ("cloud.js", 3), ("cloud.js", 4), ("cloud.py", 5),
+    }
+
+
+def test_browser_form_tracks_the_signed_action_and_stays_untested():
+    code = """import { createPresignedPost } from '@aws-sdk/s3-presigned-post';
+const { url, fields } = await createPresignedPost(client, input);
+<form action="FORM_URL" method="post">
+const body = new FormData(this);
+await fetch(this.action, { method: this.method, body });
+""".replace("FORM_URL", chr(36) + "{url}")
+    result = scan.scan({"form.js": code})
+    assert result["unrecognised"] == {"browser_presigned_post": 1}
+    assert {e["line"] for e in result["evidence"] if e["category"] == "unrecognised"} == {5}
+    unrelated = scan.scan({"form.js": code.replace('method="post"', 'method="get"')})
+    assert unrelated["unrecognised"] == {}
+
+
+def test_browser_s3_upload_helpers_are_untested_without_counting_local_routes():
+    files = {
+        "server.js": "import { S3Client } from '@aws-sdk/client-s3';",
+        "browser.js": """async function uploadPartsToS3(signedUrls, data) {
+  for (const signedUrl of signedUrls)
+    await fetch(signedUrl, { method: 'PUT', body: data });
+}
+await fetch('/api/upload', { method: 'PUT', body: data });
+""",
+    }
+    result = scan.scan(files)
+    assert result["unrecognised"] == {"browser_presigned_put": 1}
+    assert {e["line"] for e in result["evidence"] if e["category"] == "unrecognised"} == {3}
+    assert scan.scan({"browser.js": files["browser.js"]})["unrecognised"] == {}
+
+
+
+
+@pytest.mark.parametrize("path,code,ops", [
+    ("up.swift", "import SotoS3\nlet out = try await s3.putObject(req)\nlet obj = try await s3.getObject(get)\n", {"PutObject", "GetObject"}),
+    ("up.cpp", "#include <aws/s3/S3Client.h>\nauto outcome = s3_client.PutObject(request);\nclient->DeleteObject(del);\n",
+     {"PutObject", "DeleteObject"}),
+    ("up.ex", "ExAws.S3.put_object(bucket, key, body) |> ExAws.request()\nExAws.S3.list_objects_v2(bucket)\n",
+     {"PutObject", "ListObjectsV2"}),
+    ("up.dart", "import 'package:minio/minio.dart';\nawait minio.putObject(bucket, key, stream);\n", {"PutObject"}),
+    ("Up.scala", "import software.amazon.awssdk.services.s3.S3Client\ns3.headObject(req)\n", {"HeadObject"}),
+])
+def test_more_languages(path, code, ops):
+    from rise import repo
+    assert "." + path.rsplit(".", 1)[1] in repo.CODE_EXT
+    assert set(scan.scan({path: code})["operations"]) == ops
+
+
+def test_simples3_and_hand_signed_requests():
+    """Benchmark misses: Genbox SimpleS3 (.NET) and a Swift app that signs S3 requests itself (bucketdrop)."""
+    cs = "using Genbox.SimpleS3.Core.Network.Requests.Objects;\nvar r = await ObjectOperations.GetObjectAsync(req);\n"
+    assert set(scan.scan({"T.cs": cs})["operations"]) == {"GetObject"}
+    swift = ('let algorithm = "AWS4-HMAC-SHA256"\nlet service = "s3"\n'
+             'func run() async throws { let objects = try await S3Service.shared.listObjects() }\n')
+    assert scan.scan({"S3Service.swift": swift})["uses_s3"]
