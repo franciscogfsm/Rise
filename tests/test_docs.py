@@ -22,3 +22,25 @@ def test_named_cloud_not_connected_is_never_substituted(monkeypatch):
                                                        "region": "nl-ams-1", "simulated": True, "role": "target"}])
     out = agent.intent("github.com/acme/shop move to leaseweb")
     assert out["missing"]["key"] == "leaseweb" and out["targets"] == []
+
+
+def test_supabase_storage_maps_to_s3_operations():
+    from rise import risks, scan
+    js = """import { supabase } from './client'
+const { data } = await supabase.storage
+  .from('avatars')
+  .upload(`u/${id}.png`, file, { contentType: 'image/png', cacheControl: '3600' })
+await supabase.storage.from('avatars').download(path)
+const { data: files } = await supabase.storage.from('avatars').list('u')
+await supabase.storage.from('avatars').remove([path])
+const { data: s } = await supabase.storage.from('avatars').createSignedUrl(path, 60)
+const url = supabase.storage.from('avatars').getPublicUrl(path)
+items.remove(x)
+"""
+    r = scan.scan({"src/a.js": js})
+    assert r["sdk"] == ["Supabase Storage"] and r["uses_s3"]
+    assert set(r["operations"]) == {"PutObject", "GetObject", "ListObjectsV2", "DeleteObject", "GeneratePresignedUrl"}
+    assert r["operations"]["DeleteObject"] == 1  # items.remove() is not storage
+    assert {"content-type", "cache-control", "bucket-policy"} <= set(r["features"])
+    assert any(x["id"] == "storage-sdk" for x in risks.find({"src/a.js": js}, r))
+    assert scan.scan({"a.py": "s3 = boto3.client('s3')\ns3.put_object(Bucket='b', Key='k')"})["sdk"] == []

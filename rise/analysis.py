@@ -193,7 +193,7 @@ class Analyses:
             self._update(aid, brief=brief_f.result())
             self._report(aid)
             return
-        self._stage(aid, "scan", "done", fast_note + f"{sum(result['operations'].values())} S3 call sites, "
+        self._stage(aid, "scan", "done", fast_note + f"{sum(result['operations'].values())} {' + '.join(result.get('sdk') or ['S3'])} call sites, "
                                          f"{len(prof['items'])} behaviours, {len(result['lockin'])} other services")
 
         # DOCS (in parallel with the plan): what the destination's official documentation says about each behaviour
@@ -304,7 +304,9 @@ class Analyses:
         D = decide(score, verdict, a.get("adaptation"))
         if a["providers"][1].get("docs_only") and a.get("docs") and D["kind"] != "no_storage":
             f = a["docs"]["findings"]
-            D |= {"kind": "documented", "title": f"{sum(x['status'] == 'documented' for x in f)}/{len(f)} documented · not yet proven"}
+            score["percent"] = None  # nothing was tested: no score, not 0%
+            self._update(aid, score=score)
+            D |= {"kind": "documented", "title": f"Docs confirm {sum(x['status'] == 'documented' for x in f)} of {len(f)} · not proven yet"}
         self._update(aid, decision=D)
         self._stage(aid, "report", "done", f"{passed}/{len(verdict)} storage behaviours verified on the target"
                                            f" · {score['lockin_services']} other cloud services to plan for")

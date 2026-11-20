@@ -71,6 +71,12 @@ def find(files: dict[str, str], scan: dict, hits: dict | None = None) -> list[di
         add("untested-calls", "medium", f"{len(un)} storage call{'s' if len(un) != 1 else ''} RISE does not test",
             f"RISE found these calls but has no real test for them: {', '.join(sorted(un)[:8])}. Check each one on the target "
             "by hand before you move.", [e for e in scan["evidence"] if e["category"] == "unrecognised"][:6])
+    if sdk := scan.get("sdk"):
+        n = sum(scan.get("operations", {}).values())
+        add("storage-sdk", "high", f"Code talks to {', '.join(sdk)}'s own API, not S3",
+            f"{n} storage call{'s' if n != 1 else ''} use{'s' if n == 1 else ''} {sdk[0]}'s SDK. Moving means swapping them for an S3 client: "
+            "RISE maps each call to its S3 equivalent and tests that on the destination.",
+            [e for e in scan["evidence"] if e["category"] == "sdk"][:3])
     if scan.get("uses_s3"):
         if not h["fallback"]:
             n = len(scan.get("s3_files") or [])

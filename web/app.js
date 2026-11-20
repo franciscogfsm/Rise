@@ -1,6 +1,7 @@
 // RISE web app — React 18 + htm (vendored, no build step).
 //   /          analyze any public GitHub repository (the product)
 //   /a/:id     one analysis: evidence from the code, AI test plan, real results on the target provider
+//   /replay    re-run an app's recorded S3 call sequence on other clouds
 //   /demo      live switch of asset-service with real traffic, switch and source cut
 // Every number on screen comes from the backend; nothing is animated on a timer.
 const { useState, useEffect, useCallback, useRef, Fragment } = React;
@@ -81,6 +82,7 @@ function Sidebar({ path, go, recent, children, agentOpen, onAgent }) {
     <nav className="nav">
       <${Link} to="/" go=${go} className=${path === "/" || path.startsWith("/a/") ? "on" : ""}>${ICON.scan}Analyses<//>
       <${Link} to="/connect" go=${go} className=${path === "/connect" ? "on" : ""}>${ICON.plug}Connections<//>
+      <${Link} to="/replay" go=${go} className=${path === "/replay" ? "on" : ""}>${ICON.proof}Replay<//>
       <${Link} to="/demo" go=${go} className=${path === "/demo" ? "on" : ""}>${ICON.live}Live switch<span className="badge">LIVE</span><//>
     </nav>
     <button type="button" className=${`ask-agent ${agentOpen ? "on" : ""}`} onClick=${onAgent}><span className="ag-dot"></span>RISE agent<kbd>Ctrl K</kbd></button>
@@ -184,7 +186,7 @@ function Home({ go, toast, recent, conns }) {
      </div>
     </form>
     ${!text && html`<div className="try">Try${EXAMPLES.map(([l, t]) => html`<button key=${l} type="button" onClick=${() => onText(t)}>${l}</button>`)}</div>`}
-    <section className="card glass grow">
+    <section className="card glass grow home-list">
       <div className="card-h"><h2>All analyses</h2><span className="chip">${rows.length}</span></div>
       <div className="card-b">${rows.length ? html`<table className="tbl">
         <thead><tr><th>Repository</th><th>Answer</th><th>Verified</th><th>From → to</th><th>Time</th><th>Started</th></tr></thead>
@@ -301,7 +303,7 @@ function Verdict({ a, onAsk }) {
       <div className="v-tags">
         ${ch && html`<span className="v-tag fix"><code>${ch.key}</code> ${ch.from} → <b>${ch.to}</b></span>`}
         ${bad.map((k) => tag("bad", ITEM[k] || k))}
-        ${open.map((k) => tag("idle", `${ITEM[k] || k} · not tested`))}
+        ${D.kind !== "documented" && open.map((k) => tag("idle", `${ITEM[k] || k} · not tested`))}
         ${lock.map((l) => tag("idle", `${l} · out of scope`))}
         ${P.some((p) => p.simulated) && tag("sim", "simulated providers")}
       </div>
@@ -344,8 +346,8 @@ function Docs({ a }) {
       ${d.findings.map((f, i) => {
         const [cls, mark, label] = DOC[f.status] || DOC.not_found, v = a.verdict?.[f.item];
         return html`<div key=${f.item} className=${`doc-row ${cls}`} style=${{ animationDelay: `${i * 70}ms` }}><i>${mark}</i>
-          <div><b>${ITEM[f.item] || f.item}</b>${f.quote ? html`<q>${f.quote}</q>` : html`<span>${label}${v === "pass" ? " · proven by RISE's test" : ""}</span>`}</div>
-          ${f.url ? html`<a href=${f.url} target="_blank" rel="noopener" title=${f.url}>${host(f.url)} ↗</a>` : html`<span></span>`}</div>`;
+          <div><b>${ITEM[f.item] || f.item}</b>${f.quote ? html`<q>${f.quote}</q>` : html`<span>${label}${v === "pass" ? " · proven by RISE's test" : ""}</span>`}
+          ${f.url && html`<a href=${f.url} target="_blank" rel="noopener" title=${f.url}>${host(f.url)} ↗</a>`}</div></div>`;
       })}
       <div className="doc-foot">${d.cached ? `cached copy · ${d.fetched_at.slice(0, 10)}` : `read live · ${d.pages.length} official pages`} · quotes checked word for word <${SourceBadge} src=${d.source} /></div>
     </div>
@@ -378,7 +380,7 @@ function AnalysisView({ a, s, plan, refs: ref, tgt, ev, items, pctColor, P, go, 
       </div>
     </header>
 
-    <div className=${`track ${a.status === "done" ? "quiet" : ""}`}>${STAGES.filter(([k]) => a.stages[k] && a.stages[k] !== "skipped" || k !== "docs").map(([k, l]) => {
+    <div className=${`track ${a.status === "done" ? "quiet" : ""}`}>${STAGES.filter(([k]) => a.stages[k] && a.stages[k] !== "skipped").map(([k, l]) => {
       const st = a.stages[k];
       const msg = [...(a.events || [])].reverse().find((e) => e.stage === k)?.msg;
       const ms = a.stage_ms?.[k];
@@ -409,6 +411,7 @@ function AnalysisView({ a, s, plan, refs: ref, tgt, ev, items, pctColor, P, go, 
       <div className="stack">
       <section className="card glass">
         <div className="card-h"><h2>Found in your code</h2><span className="grow"></span>
+          ${(a.scan?.sdk || []).map((s) => html`<span key=${s} className="chip" title="Not S3: each call is mapped to the S3 operation the destination must support">${s} SDK</span>`)}
           ${a.speed && html`<span className="chip speed" title=${`${a.speed.files} files · ${a.speed.cores} core(s)`}>${a.speed.lines.toLocaleString("en")} lines · ${a.speed.ms < 1000 ? `${Math.round(a.speed.ms)} ms` : `${(a.speed.ms / 1000).toFixed(1)} s`}</span>`}</div>
         <div className="card-b">${items.length ? items.map((it, n) => {
           const v = a.verdict?.[it];
@@ -420,9 +423,9 @@ function AnalysisView({ a, s, plan, refs: ref, tgt, ev, items, pctColor, P, go, 
           </div>`;
         }) : html`<${Empty}>${a.scan ? "No object-storage usage found in this repository." : "Scanning…"}<//>`}</div>
       </section>
-      ${a.docs_for && html`<${Docs} a=${a} />`}
       </div>
 
+      <div className=${`stack${P[1]?.docs_only ? " docs-first" : ""}`}>
       <section className="card glass">
         <div className="card-h"><h2>Tests</h2><span className="grow"></span><${SourceBadge} src=${plan?.source} /></div>
         <div className="card-b">
@@ -434,6 +437,8 @@ function AnalysisView({ a, s, plan, refs: ref, tgt, ev, items, pctColor, P, go, 
             : html`<${Empty}>${a.stages.plan === "skipped" ? "No storage behaviour to test." : "The AI test plan appears here."}<//>`}
         </div>
       </section>
+      ${a.docs_for && html`<${Docs} a=${a} />`}
+      </div>
     </div>
   <//>`;
 }
@@ -555,6 +560,72 @@ function Connections({ toast, conns, reload, prefill }) {
           : cur ? html`<${ConnectionDetail} c=${cur} testing=${!!testing[cur.id]} onTest=${() => test(cur.id)} onRemove=${() => remove(cur)} />` : null}
       </section>
     </div>
+  <//>`;
+}
+
+// =====================================================================================
+// MIGRATION REPLAY: the app's recorded S3 call sequence (no code, no bytes, aliased keys) re-run on other clouds
+// =====================================================================================
+const FIELD = { status: "HTTP status", error: "error", content_type: "Content-Type", metadata: "metadata keys", length: "size",
+  intact: "bytes intact (SHA-256)", listed: "listing shows the object" };
+const val = (v) => (v == null ? "—" : Array.isArray(v) ? (v.length ? v.join(", ") : "none") : String(v));
+function Replay({ toast, conns, reload }) {
+  const [trace, setTrace] = useState(null);
+  const [pick, setPick] = useState(["source", "destination"]);
+  const [res, setRes] = useState(null);
+  const [busy, setBusy] = useState(false);
+  useEffect(() => { if (!conns) reload(); }, [conns, reload]);
+  const useApp = () => api("/api/replay/trace").then((t) => { setTrace(t); setRes(null); }, (e) => toast(e.message));
+  const load = (e) => {
+    const f = e.target.files[0];
+    if (f) f.text().then((t) => { setTrace(JSON.parse(t)); setRes(null); }).catch(() => toast("That file is not a RISE trace (JSON)."));
+  };
+  const run = async () => {
+    setBusy(true);
+    try { setRes(await api("/api/replay", "POST", { trace, providers: pick })); } catch (e) { toast(e.message); } finally { setBusy(false); }
+  };
+  const R = res?.results || [];
+  return html`<${Fragment}>
+    <header className="head"><h1>Replay</h1><span className="meta">Your app's real S3 call sequence, re-run on other clouds with synthetic bytes · your code and data never leave</span>
+      <div className="actions">
+        <button className="btn ghost sm" type="button" onClick=${useApp}>Use asset-service recording</button>
+        <label className="btn ghost sm file">Load trace.json<input type="file" accept=".json,application/json" onChange=${load} /></label></div>
+    </header>
+    ${!trace ? html`<section className="card glass"><div className="card-b replay-how">
+        <b>Record inside your company, replay here</b>
+        <span>Attach RISE's recorder to your app's S3 client. It keeps the call order, parameters and how your provider answered. Bodies are never kept, only their size; every key is replaced by an alias.</span>
+        <pre className="mono">from rise.replay import Recorder
+rec = Recorder("my-app"); rec.attach(s3)   # your boto3 client
+... run your app as usual ...
+json.dump(rec.trace(), open("trace.json", "w"))</pre></div></section>`
+    : html`<${Fragment}>
+      <section className="card glass"><div className="card-h"><h2>${trace.app} · ${trace.steps.length} calls</h2>
+          <span className="chip mono">client ${trace.client?.region || "?"} · ${trace.client?.addressing_style || "?"}</span><span className="grow"></span>
+          <div className="tgts">${(conns || []).map((c) => html`<button key=${c.id} type="button" className=${pick.includes(c.id) ? "on" : ""}
+            onClick=${() => setPick((p) => p.includes(c.id) ? p.filter((x) => x !== c.id) : [...p, c.id].slice(-4))}>
+            ${pick.includes(c.id) && html`<span className="tick">✓</span>`}${c.name}${c.simulated && html`<i>sim</i>`}</button>`)}</div>
+          <button className="btn sm" type="button" disabled=${busy || !pick.length} onClick=${run}>${busy ? "Replaying…" : `Replay on ${pick.length}`}</button></div>
+        <div className="card-b"><table className="tbl replay">
+          <thead><tr><th>#</th><th>Call</th><th>Object (alias)</th><th>Recorded</th>${R.map((r) => html`<th key=${r.provider.id}>${r.provider.name}</th>`)}</tr></thead>
+          <tbody>${trace.steps.map((s, i) => html`<tr key=${i} className=${R.some((r) => r.first_divergence?.i === i) ? "first" : ""}>
+            <td className="mono muted">${i + 1}</td><td><b>${s.op}</b></td>
+            <td className="mono">${s.params.Key || s.params.Prefix || "—"}${s.params.Range ? ` · ${s.params.Range}` : ""}${s.params.BodyLength != null ? ` · ${s.params.BodyLength} B` : ""}</td>
+            <td className="mono muted">${s.expect?.status ?? "—"}${s.expect?.error ? ` ${s.expect.error}` : ""}</td>
+            ${R.map((r) => { const x = r.steps[i];
+              return html`<td key=${r.provider.id} title=${x.request_id ? `request id ${x.request_id}` : ""}>${x.diff.length
+                ? html`<${Pill} cls="bad">✗ ${x.got.status ?? x.got.error}<//>` : html`<${Pill} cls="ok">✓ ${x.got.status}<//>`}<span className="muted mono"> ${x.ms} ms</span></td>`; })}
+          </tr>`)}</tbody></table></div></section>
+      ${R.length > 0 && html`<div className="replay-verdicts">${R.map((r) => { const f = r.first_divergence;
+        return html`<section key=${r.provider.id} className=${`card glass rv ${f ? "bad" : "ok"}`}>
+          <div className="card-h"><h2>${r.provider.name}</h2>${r.provider.simulated && html`<span className="sim">sim</span>`}<span className="grow"></span>
+            <span className="chip">${r.same}/${r.total} same</span></div>
+          <div className="card-b">${f ? html`<b>First change at call ${f.i + 1}: ${f.op} ${f.key || ""}</b>
+              ${f.diff.map((d) => html`<div key=${d.field} className="rv-d"><span>${FIELD[d.field] || d.field}</span><s>${val(d.expected)}</s><span>→</span><b>${val(d.got)}</b></div>`)}
+              ${f.message && html`<q>${f.message}</q>`}
+              <div className="muted mono">request id ${f.request_id || "—"} · client ${r.client.region} · ${r.provider.bucket}/${r.provider.prefix} (deleted)</div>`
+            : html`<b>Behaves the same on all ${r.total} calls</b><div className="muted mono">client ${r.client.region} · ${r.provider.bucket}/${r.provider.prefix} (deleted)</div>`}</div>
+        </section>`; })}</div>`}
+    <//>`}
   <//>`;
 }
 
@@ -875,6 +946,7 @@ function App() {
 
   let page;
   if (path === "/demo") page = demo ? html`<${Demo} S=${demo} act=${act} busy=${busy} view=${view} setView=${setView} />` : html`<${Empty}>Connecting…<//>`;
+  else if (path === "/replay") page = html`<${Replay} toast=${toast} conns=${conns} reload=${reloadConns} />`;
   else if (path === "/connect") page = html`<${Connections} toast=${toast} conns=${conns} reload=${reloadConns} prefill=${prefill} />`;
   else if (path.startsWith("/c/")) page = html`<${Compare} id=${path.slice(3)} recent=${recent} go=${go} />`;
   else if (path.startsWith("/a/")) page = html`<${Analysis} id=${path.slice(3)} tick=${tick} go=${go} onAsk=${askAgent} />`;

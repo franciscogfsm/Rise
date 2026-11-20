@@ -234,6 +234,7 @@ def _rules_brief(risks: list[dict], scan: dict) -> dict:
 def brief(goal: str, scan: dict, risks: list[dict], providers: list[dict]) -> dict:
     user = {"goal": goal or "Check whether this code can move to the target provider.",
             "storage_operations": scan.get("operations"), "storage_features": scan.get("features"),
+            "non_s3_storage_sdk": scan.get("sdk") or None,
             "other_cloud_services": [x["service"] for x in scan.get("lockin") or []],
             "risks": [{k: r[k] for k in ("id", "severity", "title", "detail")} | {"evidence": r["evidence"][:2]} for r in risks],
             "providers": providers}

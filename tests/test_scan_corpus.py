@@ -288,3 +288,11 @@ def test_storage_named_receivers_in_a_repo_that_uses_s3():
              "Export.java": "sql.append(rs.getObject(columnIndex));\n",
              "k8s_test.go": "review, ok := createAction.GetObject().(*v1.Review)\n"}
     assert scan.scan(files)["s3_files"] == ["ocr.ts", "s3.ts"]
+
+
+def test_client_returned_by_a_call():
+    """wp-amazon-s3-and-cloudfront: the S3 client comes back from a method call."""
+    files = {"aws.php": "<?php use Aws\S3\S3Client;\n",
+             "upgrade.php": "<?php\n$this->as3cf->get_provider_client( $provider_object['region'], true )->get_object( $args );\n"}
+    r = scan.scan(files)
+    assert "upgrade.php" in r["s3_files"] and r["operations"] == {G: 1}

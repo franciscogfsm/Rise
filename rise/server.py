@@ -18,7 +18,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 from . import config as C
-from . import agent, connect, docs, fast
+from . import agent, connect, docs, fast, replay
 from .analysis import Analyses
 from .journey import Journey, StepError
 from .link import Link
@@ -75,6 +75,7 @@ async def revalidate_static(request, call_next):
 @app.get("/")
 @app.get("/demo")
 @app.get("/connect")
+@app.get("/replay")
 @app.get("/a/{aid}")
 @app.get("/c/{aid}")
 def spa(aid: str | None = None):
@@ -198,6 +199,30 @@ def intent(body: IntentIn):  # one-box request -> repository, from, to, goal (ne
 
 
 # ---------- agent ----------
+# ---------- migration replay: the app's recorded call sequence, re-run on candidate providers ----------
+class ReplayIn(BaseModel):
+    trace: dict
+    providers: list[str]
+
+
+@app.get("/api/replay/trace")
+def replay_trace():
+    t = replay.RECORDER.trace()
+    if not t["steps"]:
+        raise HTTPException(404, "asset-service has not run yet: open Live switch and run Discover to record it.")
+    return t
+
+
+@app.post("/api/replay")
+def replay_run(body: ReplayIn):
+    if not body.providers or any(not connect.provider(c) for c in body.providers):
+        raise HTTPException(422, "Pick connected providers to replay on.")
+    try:
+        return replay.run(body.trace, body.providers)
+    except ValueError as e:
+        raise HTTPException(422, str(e)) from e
+
+
 class AgentIn(BaseModel):
     messages: list[dict]
     page: str = "/"

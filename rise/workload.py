@@ -6,6 +6,7 @@ import uuid
 import httpx
 
 from . import config as C
+from .replay import RECORDER
 from .storage import make_client, request_id, sha256
 
 
@@ -51,6 +52,8 @@ class Router:
                 obs = (lambda *a: self.observer(pid, *a)) if observed else None
                 self._clients[k] = make_client(self.endpoint(pid), cfg["region"], p.access_key, p.secret_key,
                                                cfg["addressing_style"], obs)
+                if observed and pid == "source":
+                    RECORDER.attach(self._clients[k])  # the app's real call sequence, for replay elsewhere
             return self._clients[k]
 
 
@@ -91,6 +94,7 @@ class AssetService:
         r = httpx.get(url, timeout=8)
         self.router.observer(pid, "PresignedGet", {"Key": key}, r.status_code,
                              r.headers.get("x-amz-request-id"), None if r.is_success else str(r.status_code))
+        RECORDER.note("PresignedGet", {"Key": key, "ExpiresIn": expires}, {"status": r.status_code, "error": None if r.is_success else str(r.status_code)})
         return url
 
     def remove(self, key: str):
@@ -100,6 +104,8 @@ class AssetService:
     def editing_session(self) -> str:
         """What asset-service does when someone edits the deck: the behaviour RISE observes."""
         key = f"slides/draft-{uuid.uuid4().hex[:8]}.svg"
+        RECORDER.reset()
+        RECORDER.on = True
         data = b'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><circle cx="5" cy="5" r="4"/></svg>'
         self.upload(key, data, "image/svg+xml", {"owner": "pitch", "slide": "draft"})
         self.info(key)
@@ -109,4 +115,5 @@ class AssetService:
         self.info("slides/independência.svg")  # the deck's closing slide, a non-ASCII key
         self.share_link(key)
         self.remove(key)
+        RECORDER.on = False
         return key

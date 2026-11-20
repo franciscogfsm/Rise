@@ -116,3 +116,29 @@ def test_validator_rejects_unknown_kinds_and_fills_gaps():
     kinds = [t["kind"] for t in out["tests"]]
     assert "rm_rf_everything" not in kinds and "range_get" in kinds
     assert any("validator" in n for n in out["validator"]) and any("Rejected" in n for n in out["validator"])
+
+
+def test_replay_recorded_app_sequence(journey):
+    import copy
+    import json
+
+    from rise import replay
+    t = replay.RECORDER.trace()  # recorded by test_full_journey's DISCOVER
+    ops = [s["op"] for s in t["steps"]]
+    assert {"PutObject", "HeadObject", "ListObjectsV2", "GetObject", "PresignedGet", "DeleteObject"} <= set(ops)
+    raw = json.dumps(t, ensure_ascii=False)
+    assert "slides" not in raw and "draft" not in raw and "pitch" not in raw  # keys and metadata values never leave
+    assert any("/çk" in s["params"].get("Key", "") for s in t["steps"])  # non-ASCII kept as a property
+
+    r = replay.run(t, ["source", "destination"])
+    for res in r["results"]:
+        assert res["same"] == res["total"] == len(ops), (res["first_divergence"]["diff"], res["first_divergence"]["got"])
+
+    bad = copy.deepcopy(t)
+    i = ops.index("GetObject")
+    bad["steps"][i]["expect"]["content_type"] = "image/png"  # pretend the original provider answered differently
+    res = replay.replay_on(bad, "destination")
+    assert res["first_divergence"]["i"] == i and res["first_divergence"]["diff"][0]["field"] == "content_type"
+    left = boto3.client("s3", endpoint_url=C.DEST.endpoint, region_name="us-east-1", aws_access_key_id="testing",
+                        aws_secret_access_key="testing").list_objects_v2(Bucket=C.DEST.test_bucket, Prefix="rise-replay/")
+    assert not left.get("Contents")  # replay leaves nothing behind

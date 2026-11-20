@@ -52,7 +52,11 @@ The risks found in the code:
 `Fetch → Scan → Risks + AI plan + AI briefing → Real tests → Adapt → Answer + Proof`
 
 1. **Fetch.** The repo archive is read **in memory**. Nothing is written to disk and **no repo code is ever executed**.
-2. **Scan** (no AI). It finds every S3 call and the behaviours each one relies on. Languages: Python (boto3), JavaScript (AWS SDK v2/v3), Go, Java, PHP.
+2. **Scan** (no AI). It finds every S3 call and the behaviours each one relies on, with `file:line`.
+   - **10 languages, 19 SDK styles:** Python (boto3 client and resource, aioboto3, MinIO, pandas/s3fs), JS/TS (AWS SDK v2/v3, MinIO), Go (v1/v2, MinIO), Java (v1/v2), Kotlin, PHP (AWS SDK, Laravel), Ruby, C#, Rust.
+   - **Finds the client wherever it was made:** a file that never imports the SDK but calls `self.s3.put_object(...)` is still read.
+   - **Safety net:** RISE knows all **116 operations of the official S3 API**. Any call to one it does not test (`restore_object`, `putObjectRetention`, `CreateBucket`...) is listed as *not tested* with `file:line`, and the answer can no longer be "Ready". Nothing is dropped silently.
+   - **Fast:** each rule runs once over each file in C, on every CPU core; the result is byte-identical to one core (a test checks it).
 3. **AI plan.** The LLM turns the code evidence into a test plan in **strict JSON schema**. RISE validates it: unknown tests are dropped, parameters are clamped, and anything the AI missed is added.
 4. **Real tests.** **13 test kinds** run on the reference and the target **at the same time**, with synthetic data:
    - put/get, metadata, prefix listing, presigned URLs, range reads, unicode keys;
@@ -92,7 +96,10 @@ The risks found in the code:
 | 3-provider comparison | about **16 s**, in parallel |
 | Live switch (Docker) | **284 requests, 0 failed**, source cut, new object SHA-256 match |
 | Fresh clone, no AI key, empty volume | **Ready · 1 change** (RULES), live switch completes with 0 failed requests |
-| Automated tests | **43 passing**, including an end-to-end journey on two real S3 servers and the real link cut |
+| **Scanner benchmark** | **185 real GitHub repos** (Sentry, Discourse, Airflow, aws-cli, Superset, Ray, Nextcloud, rclone, SeaweedFS… + the 156 top S3 repos in 10 languages): **35,252,281 lines in 40.4 s**, 10,444 S3 calls found with `file:line`, 4,604 untested storage calls flagged |
+| **Scanner accuracy** | Independent check: every call to the 116 official S3 API operations (from AWS's own model), in every file: 11,422 calls. The 152 the scanner did not read were reviewed by hand: 151 are not S3 (JDBC `getObject`, web `create_session`, Azure/GCS/Swift backends), 1 was real and is fixed. **0 real S3 calls missed.** Data in `benchmark/` |
+| Biggest single repos | Sentry **3.7 M lines in 1.3 s** · Discourse 2.7 M in 2.3 s · Airflow 2.3 M in 3.1 s · aws-cli 2.2 M in 2.9 s |
+| Automated tests | **106 passing**, including an end-to-end journey on two real S3 servers, the real link cut, and a 19-SDK accuracy corpus |
 
 ## 8. Why it is different (map to the judging criteria)
 
@@ -100,18 +107,21 @@ The risks found in the code:
 |---|---|
 | **Innovation** | Not a migration tool, not a checklist: an **evidence engine**. It turns *"we think we can move"* into *"here is the proof"* in seconds. |
 | **Applicability** | Any repo, any S3-compatible cloud, Leaseweb included, with **one Docker command** and no account. It answers the 89% problem directly. |
-| **Technical complexity** | Multi-language static scan, AI with strict JSON schema + validation + fallbacks, 13 real test kinds in parallel on 2–5 clouds, constrained auto-adaptation, encrypted keys (Fernet), a live traffic switch with a real network cut, CI that tests and deploys on push. |
+| **Technical complexity** | A static scan across 10 languages, benchmarked on 185 real repos (35 M lines in 40 s, 0 real S3 calls missed), AI with strict JSON schema + validation + fallbacks, 13 real test kinds in parallel on 2–5 clouds, constrained auto-adaptation, encrypted keys (Fernet), a live traffic switch with a real network cut, CI that tests and deploys on push. |
 | **Use of AI** | Two layers: an AI coding agent (Claude, via MCP) asks RISE for **proof**, and inside RISE the AI **plans and explains**; deterministic code **runs and decides**. It never runs a shell, never sees secrets, never owns the switch. That makes the AI safe to trust. |
 | **Use of cloud infra** | Real calls on real clouds (AWS proven), with presets for 7 providers. It ships as a self-contained Docker image with a health check and one-click free deploy (Render) or a VM auto-deploy. |
 | **Presentation** | One answer in big type, then the evidence. Every number on screen comes from a real event. |
 
 **Tagline:** *Built to rise when clouds fall.*
 
+**Line for the scanner:** *"Don't trust our words, trust our results. We ran the scanner on 185 real repositories, including Sentry, Airflow and aws-cli: 35 million lines in 40 seconds. We checked every call against the official S3 API: zero real calls missed. The data is in the repo."*
+
 ## 9. Honest limits (do not over-claim)
 
 - It covers **one category: S3 object storage**. Other services (queues, databases, functions) are **listed as lock-in, not tested**.
 - "Ready" means the observed storage operations work on the target. It does **not** certify the whole application.
-- The risk rules are pattern-based. They can miss unusual code or raise false alarms, which is why each risk shows its evidence.
+- The scanner and risk rules are pattern-based. The scanner's "0 missed" covers calls to the official S3 API operation names on 185 repos; code that reaches S3 with a hand-built HTTP request is outside that check. Each finding shows its evidence.
+- The benchmark timings are from one laptop (16 worker processes) and exclude download time.
 - The local providers are **simulated** (moto, Garage). Never call them Leaseweb or AWS.
 - The demo incompatibility (signing region) was **prepared on purpose**. It is not a fault of Leaseweb or any vendor.
 - The cut only blocks the local simulated link, never a real cloud account.

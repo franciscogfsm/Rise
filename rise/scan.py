@@ -76,6 +76,24 @@ LOCKIN_RULES = [
     (r"(google)\.cloud\.storage|@google-cloud/(storage)", "gcp", ("google.cloud.storage", "@google-cloud/storage")),
 ]
 DETECT_NEEDS = ("boto", "s3", "S3", "minio")  # every DETECT_S3 alternative contains one of these
+# Storage SDKs that are not S3: each call maps to the S3 operation the destination must provide after the SDK swap.
+# key -> (name, literal prefilter, file detector, rules)
+SDKS = {"supabase": ("Supabase Storage", ".storage", re.compile(r"\.storage\s*\.from_?\("), [
+    (r"\.upload(?:ToSignedUrl|_to_signed_url)?\(", "PutObject", "op"),
+    (r"\.download\(", "GetObject", "op"),
+    (r"\.from_?\([^)]*\)\s*\.list\(", "ListObjectsV2", "op"),  # list/remove/move/copy are common names: only on a bucket
+    (r"\.from_?\([^)]*\)\s*\.remove\(", "DeleteObject", "op"),
+    (r"\.from_?\([^)]*\)\s*\.(?:move|copy)\(", "CopyObject", "op"),
+    (r"(?i)\.create_?signed_?(?:upload_?)?urls?\(", "GeneratePresignedUrl", "op"),
+    (r"(?i)\.get_?public_?url\(", "bucket-policy", "behaviour"),  # a public URL needs a public bucket on S3
+    (r"\bcontentType\s*:|['\"]content-type['\"]\s*:", "content-type", "behaviour"),
+    (r"\bcacheControl\s*:|['\"]cache-control['\"]\s*:", "cache-control", "behaviour"),
+    (r"\bmetadata\s*:", "user-metadata", "behaviour"),
+])}
+
+
+def sdks_in(text: str) -> list[str]:
+    return [k for k, (_, lit, rx, _) in SDKS.items() if lit in text and rx.search(text)]
 AWS_NAMES = {"sqs": "SQS queues", "sns": "SNS notifications", "dynamodb": "DynamoDB", "lambda": "Lambda", "kinesis": "Kinesis",
              "ses": "SES email", "secretsmanager": "Secrets Manager", "kms": "KMS", "cognito-idp": "Cognito", "cognito": "Cognito",
              "sts": "STS", "iam": "IAM", "rds": "RDS", "ec2": "EC2", "ecs": "ECS", "eks": "EKS", "cloudwatch": "CloudWatch",
@@ -120,7 +138,7 @@ API = {o.lower() for o in S3_API}
 # every S3 API operation starts with one of these verbs: a short pattern, then a set lookup (a 348-name alternation is slow)
 API_CALL = re.compile(CALL + r"((?i:abort|complete|copy|create|delete|get|head|list|put|rename|restore|select|update|upload|write)\w*?)(?:Async)?\(")
 AMBIGUOUS = {"getobject", "listobjects", "createsession"}  # JDBC rs.getObject, resources.GetObject, web sessions...
-STORE_RECEIVER = re.compile(r"(?i)(?:\b|_)(?:s3|stor|client|bucket|provider|minio|blob|aws|oss|backend|remote|cloud)\w*\s*(?:\.|->|::)\s*$")
+STORE_RECEIVER = re.compile(r"(?i)(?:\b|_)(?:s3|stor|client|bucket|provider|minio|blob|aws|oss|backend|remote|cloud)\w*(?:\([^()\n]*\))?\s*(?:\.|->|::)\s*$")
 S3_ARGS = re.compile(r"(?i)\bbucket|\bKey\s*[=:]|\bs3")
 CANDIDATE = re.compile(CALL + r"(\w+?)(?:Async)?\(|\bnew\s+(\w+?)Command\(")
 _SUFFIX = (r"(?:_?(?:exists?(?:v2)?|content|tagging|tags|retention|legal_?hold|lock_?config(?:uration)?|acl|attributes|metadata|"
@@ -148,7 +166,7 @@ NOT_LOCKIN = {"s3", "s3control", "core", "config", "credential-providers", "sts"
 
 
 def detected(text: str) -> bool:
-    return any(s in text for s in DETECT_NEEDS) and bool(DETECT_S3.search(text))
+    return any(s in text for s in DETECT_NEEDS) and bool(DETECT_S3.search(text)) or bool(sdks_in(text))
 
 
 def wrapper(text: str) -> bool:
@@ -162,7 +180,7 @@ def wrapper(text: str) -> bool:
         if name not in AMBIGUOUS:
             return True
         line = text[text.rfind("\n", 0, m.start()) + 1:text.find("\n", m.end()) % (len(text) + 1)]
-        if S3_ARGS.search(line) or STORE_RECEIVER.search(text, max(0, m.start(1) - 40), m.start(1)):  # storage.getObject(key)
+        if S3_ARGS.search(line) or STORE_RECEIVER.search(text, max(0, m.start(1) - 100), m.start(1)):  # storage.getObject(key)
             return True
     return False
 
@@ -182,6 +200,7 @@ def raw(files: dict[str, str], repo_s3: bool | None = None) -> tuple:
         repo_s3 = repo_uses_s3(files)
     rules = [(re.compile(p), item, cat) for p, item, cat in S3_RULES]
     lockin = [(re.compile(p), cloud, needs) for p, cloud, needs in LOCKIN_RULES]
+    sdk_rules = {k: [(rx, "sdk:" + k, "sdk")] + [(re.compile(p), item, cat) for p, item, cat in rs] for k, (_, _, rx, rs) in SDKS.items()}
     evidence, counts, lock = [], Counter(), defaultdict(list)
     s3_files = []
     for path, text in sorted(files.items()):
@@ -193,6 +212,9 @@ def raw(files: dict[str, str], repo_s3: bool | None = None) -> tuple:
         if is_s3:
             for i, (rx, item, cat) in enumerate(rules):
                 hits += [(m.start(), 0, i, (item, cat)) for m in rx.finditer(text)]
+            for k in sdks_in(text):
+                for i, (rx, item, cat) in enumerate(sdk_rules[k]):
+                    hits += [(m.start(), 0, 1000 + i, (item, cat)) for m in rx.finditer(text)]
             for m in CANDIDATE.finditer(text):
                 name = m.group(1) or m.group(2)
                 if untested_call(name, m.group(2) is not None):
@@ -257,6 +279,7 @@ def finish(r: tuple) -> dict:
     unrecognised = {k[5:]: v for k, v in counts.items() if k.startswith("call:")}
     return {
         "files_scanned": n, "s3_files": s3_files, "uses_s3": bool(ops),
+        "sdk": [SDKS[k[4:]][0] for k in sorted(counts) if k.startswith("sdk:")],  # non-S3 storage SDKs the code calls
         "operations": ops, "features": feats, "config": config, "unrecognised": unrecognised,
         "evidence": evidence, "lockin": [{"service": k, "evidence": v} for k, v in sorted(lock.items())],
     }
