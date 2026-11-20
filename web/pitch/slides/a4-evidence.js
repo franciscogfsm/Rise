@@ -22,7 +22,7 @@ RISE.slide({
 
   html: `
     <div class="ev">
-      <h2 class="title split">The AI never reads your code. It reads the evidence.</h2>
+      <h2 class="title split"><span class="soft">The AI never reads your code.</span> It reads the evidence.</h2>
       <div class="table" role="table">
         <div class="hd" role="row"><span role="columnheader"></span><span role="columnheader">AI reads the code</span><span role="columnheader" class="r">RISE</span></div>
         <div class="rows"></div>
@@ -35,7 +35,7 @@ RISE.slide({
     .title { max-width: 24ch; }
     .table { position: relative; align-self: start; }
     .hd, .row { position: relative; z-index: 1; display: grid; grid-template-columns: 240px 1fr 1fr; column-gap: 48px; align-items: baseline; }
-    .hd { padding: 0 0 18px; font-size: var(--t1); font-weight: 600; color: var(--muted); }
+    .hd { padding: 0 0 18px; font-size: var(--t2); font-weight: 600; color: var(--muted); }
     .hd .r { color: var(--ink); padding-left: 32px; }
     .row { padding: 17px 0; border-top: 1px solid var(--line); }
     .row b { font-size: var(--t1); font-weight: 600; color: var(--muted); }
