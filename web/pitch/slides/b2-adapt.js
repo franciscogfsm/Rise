@@ -14,7 +14,7 @@ Nunca dizer que a incompatibilidade é da Leaseweb: foi preparada de propósito 
 
   html: `
     <div class="ad">
-      <h2 class="title split">What broke, and how it was fixed.</h2>
+      <h2 class="title split">What broke, <span class="soft">and how it was fixed.</span></h2>
       <div class="cols"></div>
     </div>`,
 

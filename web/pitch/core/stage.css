@@ -42,8 +42,7 @@
 }
 
 /* a barra de progresso segue o ato */
-#deck .progress button { height: 3px; }
-#deck .progress button.on { background: var(--act); transition: background .6s var(--e-inout); }
+#deck .progress button.on { background: var(--act); transition: width .5s var(--e-out), background .6s var(--e-inout); }
 #deck > .brand { transition: opacity .6s var(--e-out), transform .6s var(--e-out); }
 
 /* ── Tipografia de palco ── */
@@ -104,6 +103,8 @@
 .slide .ok-c { color: var(--ok); }
 .slide .bad-c { color: var(--bad); }
 .slide .act-c { color: var(--act); }
+/* duas vozes no título: a frase mais leve fica em .soft, a forte fica em tinta */
+.slide .soft { color: var(--faint-ink); }
 
 /* ── ?static e movimento reduzido: estado final ── */
 html.still .slide .rv, html.still .slide .w > span, html.still .slide .draw {

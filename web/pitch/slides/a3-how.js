@@ -6,19 +6,19 @@ RISE.slide({
   notes: `
 "RISE helps companies move between cloud providers, like AWS and Leaseweb, without surprises."
 "It doesn't promise your migration will work. It proves it, with real tests, before you move."
-(acompanhar a linha) "It records how your app really uses storage. The AI turns that into tests, and both providers run them. When something breaks, RISE proposes a constrained fix and tests again. Only then does the app switch. And at the end we prove it, byte by byte."
+(acompanhar a linha) "It records how your app really uses storage. The AI turns that into tests, and both providers run them. When something breaks, RISE proposes a constrained fix and tests again. Every object is copied and checked by SHA-256 before the app switches. Then we cut the old provider and prove that a brand-new write still works."
 "The next slides are these steps, with real data from the app."`,
 
   STEPS: [
     ["Discover", "Records the S3 calls your app really makes.",
       `<circle cx="24" cy="24" r="7"/><path d="M4 24c5-9 12-14 20-14s15 5 20 14c-5 9-12 14-20 14S9 33 4 24z"/>`],
-    ["Challenge", "AI writes the tests. Both providers run them.",
+    ["Challenge", "AI plans the tests. Both providers run them.",
       `<path d="M18 13h20M18 24h20M18 35h14"/><path d="M8 12l2.5 2.5L15 10M8 23l2.5 2.5L15 21M8 34l2.5 2.5L15 32"/>`],
     ["Adapt", "A failure gets a constrained fix, then a retest.",
       `<path d="M29 9a10 10 0 0 0-9.5 13.2L8 33.7 14.3 40l11.5-11.5A10 10 0 0 0 39 19l-6 6-6-1-1-6z"/>`],
-    ["Switch", "The app moves once every test passes.",
+    ["Switch", "Data is copied and checked by SHA-256. Then the app moves.",
       `<path d="M8 16h30l-7-7M40 32H10l7 7"/>`],
-    ["Prove", "SHA-256 of every object. Then the source is cut.",
+    ["Prove", "The old provider is cut. A brand-new write still works.",
       `<path d="M24 5l16 6v11c0 10-7 18-16 21C15 40 8 32 8 22V11z"/><path d="M17 24l5 5 9-10"/>`],
   ],
 

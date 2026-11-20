@@ -6,7 +6,7 @@ RISE.slide({
   notes: `
 Um minuto. Narrar o que acontece, não a interface. Tecla I para clicar no dashboard; clicar fora do ecrã para voltar.
 1. "This is asset-service, a real app on its original provider. RISE has observed it and the AI wrote the plan."
-2. Challenge: "One behaviour differs on the destination." (coral) Adapt: "Constrained fix, retest, pass." (mint)
+2. Challenge: "On the destination, every test fails, and for one single reason: the app signs its requests for the wrong region." (coral) Adapt: "Constrained fix, retest, pass." (mint)
 3. Verify: "Every object copied, SHA-256 of the bytes on both sides."
 4. Switch, depois Cut: "The app now talks to the destination. And the source link is cut, for real."
 5. Só se mudar: apontar para a coluna da direita. "Watch who serves these requests."
@@ -14,7 +14,7 @@ Se a app falhar: tecla V (vídeo de backup, marcado como gravação) e dizê-lo.
 
   html: `
     <header class="rv">
-      <h2 class="headline">Live: one app, two providers, every step verified.</h2>
+      <h2 class="headline">Live: <span class="soft">one app, two providers, every step verified.</span></h2>
       <div class="status"><span class="active pill idle">Not connected</span><span class="link pill idle" hidden></span></div>
     </header>
     <div class="stage">
