@@ -2,21 +2,21 @@
 
 > Don't trust our words. Trust our results.
 
-**In one line.** RISE read 35 million lines in 40 seconds and missed no real S3 call. On the same code it is hundreds of times faster than Claude and OpenAI Codex, with 0 AI tokens. On 6 new repositories it now finds 45 of 45 S3 calls; Codex finds 43. On 26 more fresh repositories, RISE Fast found 41 of 42 in 79 ms; Codex found 42 in 20 s.
+**In one line.** RISE read 40 million lines from 339 repositories in 84 seconds and missed no real S3 call. On the same code it is hundreds of times faster than Claude and OpenAI Codex, with 0 AI tokens. On 6 new repositories it now finds 45 of 45 S3 calls; Codex finds 43. On 26 more fresh repositories, RISE Fast found 41 of 42 in 79 ms; Codex found 42 in 20 s.
 
-All figures were measured on 20 Nov 2026, on one 16-core laptop. Download time is not included. The raw data is in [results.json](results.json), and the method is in [README.md](README.md).
+All figures were measured on 20 Nov 2026, on one 16-core laptop. Download time is not included. The raw data is in [results.json](results.json) and [results2.json](results2.json), and the method is in [README.md](README.md).
 
-## 1. 185 real repositories
+## 1. 339 real repositories
 
 | | |
 |---|---|
-| Repositories read | **185** public GitHub repos (29 large projects + 156 top S3 repos) |
-| Code read | **182,771 files · 35,252,281 lines** |
-| Time to scan all 185 | **40.4 seconds** (about **870,000 lines per second**) |
-| S3 calls found, each with `file:line` | **10,444**, in 126 repositories |
-| Storage calls RISE has no test for, flagged | **4,604** |
-| Official S3 API calls checked | **11,422**, against all 116 operations of the official S3 API |
-| Real S3 calls missed | **0** |
+| Repositories read | **339** public GitHub repos (29 large projects + 310 S3 repos in 17 languages) |
+| Code read | **207,301 files · 40,122,401 lines** |
+| Time to scan all 339 | **83.7 seconds** (about **480,000 lines per second** on a busy laptop; an earlier run of 185 repos took 40 s) |
+| S3 calls found, each with `file:line` | **12,958**, in 223 repositories |
+| Storage calls RISE has no test for, flagged | **6,951** |
+| Official S3 API calls checked | **14,887**, against all 116 operations of the official S3 API |
+| Real S3 calls missed | **0** (259 leftovers reviewed by hand, none is S3) |
 
 **Largest repositories:**
 
@@ -32,9 +32,8 @@ All figures were measured on 20 Nov 2026, on one 16-core laptop. Download time i
 **How "0 missed" is checked.** The check does not use RISE's own rules:
 - It takes every operation of the official S3 API (116, from AWS's botocore).
 - It looks for those calls in every spelling and in every file.
-- Of 11,422 calls found, 152 were neither read nor flagged by RISE. A person reviewed each one:
-  - 151 were not S3: JDBC `getObject`, web `create_session`, Azure/GCS backends and similar.
-  - 1 was a real S3 call. It was fixed and is now a regression test.
+- Of 14,887 calls found, 259 were neither read nor flagged by RISE. A person reviewed each one: none is S3 (JDBC `getObject`, web `create_session`, Azure/GCS/Swift/B2 backends and similar).
+- The real gaps found on the way (4 calls in 3 repos: a client returned by a call, the .NET library SimpleS3, hand-signed SigV4 requests in Swift) were fixed and are now regression tests.
 
 ## 2. RISE against Claude
 
@@ -46,9 +45,9 @@ The test used the same 20 small repositories (61,856 lines, 5 languages) and the
 | AI tokens | ~564,000 | **0** |
 | Same answer every run | not guaranteed | **always** |
 | Every answer points to `file:line` | mostly | **always** |
-| Fits a big repo | no: 38 of the 185 repos are over ~1 M tokens | **yes**: Sentry in 1.3 s |
+| Fits a big repo | no: 38 of the 185 large-batch repos are over ~1 M tokens | **yes**: Sentry (3.7 M lines) in 1.3–4.2 s |
 
-**At the same pace (estimate),** reading all 35 million lines would cost Claude about **320 million tokens and ~100 hours of agent time**. RISE does it in **40 seconds, with 0 tokens**.
+**At the same pace (estimate),** reading all 40 million lines would cost Claude about **365 million tokens (≈ $730 at $2 per million input tokens) and over 100 hours of agent time**. RISE does it in **84 seconds, with 0 tokens**.
 
 **What we do not claim.** RISE did not beat Claude on accuracy by a clean count:
 - Claude correctly skipped text that only looks like a call.
@@ -121,5 +120,5 @@ This is a blind result: the scanner did not change during the trial. Codex was 1
 
 - **What "0 missed" covers.** It covers calls to official S3 API names. Code that reaches S3 through a raw HTTP request to a hand-built URL is outside the check.
 - **The table in section 1 predates the string fix.** It was measured before calls inside strings were dropped, so the call count may fall slightly on a re-run. "0 missed" is unaffected. Re-run with `python scripts/benchmark.py`.
-- **The Claude comparison was a one-off run.** It was not repeated, and the extrapolation to 35 M lines is an estimate.
+- **The Claude comparison was a one-off run.** It was not repeated, and the extrapolation to 40 M lines is an estimate.
 - **Clojure is not read.** Its call style, `(aws/invoke s3 {:op ...})`, is not a method call.

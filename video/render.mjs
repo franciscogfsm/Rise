@@ -20,7 +20,7 @@ const n = Math.round((t1 - t0) * fps);
 const out = resolve(`video/build/rise-film-${H}p${range ? `-${t0}-${t1}` : ""}.mp4`);
 const ff = spawn("ffmpeg", ["-y", "-v", "error", "-f", "image2pipe", "-framerate", String(fps), "-c:v", "mjpeg", "-i", "-",
   "-ss", String(t0), "-t", String(t1 - t0), "-i", resolve("video/build/mix.wav"),
-  "-vf", `scale=${W}:${H}:flags=lanczos`, "-c:v", "libx264", "-preset", H > 720 ? "slow" : "veryfast", "-crf", H > 720 ? "16" : "26",
+  "-vf", `scale=${W}:${H}:flags=lanczos`, "-c:v", "libx264", "-preset", H > 720 ? "slow" : "veryfast", "-crf", H > 720 ? "16" : H >= 720 ? "19" : "26",
   "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "256k", "-movflags", "+faststart", "-shortest", out], { stdio: ["pipe", "inherit", "inherit"] });
 const scale = H > 720 ? 1 : Math.min(1, (H * 1.5) / 1080);
 const started = Date.now();

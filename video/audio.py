@@ -115,7 +115,13 @@ def main():
         total = round(t + 0.6, 3)
         (B / "timing.js").write_text("window.TIMING = " + json.dumps({"total": total, "scenes": timing}, indent=1) + ";\n", encoding="utf-8")
         print(f"timing: {total:.1f}s total", {k: v["dur"] for k, v in timing.items()})
-        mus = music(s, timing, total)
+        own = s["music"].get("file")
+        if own:  # the team's own track: never generate one instead
+            cands = [V.parent / own] + sorted(V.glob("music.*"))
+            mus = next((c for c in cands if c.exists()), None)
+            print("music:", mus or f"{own} not found, mixing WITHOUT music")
+        else:
+            mus = music(s, timing, total)
         fx = {n: j.result() for n, j in fx_jobs.items()}
 
     # mix: voice on top, sound effects, music ducked under the voice
@@ -136,7 +142,7 @@ def main():
     f.append("".join(f"[f{i}]" for i in range(len(fx_f))) + f"amix=inputs={len(fx_f)}:normalize=0[fx]")
     outs = "[vo][fx]"
     if mus:
-        f.append(f"[{len(ins)}:a]aresample=48000,volume=0.7,afade=t=out:st={total - 1.2}:d=1.2[m0]")
+        f.append(f"[{len(ins)}:a]aresample=48000,volume={s['music'].get('volume', 0.7)},afade=t=in:d=0.6,afade=t=out:st={total - 2.0}:d=2.0[m0]")
         f.append("[m0][key]sidechaincompress=threshold=0.04:ratio=6:attack=15:release=350[mus]")
         ins.append(mus)
         outs += "[mus]"

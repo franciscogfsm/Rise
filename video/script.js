@@ -35,15 +35,13 @@ window.SCRIPT = {
       "sfx": [{ "t": 0.3, "s": "type", "v": 0.55 }, { "t": 1.9, "s": "pop", "v": 0.6 }, { "t": 2.7, "s": "success", "v": 0.75 }] },
     { "id": "replay",  "act": "proof",    "min": 6.2, "voAt": 0.15, "vo": "Replay runs your app's real calls on the new cloud. Call seven breaks. RISE shows why.",
       "sfx": [{ "t": 0.0, "s": "whoosh", "v": 0.6 }, { "t": 0.5, "s": "data", "v": 0.5 }, { "t": 2.95, "s": "error", "v": 0.9 }, { "t": 2.95, "s": "boom", "v": 0.6 }] },
-    { "id": "fix",     "act": "proof",    "min": 5.0, "voAt": 0.1, "vo": "It fixes the region, checks every byte, and switches live traffic.",
-      "sfx": [{ "t": 0.3, "s": "pop", "v": 0.6 }, { "t": 1.4, "s": "type", "v": 0.4 }, { "t": 2.4, "s": "success", "v": 0.7 }, { "t": 3.4, "s": "whoosh", "v": 0.7 }] },
-    { "id": "cut",     "act": "proof",    "min": 4.0, "voAt": 0.15, "vo": "Then it cuts the old cloud. Zero failed requests.",
-      "sfx": [{ "t": 0.5, "s": "cut", "v": 1.0 }, { "t": 2.0, "s": "slam", "v": 0.9 }] },
+    { "id": "fix",     "act": "proof",    "min": 5.4, "voAt": 0.1, "vo": "It fixes the region, retests every call, and tells you it's ready. Before a single byte moves.",
+      "sfx": [{ "t": 0.3, "s": "pop", "v": 0.6 }, { "t": 1.9, "s": "whoosh", "v": 0.6 }, { "t": 2.2, "s": "success", "v": 0.7 }, { "t": -1.6, "s": "slam", "v": 0.8 }] },
     { "id": "hope",    "act": "solution", "min": 2.8, "voAt": 0.3, "vo": "Paul didn't hope his migration would work.",
       "sfx": [{ "t": 0.0, "s": "suck", "v": 0.7 }] },
-    { "id": "proved",  "act": "proof",    "min": 2.4, "voAt": 0.1, "vo": "He proved it.",
+    { "id": "proved",  "act": "proof",    "min": 2.4, "voAt": 0.1, "vo": "He proved it first.",
       "sfx": [{ "t": 0.0, "s": "hit", "v": 1.0 }] },
-    { "id": "end",     "act": "solution", "min": 4.6, "voAt": 0.6, "vo": "RISE. The proof of cloud freedom.",
+    { "id": "end",     "act": "solution", "min": 4.6, "voAt": 0.6, "vo": "Don't hope your migration works. Prove it.",
       "sfx": [{ "t": 0.0, "s": "whoosh", "v": 0.5 }, { "t": 0.55, "s": "boom", "v": 0.9 }, { "t": 2.6, "s": "shimmer", "v": 0.6 }] }
   ],
   "sfx": {
@@ -65,6 +63,7 @@ window.SCRIPT = {
     "shimmer": { "dur": 2.5, "prompt": "magical bright shimmer sparkle tail, airy and uplifting, cinematic logo reveal" }
   },
   "music": {
+    "file": "video/music.mp3", "volume": 0.55,
     "global": ["modern cinematic tech trailer", "hybrid orchestral and synth", "punchy drums", "instrumental", "no vocals"],
     "acts": [
       { "until": "rise",   "styles": ["dark tense pulsing synth", "ticking", "anxious", "minimal", "building suspense"] },

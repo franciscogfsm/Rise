@@ -927,7 +927,7 @@ function App() {
   }, [toggleAgent]);
   const [demo, setDemo] = useState(null);
   const [busy, setBusy] = useState(false);
-  const [view, setView] = useState(null);
+  const [view, setView] = useState(() => new URLSearchParams(location.search).get("step"));  // /demo?step=analyze opens that step (pitch tour)
   const [toastMsg, setToast] = useState(null);
   const toastTimer = useRef();
   const toast = useCallback((m) => { setToast(m); clearTimeout(toastTimer.current); toastTimer.current = setTimeout(() => setToast(null), 6000); }, []);

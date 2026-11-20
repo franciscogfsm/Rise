@@ -92,18 +92,19 @@ Só a AWS é real. Os outros destinos locais são simulados: dizê-lo se aparece
     try { list = await (await fetch(base + "/api/analyses")).json(); } catch { /* the tour still shows the other pages */ }
     const done = (Array.isArray(list) ? list : []).filter(a => a.status === "done");
     const best = done.find(a => a.score?.percent === 100) || done[0];
+    const step = (k, cap) => ({ p: "/demo?step=" + k, cap, o: "50% 25%", z: 1.3, sel: ".stage" });
     this._scenes = [
       { p: "/", cap: "Paste a repo. Say where you want to go.", o: "50% 32%", z: 1.4 },
-      ...(best ? [
-        { p: "/a/" + best.id, cap: "Fetch, scan, AI plan, real tests: every step timed", o: "50% 9%", z: 1.6 },
-        { p: "/a/" + best.id, cap: "The answer, proven on both clouds", o: "35% 20%", z: 1.45 },
-        { p: "/a/" + best.id, cap: "Every S3 call in the code, with file:line", o: "55% 50%", z: 1.6 },
-        { p: "/a/" + best.id, cap: "AI plans the tests. They fail, adapt, pass.", o: "88% 40%", z: 1.6 },
-        { p: "/a/" + best.id, cap: "Every risk, with file:line", o: "45% 60%", z: 1.25, scroll: .5 },
-      ] : []),
+      ...(best ? [{ p: "/a/" + best.id, cap: "Fetch, scan, AI plan, real tests: the answer in seconds", o: "45% 15%", z: 1.35 }] : []),
+      step("discover", "Discover: every S3 call the app really makes"),
+      step("analyze", "AI writes the test plan. RISE validates it."),
+      step("challenge", "Same tests on both clouds"),
+      step("adapt", "One allowed change. Retest."),
+      step("verify", "Data copied, SHA-256 verified"),
+      step("switch", "Switch, then cut the old cloud"),
+      step("prove", "A new operation, without the source"),
       { p: "/replay", cap: "Replay: no code leaves the company", o: "50% 30%", z: 1.3 },
       { p: "/connect", cap: "Real providers. Keys never reach the browser.", o: "50% 30%", z: 1.25 },
-      { p: "/demo", cap: "Live switch: cut the old cloud, traffic keeps flowing", o: "50% 45%", z: 1.2 },
     ];
     this._i = -1;
     this._next = this._load(el, api, 0);
@@ -115,6 +116,15 @@ Só a AWS é real. Os outros destinos locais são simulados: dizê-lo se aparece
     box.className = "scene"; box.innerHTML = `<div class="zoom" style="--o:${sc.o};--z:${sc.z}"></div>`;
     el.querySelector(".app").prepend(box);
     const f = api.frame(box.firstChild, (api.config.apiBase || "") + sc.p, { h: 900, title: "RISE dashboard" });
+    if (sc.sel) f.addEventListener("load", () => setTimeout(() => {
+      try {  // scroll only the app's own scroller (scrollIntoView would also move the slide)
+        const d = f.contentDocument, t = d.querySelector(sc.sel);
+        let s = t?.parentElement;
+        while (s && !(s.scrollHeight > s.clientHeight + 40 && /auto|scroll/.test(getComputedStyle(s).overflowY))) s = s.parentElement;
+        s = s || d.scrollingElement;
+        if (t) s.scrollTop += t.getBoundingClientRect().top - (s === d.scrollingElement ? 0 : s.getBoundingClientRect().top) - 16;
+      } catch { /* stays at the top */ }
+    }, 900));
     if (sc.scroll) f.addEventListener("load", () => setTimeout(() => {
       try {  // same origin: scroll the app's main scroller, as a person would
         const d = f.contentDocument, all = [d.scrollingElement, ...d.querySelectorAll("*")];

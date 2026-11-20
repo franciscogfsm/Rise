@@ -1,5 +1,5 @@
 window.TIMING = {
- "total": 67.699,
+ "total": 65.795,
  "scenes": {
   "paul": {
    "start": 0.0,
@@ -63,33 +63,27 @@ window.TIMING = {
   },
   "fix": {
    "start": 46.913,
-   "dur": 5.104,
+   "dur": 7.743,
    "voAt": 0.1,
-   "voDur": 4.754
-  },
-  "cut": {
-   "start": 52.017,
-   "dur": 4.762,
-   "voAt": 0.15,
-   "voDur": 4.362
+   "voDur": 7.393
   },
   "hope": {
-   "start": 56.78,
+   "start": 54.656,
    "dur": 3.319,
    "voAt": 0.3,
    "voDur": 2.769
   },
   "proved": {
-   "start": 60.099,
+   "start": 57.974,
    "dur": 2.4,
    "voAt": 0.1,
-   "voDur": 1.306
+   "voDur": 1.802
   },
   "end": {
-   "start": 62.499,
-   "dur": 4.6,
+   "start": 60.374,
+   "dur": 4.821,
    "voAt": 0.6,
-   "voDur": 3.239
+   "voDur": 3.971
   }
  }
 };

@@ -70,7 +70,7 @@ The answer comes first: **Ready to migrate**, **Ready · 1 change**, **Partially
 
 | Feature | What it does |
 |---|---|
-| **Code scan** | Finds every S3 call site and behaviour in Python (boto3, aioboto3, MinIO, s3fs/pandas), JavaScript/TypeScript (AWS SDK v2/v3, MinIO), Go, Java, Kotlin, PHP (AWS SDK, Laravel), Ruby, C# and Rust: metadata, ranges, presigned URLs, multipart, tags, SSE, ACLs, storage classes, the signing region. Each finding links to `file:line`. Any call to one of the **116 official S3 API operations** that RISE does not test is listed as *not tested*, never dropped. **Benchmarked on 185 real repositories, 35 M lines, in 40 s: 0 real S3 calls missed** ([benchmark/](benchmark/README.md)). |
+| **Code scan** | Finds every S3 call site and behaviour in Python (boto3, aioboto3, MinIO, s3fs/pandas), JavaScript/TypeScript (AWS SDK v2/v3, MinIO), Go, Java, Kotlin, Scala, PHP (AWS SDK, Laravel), Ruby, C#, Rust, Swift, Dart, C++ and Elixir, including hand-signed SigV4 requests: metadata, ranges, presigned URLs, multipart, tags, SSE, ACLs, storage classes, the signing region. Each finding links to `file:line`. Any call to one of the **116 official S3 API operations** that RISE does not test is listed as *not tested*, never dropped. **Benchmarked on 339 real repositories, 40 M lines, in 84 s: 0 real S3 calls missed** ([benchmark/](benchmark/README.md)). |
 | **AI test plan** | An LLM turns the code evidence into a test plan in **strict JSON schema**. RISE validates it, drops unknown tests, clamps parameters and adds anything the AI missed. |
 | **Real tests** | 13 test kinds run against the reference and the target **at the same time**, with synthetic data. A test passes only if checks on the **real bytes** pass (SHA-256, never ETags). |
 | **Auto-adapt** | When something fails, the AI may propose **one** change from an allow-list (`region`, `addressing_style`). RISE applies it and retests everything. |
@@ -107,7 +107,7 @@ flowchart LR
 | **Adapt** | At most one allowed config change per failure, then a full retest. |
 | **Report** | The answer, a portability score, failures, unsupported features, **untested** items, lock-in, and the proof (`/api/analyses/{id}/proof`). |
 
-**Scanner benchmark.** 185 public repositories (Sentry, Discourse, Airflow, aws-cli, Superset, Ray, Nextcloud, rclone… and 156 top S3 repositories in 10 languages): **35,252,281 lines read in 40.4 s**, 10,444 S3 calls found with `file:line`. An independent check against all 116 operations of the official S3 API found **0 real calls missed**. Data, method and how to reproduce: [benchmark/README.md](benchmark/README.md). All numbers, and RISE against Claude: [benchmark/STATS.md](benchmark/STATS.md).
+**Scanner benchmark.** 339 public repositories (Sentry, Discourse, Airflow, aws-cli, Superset, Ray, Nextcloud, rclone… plus 310 S3 repositories in 17 languages): **40,122,401 lines read in 83.7 s**, 12,958 S3 calls found with `file:line`. An independent check of 14,887 calls against all 116 operations of the official S3 API found **0 real calls missed**. Data, method and how to reproduce: [benchmark/README.md](benchmark/README.md). All numbers, and RISE against Claude: [benchmark/STATS.md](benchmark/STATS.md).
 
 **Speed.** A 10-file TypeScript repository took **11.3 s** from URL to proof (fetch 1.2 s, scan 22 ms, AI plan 9.0 s, 8 real S3 tests 1.1 s). Simple repositories finish in about **6 s**. A three-provider comparison took about **16 s**.
 
@@ -251,7 +251,7 @@ rise/
   config.py     settings from the environment
 web/            React 18 + htm, no build step, works offline (Light Liquid Glass design)
 scripts/        setup · env · providers · run · stop · benchmark
-benchmark/      scanner benchmark: 185 real repos, 35 M lines, every leftover call reviewed
+benchmark/      scanner benchmark: 339 real repos, 40 M lines, every leftover call reviewed
 tests/          119 tests: end-to-end journey on two real S3 servers, scanner accuracy corpus (24 SDK styles), risks, connections, agent, auth
 ```
 
@@ -261,7 +261,7 @@ tests/          119 tests: end-to-end journey on two real S3 servers, scanner ac
 
 - RISE covers one category, **S3 object storage**, with 13 test kinds. Other services are listed as lock-in, not tested. Anything it did not test is listed as **untested** in the proof.
 - Passing shows only that the observed operations work. It does not certify the whole application.
-- The scanner and risk rules are pattern-based. The scanner was checked on 185 real repositories against the official S3 API (see [benchmark/](benchmark/README.md)), but code that reaches S3 without an S3 API call (a hand-built HTTP request) is outside that check. Every finding shows its evidence so you can check.
+- The scanner and risk rules are pattern-based. The scanner was checked on 339 real repositories against the official S3 API (see [benchmark/](benchmark/README.md)), but code that reaches S3 without an S3 API call (a hand-built HTTP request) is outside that check. Every finding shows its evidence so you can check.
 - The cut blocks only the simulated source link. It never touches a real cloud account.
 
 ## License

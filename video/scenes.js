@@ -316,50 +316,18 @@ SCENE("replay", {
     @keyframes markon { from { transform: scaleX(0); } }`,
 });
 
-/* ───────────── 11 · FIX · SHA-256 · SWITCH ───────────── */
+/* ───────────── 11 · FIX · RETEST · READY, BEFORE ANYTHING MOVES ───────────── */
 SCENE("fix", {
-  html: `
-    <div class="layer fx out" style="--at:1.45"><div class="a fx tilt" style="--at:0">${shot("analysis", [898, 276, 338, 114], 1150)}<i class="sweep fx" style="--at:.6"></i></div>
-      <div class="cap fx in" style="--at:.35">region fixed in the config · everything retested</div></div>
-    <div class="layer fx out" style="--at:3.15"><div class="hash fx in" style="--at:1.5">
-      <span class="kick">sha-256 of the real bytes</span>
-      <b class="mono"><span data-type="49d968fbe6…01a503" data-at="1.6" data-cps="22"></span><i class="cur fx blink" style="--at:1.6"></i></b>
-      <div class="pair"><em class="fx pop" style="--at:2.35">written ✓</em><em class="fx pop" style="--at:2.5">read back ✓</em><em class="ok fx pop" style="--at:2.65">match</em></div>
-    </div></div>
-    <div class="c fx tilt" style="--at:3.2">${shot("live-switch", [292, 145, 960, 122], 1600)}</div>
-    ${[0, 1, 2, 3, 4, 5, 6].map((i) => `<i class="pk fx" style="--fx:flow;--d:.8s;--n:infinite;--ease:linear;--at:${(3.6 + i * 0.11).toFixed(2)}"></i>`).join("")}
-    <div class="cap2 fx in" style="--at:3.6">live traffic now served by the destination</div>`,
+  html: (tm) => `
+    <div class="layer fx out" style="--at:1.7"><div class="a fx tilt" style="--at:0">${shot("analysis", [898, 276, 338, 114], 1150)}<i class="sweep fx" style="--at:.6"></i></div>
+      <div class="cap fx in" style="--at:.35">region fixed in the config · every call retested</div></div>
+    <div class="hero fx slam" style="--at:1.85;--from:1.4">${shot("analysis", [292, 110, 960, 105], 1500)}<i class="sweep fx" style="--at:2.5"></i></div>
+    <h2 class="before">${words("Before a single byte moves.", tm.dur - 2.3, .09)}</h2>
+    <div class="foot fx fade" style="--at:${tm.dur - 1.6}">tested against the target cloud · nothing migrated yet</div>`,
   css: `
     .a { position: absolute; left: 385px; top: 270px; } .cap { position: absolute; top: 700px; width: 100%; text-align: center; font: 600 34px/1 var(--f-mono); color: var(--ok); }
-    .hash { position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: 30px; }
-    .hash .kick { color: var(--muted); } .hash b { font-size: 110px; letter-spacing: -.03em; color: var(--ink); display: flex; align-items: center; gap: 8px; }
-    .cur { display: inline-block; width: 8px; height: 100px; background: var(--accent); }
-    .pair { display: flex; gap: 22px; } .pair em { font: 600 30px/1 var(--f-mono); font-style: normal; padding: 16px 26px; border-radius: 999px; background: #fff; box-shadow: inset 0 0 0 1px var(--line); }
-    .pair em.ok { background: var(--ok); color: #fff; }
-    .c { position: absolute; left: 160px; top: 380px; }
-    .pk { position: absolute; top: 478px; left: 0; width: 70px; height: 6px; border-radius: 3px; background: linear-gradient(90deg, transparent, var(--ok)); }
-    .cap2 { position: absolute; top: 720px; width: 100%; text-align: center; font: 600 34px/1 var(--f-mono); color: var(--ok); }`,
-  raw: `@keyframes flow { from { transform: translateX(700px); opacity: 0; } 20% { opacity: 1; } to { transform: translateX(1100px); opacity: 0; } }`,
-});
-
-/* ───────────── 12 · CUT THE OLD CLOUD · 0 FAILED ───────────── */
-SCENE("cut", {
-  html: `
-    <div class="tr fx tilt" style="--at:0">${shot("live-switch", [292, 280, 960, 103], 1600)}</div>
-    <div class="src fx shake" style="--at:.5;--d:.5s"><div class="fx" style="--fx:dead;--d:.6s;--at:.5">${shot("live-switch", [292, 145, 410, 122], 760)}</div></div>
-    <svg class="slash" viewBox="0 0 900 400"><path class="fx draw" style="--at:.45;--d:.25s;--len:1000;--ease:linear" d="M20 380 L880 20"/></svg>
-    <div class="flash fx" style="--at:.5;--d:.3s;background:var(--bad-bg)"></div>
-    <div class="zero fx slam" style="--at:1.9;--from:3"><b>0</b><span>failed requests<br><em>after the source was cut</em></span></div>
-    <div class="foot fx fade" style="--at:2.4">live switch on two local providers, labelled simulated · 284 real requests</div>`,
-  css: `
-    .tr { position: absolute; left: 160px; top: 120px; }
-    .src { position: absolute; left: 160px; top: 470px; }
-    .slash { position: absolute; left: 100px; top: 420px; width: 900px; height: 400px; overflow: visible; }
-    .slash path { stroke: var(--bad); stroke-width: 10; stroke-linecap: round; }
-    .zero { position: absolute; left: 1050px; top: 420px; display: flex; align-items: center; gap: 36px; }
-    .zero b { font: 800 330px/.8 var(--f-ui); color: var(--ok); letter-spacing: -.06em; }
-    .zero span { font: 680 64px/1.05 var(--f-ui); letter-spacing: -.035em; } .zero em { font: 500 26px/1.4 var(--f-mono); color: var(--muted); font-style: normal; }`,
-  raw: `@keyframes dead { to { filter: grayscale(1) blur(1px); opacity: .45; transform: rotate(-3deg) translateY(30px); } }`,
+    .hero { position: absolute; left: 210px; top: 300px; }
+    .before { position: absolute; top: 620px; width: 100%; margin: 0; text-align: center; font: 680 104px/1 var(--f-ui); letter-spacing: -.045em; }`,
 });
 
 /* ───────────── 13 · DIDN'T HOPE ───────────── */
@@ -392,8 +360,9 @@ SCENE("end", {
     <div class="center"><div>
       <div class="lock"><span class="word fx slam" style="--at:.5;--from:1.8">RISE</span><span class="mark"><i class="halo"></i>${LOGO(0.6)}</span></div>
       <i class="horizon fx grow-x" style="--at:.8"></i>
-      <p class="tag"><span class="soft">${words("Don't hope your migration works.", 1.2, .07)}</span> ${words("Prove it.", 1.75, .1)}</p>
-      <p class="meta fx in" style="--at:2.3">open source · Apache-2.0 · built live at InfraHack Portugal 2026</p>
+      <p class="tag"><span class="soft">${words("Don't hope your migration works.", 0.75, .1)}</span> ${words("Prove it.", 2.35, .12)}</p>
+      <p class="sub fx in" style="--at:2.1">Storage compatibility, proven before you migrate.</p>
+      <p class="meta fx in" style="--at:2.5">open source · Apache-2.0 · built live at InfraHack Portugal 2026</p>
     </div></div>
     <i class="sweep fx" style="--at:2.4;--d:1.6s"></i>`,
   css: `
@@ -404,5 +373,6 @@ SCENE("end", {
     .logo { position: relative; display: block; height: 100%; width: auto; overflow: visible; }
     .horizon { width: 1100px; margin: 34px auto 52px; }
     .tag { margin: 0; font: 600 64px/1.1 var(--f-ui); letter-spacing: -.03em; }
-    .meta { margin-top: 34px; font: 500 24px/1 var(--f-mono); color: var(--muted); letter-spacing: .04em; }`,
+    .sub { margin: 30px 0 0; font: 600 34px/1.2 var(--f-mono); color: var(--accent); letter-spacing: -.01em; }
+    .meta { margin-top: 26px; font: 500 24px/1 var(--f-mono); color: var(--muted); letter-spacing: .04em; }`,
 });
