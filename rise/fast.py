@@ -27,9 +27,10 @@ def _noop(_):
     return None
 
 
-def _work(items: list[tuple[str, str]]):
+def _work(args):
+    items, repo_s3 = args
     files = dict(items)
-    r = scan.raw(files)
+    r = scan.raw(files, repo_s3)
     return r, risks.probe(files, r[1])
 
 
@@ -55,7 +56,8 @@ def analyze(files: dict[str, str], parallel: bool | None = None) -> tuple[dict, 
     if parallel is None:
         parallel = chars >= PARALLEL_FROM and WORKERS > 1
     if parallel:
-        parts = list(pool().map(_work, chunks(items, WORKERS * 3)))  # 3 slices per core balances big and small files
+        repo_s3 = scan.repo_uses_s3(files)  # one flag for every slice, so the result equals the single-core path
+        parts = list(pool().map(_work, [(c, repo_s3) for c in chunks(items, WORKERS * 3)]))  # 3 slices per core balances big and small files
         result = scan.finish(scan.merge([p[0] for p in parts]))
         found = risks.find(files, result, risks.merge([p[1] for p in parts]))
     else:

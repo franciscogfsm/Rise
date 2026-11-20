@@ -2,6 +2,7 @@
 nothing is written to disk or executed; only bounded-size text files are read."""
 import io
 import re
+import time
 import zipfile
 
 import httpx
@@ -67,21 +68,25 @@ def fetch(url: str, token: str | None = None) -> dict:
             "Authorization": f"Bearer {token}", "Accept": "application/vnd.github+json"}
     else:
         archive, headers = f"https://github.com/{owner}/{name}/archive/{f'refs/heads/{ref}' if ref else 'HEAD'}.zip", {}
-    buf = io.BytesIO()
-    try:
-        with httpx.stream("GET", archive, headers=headers, follow_redirects=True, timeout=60) as r:
-            if r.status_code in (401, 403) and token:
-                raise RepoError("GitHub rejected the token. It needs read access (Contents: read) to this repository.")
-            if r.status_code == 404:
-                raise RepoError(f"Repository {owner}/{name} not found. If it is private, add a GitHub token with read access."
-                                if not token else f"Repository {owner}/{name} not found, or the token cannot see it.")
-            r.raise_for_status()
-            for chunk in r.iter_bytes():
-                buf.write(chunk)
-                if buf.tell() > MAX_ZIP:
-                    raise RepoError("Repository archive is larger than 200 MB; point RISE at a smaller repo or a sub-tree.")
-    except httpx.HTTPError as e:
-        raise RepoError(f"Could not download the repository: {e}") from e
+    for attempt in range(3):  # big archives sometimes drop mid-stream on GitHub's side: retry before giving up
+        buf = io.BytesIO()
+        try:
+            with httpx.stream("GET", archive, headers=headers, follow_redirects=True, timeout=60) as r:
+                if r.status_code in (401, 403) and token:
+                    raise RepoError("GitHub rejected the token. It needs read access (Contents: read) to this repository.")
+                if r.status_code == 404:
+                    raise RepoError(f"Repository {owner}/{name} not found. If it is private, add a GitHub token with read access."
+                                    if not token else f"Repository {owner}/{name} not found, or the token cannot see it.")
+                r.raise_for_status()
+                for chunk in r.iter_bytes():
+                    buf.write(chunk)
+                    if buf.tell() > MAX_ZIP:
+                        raise RepoError("Repository archive is larger than 200 MB; point RISE at a smaller repo or a sub-tree.")
+            break
+        except httpx.HTTPError as e:
+            if attempt == 2 or (isinstance(e, httpx.HTTPStatusError) and e.response.status_code < 500):
+                raise RepoError(f"Could not download the repository: {e}") from e
+            time.sleep(1 + attempt)
 
     files, skipped = {}, 0
     with zipfile.ZipFile(buf) as z:

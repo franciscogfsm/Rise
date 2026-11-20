@@ -195,7 +195,7 @@ class Journey:
         src = result["source"]
         self._step("analyze", "done")
         self.event("analyze", f"{len(result['tests'])} tests planned · {src['mode']}"
-                              + (f" · {src.get('model')} · {src.get('ms')} ms" if src["mode"] == "live" else ""),
+                              + (f" · {src.get('ms')} ms" if src["mode"] == "live" else ""),
                    source=src)
         return self.snapshot()
 

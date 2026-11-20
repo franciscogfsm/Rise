@@ -42,6 +42,19 @@ const Dot = ({ cls }) => html`<span className=${`sdot ${cls}`}></span>`;
 const Empty = ({ children }) => html`<p className="empty">${children}</p>`;
 const Link = ({ to, go, className, children }) => html`<a href=${to} className=${className} onClick=${(e) => { e.preventDefault(); go(to); }}>${children}</a>`;
 
+// animates a displayed number toward its real value
+function useCount(target, ms = 900) {
+  const [v, setV] = useState(0);
+  useEffect(() => {
+    if (target == null) return;
+    let raf, t0 = performance.now(), from = 0;
+    const step = (t) => { const k = Math.min(1, (t - t0) / ms); setV(Math.round(from + (target - from) * (1 - (1 - k) ** 3))); if (k < 1) raf = requestAnimationFrame(step); };
+    raf = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(raf);
+  }, [target]);
+  return target == null ? null : v;
+}
+
 function Ring({ value, total, color }) {
   const r = 26, c = 2 * Math.PI * r, f = total ? value / total : 0;
   return html`<svg className="ring" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r=${r} className="ring-bg" />
@@ -50,8 +63,7 @@ function Ring({ value, total, color }) {
 
 function SourceBadge({ src }) {
   if (!src) return null;
-  const text = src.mode === "live" ? `AI LIVE · ${src.model} · ${(src.ms / 1000).toFixed(1)} s`
-    : src.mode === "cached" ? `CACHED AI RESULT · ${src.at}` : "RULE-BASED FALLBACK";
+  const text = src.mode === "live" ? `AI · ${(src.ms / 1000).toFixed(1)} s` : src.mode === "cached" ? "cached AI" : "rules";
   return html`<span className=${`src-badge ${src.mode}`} title=${src.live_error || ""}>${text}</span>`;
 }
 
@@ -103,7 +115,7 @@ const ITEM = {
   lifecycle: "Lifecycle rules", "bucket-policy": "Bucket policies", "event-notifications": "Event notifications", "cache-control": "Cache-Control",
 };
 const VERDICT = { pass: ["ok", "verified"], fail: ["bad", "fails"], unsupported: ["warn", "unsupported"], untested: ["idle", "not tested"] };
-const STAGES = [["fetch", "Fetch"], ["scan", "Scan code"], ["plan", "AI plan"], ["test", "Real tests"], ["adapt", "Adapt"], ["report", "Report"]];
+const STAGES = [["fetch", "Fetch"], ["scan", "Scan code"], ["docs", "Read docs"], ["plan", "AI plan"], ["test", "Real tests"], ["adapt", "Adapt"], ["report", "Report"]];
 
 const STATUS = { done: ["ok", "Done"], running: ["run", "Running"], queued: ["idle", "Queued"], error: ["bad", "Failed"] };
 const when = (ts) => (ts ? new Date(ts).toLocaleString([], { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }) : "—");
@@ -128,60 +140,50 @@ const GH_TOKEN = /\b(?:gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,})\
 function Home({ go, toast, recent, conns }) {
   const [text, setText] = useState("");
   const [token, setToken] = useState("");  // stays in this tab: sent once with the analysis, never to /api/intent
-  const [plan, setPlan] = useState(null);
   const [busy, setBusy] = useState("");
   const onText = (v) => {
     const t = v.match(GH_TOKEN);
     if (t) setToken(t[0]);
     setText(t ? v.replace(GH_TOKEN, "").replace(/[ \t]{2,}/g, " ") : v);
-    setPlan(null);
   };
   const understand = async () => {
     setBusy("understand");
     try {
       const p = await api("/api/intent", "POST", { text });
-      if (!p.url) toast("Paste a GitHub repository link, then say where you want to go.");
-      else setPlan(p);
-    } catch (e) { toast(e.message); } finally { setBusy(""); }
-  };
-  const run = async () => {
-    setBusy("run");
-    try {
+      if (!p.url) return toast("Paste a GitHub repository link, then say where you want to go.");
+      const plan = p.missing ? { ...p, targets: [`docs:${p.missing.key}`] } : p;
+      if (!plan.targets.length) return toast("Add the cloud you want to move to in Connections.");
+      setBusy("run");
       const a = await api("/api/analyses", "POST", { url: plan.url, reference: plan.reference, targets: plan.targets, goal: plan.goal, token: token || null });
-      setToken(""); setText(""); setPlan(null);
+      setToken(""); setText("");
       go(a.compare ? `/c/${a.compare}` : `/a/${a.id}`);
     } catch (e) { toast(e.message); } finally { setBusy(""); }
   };
-  const submit = () => (plan ? run() : text.trim() && understand());
-  const setRef = (r) => setPlan({ ...plan, reference: r, targets: plan.targets.filter((x) => x !== r) });
-  const toggle = (id) => setPlan({ ...plan, targets: plan.targets.includes(id) ? plan.targets.filter((x) => x !== id) : [...plan.targets, id].slice(-4) });
+  const submit = () => text.trim() && !busy && understand();
   const groups = new Set();
   const rows = recent.filter((a) => !a.group || (!groups.has(a.group) && groups.add(a.group)));
   return html`<${Fragment}>
-    <header className="head"><h1>Will my code survive another cloud?</h1></header>
-    <form className="card glass ask" onSubmit=${(e) => { e.preventDefault(); submit(); }}>
+    <section className="hero">
+      <span className="hero-tag"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8zM19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/></svg>RISE AI</span>
+      <h1>Will your code survive another cloud?</h1>
+      <p>Paste a repository, say where you want to go. Proof in seconds.</p>
+    </section>
+    <form className=${`ask${busy ? " thinking" : ""}`} onSubmit=${(e) => { e.preventDefault(); submit(); }}>
+     <div className="ask-in">
       <textarea value=${text} rows="2" autoFocus aria-label="Repository and goal" onInput=${(e) => onText(e.target.value)}
         onKeyDown=${(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); submit(); } }}
-        placeholder="Paste a GitHub repo and say where you want to go" />
+        placeholder="github.com/acme/shop: leave AWS for a European cloud" />
       <div className="ask-bar">
-        ${token ? html`<span className="pill-lock">Private repo · token hidden, used once, never sent to the AI</span>`
-          : !text && html`<span className="examples">${EXAMPLES.map(([l, t]) => html`<button key=${l} type="button" onClick=${() => onText(t)}>${l}</button>`)}</span>`}
+        ${token ? html`<span className="pill-lock"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>Token hidden · used once, never sent to the AI</span>`
+          : html`<span className="ask-hint">${busy === "understand" ? "Understanding where you want to go…" : busy === "run" ? "Starting the check…" : "Say the migration · RISE checks everything"}</span>`}
         <span className="grow"></span>
-        <button className="btn go" type="submit" disabled=${!!busy || !text.trim() || (plan && !plan.targets.length)}>
-          ${busy === "understand" ? "Understanding…" : busy === "run" ? "Starting…" : plan ? (plan.targets.length > 1 ? `Compare ${plan.targets.length} clouds` : "Check now") : "Go"}</button>
+        <button className="send" type="submit" aria-label="Check" disabled=${!!busy || !text.trim()}>
+          ${busy ? html`<span className="dots"><i></i><i></i><i></i></span>`
+            : html`<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M6 11l6-6 6 6"/></svg>`}</button>
       </div>
-      ${plan && html`<div className="plan-w">
-        <span className="pw"><small>Repo</small><b>${plan.url.replace(/^https:\/\/github\.com\//, "")}</b></span>
-        <label className="pw"><small>From</small><select value=${plan.reference} onChange=${(e) => setRef(e.target.value)}>
-          ${(conns || []).map((c) => html`<option key=${c.id} value=${c.id}>${c.name}</option>`)}</select></label>
-        <span className="arrow" aria-hidden="true">→</span>
-        <div className="tgts">${(conns || []).filter((c) => c.id !== plan.reference).map((c) => html`<button key=${c.id} type="button"
-          className=${plan.targets.includes(c.id) ? "on" : ""} onClick=${() => toggle(c.id)}>
-          <span className="tick">${plan.targets.includes(c.id) ? "✓" : ""}</span>${c.name}${c.simulated ? html`<i>sim</i>` : ""}</button>`)}
-          <button type="button" className="add" onClick=${() => go("/connect")}>+ Cloud</button></div>
-        <span className="pw-by">${plan.by === "ai" ? `Understood by AI · ${(plan.ai?.ms / 1000).toFixed(1)} s · ${plan.ai?.tokens ?? "?"} tokens` : "Default route"}</span>
-      </div>`}
+     </div>
     </form>
+    ${!text && html`<div className="try">Try${EXAMPLES.map(([l, t]) => html`<button key=${l} type="button" onClick=${() => onText(t)}>${l}</button>`)}</div>`}
     <section className="card glass grow">
       <div className="card-h"><h2>All analyses</h2><span className="chip">${rows.length}</span></div>
       <div className="card-b">${rows.length ? html`<table className="tbl">
@@ -239,8 +241,8 @@ function Briefing({ a }) {
   return html`<section className="card glass brief" style=${{ flex: 1 }}>
     <div className="card-h"><h2>What RISE sees</h2><span className="grow"></span>${b && html`<${SourceBadge} src=${b.source} />`}</div>
     <div className="card-b">
-      ${b ? html`<div className="b-head">${b.headline}</div><p className="b-exp">${b.explanation}</p>
-        ${b.actions?.length > 0 && html`<ol className="b-acts">${b.actions.map((x, i) => html`<li key=${i}><b>${x.title}</b><span>${x.detail}</span></li>`)}</ol>`}`
+      ${b ? html`<div className="b-head" title=${b.explanation}>${b.headline}</div>
+        ${b.actions?.length > 0 && html`<ol className="b-acts">${b.actions.map((x, i) => html`<li key=${i} title=${x.detail} style=${{ animationDelay: `${i * 80}ms` }}><b>${x.title}</b></li>`)}</ol>`}`
         : html`<${Empty}>${a.status === "error" ? "—" : "The AI is reading your code…"}<//>`}
       ${R.length > 0 && html`<div className="risks"><div className="colh"><span>Risks found in the code</span><span>${R.length}</span></div>
         ${R.map((r) => html`<details key=${r.id} className="risk">
@@ -259,15 +261,15 @@ function blobUrl(a, file, line) {
   return `${base}/blob/${ref}/${file.split("/").map(encodeURIComponent).join("/")}#L${line}`;
 }
 
-function TestRow({ t, r, x }) {
+function TestRow({ t, r, x, b, fix, n = 0 }) {
   const failed = [...(x?.checks || []), ...(r?.checks || [])].filter((c) => !c.ok);
   const bad = x && x.status !== "pass";
-  const Res = ({ v }) => v ? html`<span className=${`res ${v.status}`}>${v.status.toUpperCase()}</span>` : html`<span className="res untested">—</span>`;
-  return html`<div className=${`trow ${bad ? "bad" : ""}`}>
-    <div className="tt" title=${t.rationale || ""}><b>${t.title}</b><div className="k">${t.id} · ${t.kind} · ${t.origin}</div></div>
+  const Res = ({ v }) => v ? html`<span key=${v.status} className=${`res ${v.status}`}>${v.status.toUpperCase()}</span>` : html`<span className="res wait"><i></i></span>`;
+  return html`<div className=${`trow ${bad ? "bad" : ""}`} style=${{ animationDelay: `${n * 70}ms` }}>
+    <div className="tt" title=${`${t.kind} · ${t.origin}`}><b>${t.title}</b>${t.rationale && html`<div className="why">${t.rationale}</div>`}
+      ${b && b.status !== "pass" && x?.status === "pass" && html`<div className="rescued">Failed first · fixed by <code>${fix}</code></div>`}</div>
     <${Res} v=${r} /><${Res} v=${x} />
     ${bad && html`<div className="tc">
-      ${t.rationale && html`<div className="why">${t.rationale}</div>`}
       ${bad && x.error && html`<div className="err">${x.error.code}${x.error.status ? ` · HTTP ${x.error.status}` : ""} · ${x.error.message}</div>`}
       ${bad && (x.checks || []).filter((c) => !c.ok).map((c, i) => html`<div key=${i} className="err">${c.name}: expected ${JSON.stringify(c.expected)}, got ${JSON.stringify(c.actual)}</div>`)}
     </div>`}
@@ -279,19 +281,23 @@ function TestRow({ t, r, x }) {
 function Verdict({ a, onAsk }) {
   if (a.status === "error") return null;
   const P = a.providers || [], tgt = P[1]?.name || "target";
-  if (a.status !== "done") return html`<section className="verdict run glass"><span className="v-mark"><i></i></span>
-    <div className="v-txt"><h2>Verifying</h2><p>${tgt}</p></div></section>`;
+  if (a.status !== "done") {
+    const stage = STAGES.find(([k]) => a.stages?.[k] === "running");
+    const last = a.events?.[a.events.length - 1];
+    return html`<section className="verdict run glass"><span className="orb"><i></i></span>
+      <div className="v-txt"><h2 key=${stage?.[0]}>${stage ? stage[1] : "Starting"}…</h2><p key=${last?.msg}>${last?.msg || `Checking ${tgt}`}</p></div></section>`;
+  }
   const s = a.score, D = a.decision;
   if (!D) return null;
   const bad = D.failing, open = D.untested, lock = (a.lockin || []).map((l) => l.service), ch = D.change;
-  const [kind, mark] = { ready: ["ok", "✓"], ready_with_change: ["ok", "✓"], partial: ["warn", "!"], not_ready: ["bad", "✗"] }[D.kind] || ["none", "–"];
+  const [kind, mark] = { ready: ["ok", "✓"], ready_with_change: ["ok", "✓"], partial: ["warn", "!"], not_ready: ["bad", "✗"], documented: ["warn", "?"] }[D.kind] || ["none", "–"];
   const title = D.title;
   const tag = (cls, t) => html`<span className=${`v-tag ${cls}`}>${t}</span>`;
   return html`<section className=${`verdict ${kind} glass`}>
-    <span className="v-mark">${mark}</span>
+    <span className="v-mark">${kind === "ok" ? html`<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>` : mark}</span>
     <div className="v-txt">
       <h2>${title}</h2>
-      <p>${s?.total ? `${s.verified}/${s.total} verified on ${tgt}` : "Nothing to test"}${a.duration_ms ? ` · ${secs(a.duration_ms)}` : ""}</p>
+      <p>${D.kind === "documented" ? `From ${a.docs.pages.length} official ${tgt} pages · nothing tested yet` : s?.total ? `${s.verified}/${s.total} verified on ${tgt}` : "Nothing to test"}${a.duration_ms ? ` · ${secs(a.duration_ms)}` : ""}</p>
       <div className="v-tags">
         ${ch && html`<span className="v-tag fix"><code>${ch.key}</code> ${ch.from} → <b>${ch.to}</b></span>`}
         ${bad.map((k) => tag("bad", ITEM[k] || k))}
@@ -318,24 +324,65 @@ function Analysis({ id, tick, go, onAsk }) {
   const tgt = Object.fromEntries((R?.target || []).map((r) => [r.test_id, r]));
   const ev = a.scan?.evidence || [];
   const items = Object.keys(a.verdict || {}).length ? Object.keys(a.verdict) : (a.profile?.items || []);
-  const last = a.events?.[a.events.length - 1];
   const pctColor = s?.percent == null ? null : s.percent >= 90 ? "var(--ok)" : s.percent >= 60 ? "var(--warn)" : "var(--bad)";
   const P = a.providers || [];
+  return html`<${AnalysisView} a=${a} s=${s} plan=${plan} refs=${ref} tgt=${tgt} ev=${ev} items=${items} pctColor=${pctColor} P=${P} go=${go} onAsk=${onAsk} />`;
+}
+
+// What the destination's official docs say about each behaviour the code uses; quotes are verified verbatim server-side
+const DOC = { documented: ["ok", "✓", "documented"], limit: ["warn", "!", "limit"], not_found: ["idle", "?", "not in docs"] };
+function Docs({ a }) {
+  const d = a.docs, host = (u) => u.replace(/^https?:\/\//, "").split("/")[0];
+  if (!d) return html`<section className="card glass docs"><div className="card-h"><h2>Official docs</h2></div>
+    <div className="card-b"><${Empty}>${a.stages.docs === "fail" ? "Documentation could not be read." : "Reading the provider's documentation…"}<//></div></section>`;
+  const n = d.findings.filter((f) => f.status === "documented").length;
+  return html`<section className="card glass docs">
+    <div className="card-h"><h2>${d.name.split(" ")[0]} docs</h2><span className="grow"></span><span className="chip">${n}/${d.findings.length} documented</span></div>
+    <div className="card-b">
+      ${d.region_mismatch && html`<div className="doc-row warn"><i>!</i><div><b>Region <s>${d.code_region}</s> → ${d.regions.slice(0, 3).join(", ")}…</b>
+        <span>Your code signs for ${d.code_region}; the docs only list ${d.regions.join(", ")}.</span></div></div>`}
+      ${d.findings.map((f, i) => {
+        const [cls, mark, label] = DOC[f.status] || DOC.not_found, v = a.verdict?.[f.item];
+        return html`<div key=${f.item} className=${`doc-row ${cls}`} style=${{ animationDelay: `${i * 70}ms` }}><i>${mark}</i>
+          <div><b>${ITEM[f.item] || f.item}</b>${f.quote ? html`<q>${f.quote}</q>` : html`<span>${label}${v === "pass" ? " · proven by RISE's test" : ""}</span>`}</div>
+          ${f.url ? html`<a href=${f.url} target="_blank" rel="noopener" title=${f.url}>${host(f.url)} ↗</a>` : html`<span></span>`}</div>`;
+      })}
+      <div className="doc-foot">${d.cached ? `cached copy · ${d.fetched_at.slice(0, 10)}` : `read live · ${d.pages.length} official pages`} · quotes checked word for word <${SourceBadge} src=${d.source} /></div>
+    </div>
+  </section>`;
+}
+
+function Adapt({ a, name }) {
+  const ad = a.adaptation, p = ad.proposal, B = a.results_before_adaptation || [];
+  const failed = B.filter((r) => r.status !== "pass").length, ok = ad.applied && ad.retest.passed === ad.retest.total;
+  const short = (n) => n.split(" · ")[0];
+  return html`<div className="adapt">
+    <div className="ad-step bad" title=${p.diagnosis}><i>✗</i><div><b>${B.length ? `${failed}/${B.length} failed on ${short(name)}` : `Failed on ${short(name)}`}</b>
+      <span>${p.diagnosis}</span></div><${SourceBadge} src=${p.source} /></div>
+    ${ad.applied ? html`<div className="ad-step fix"><i>↻</i><div><b>Changed <code>${p.key}</code> <s>${ad.before[p.key]}</s> → <em>${p.value}</em></b></div></div>
+      <div className=${`ad-step ${ok ? "ok" : "bad"}`}><i>${ok ? "✓" : "✗"}</i><div><b>Retested · ${ad.retest.passed}/${ad.retest.total} pass</b></div></div>`
+      : html`<div className="ad-step bad"><i>!</i><div><b>No safe setting fixes it</b></div></div>`}
+  </div>`;
+}
+
+function AnalysisView({ a, s, plan, refs: ref, tgt, ev, items, pctColor, P, go, onAsk }) {
+  const pct = useCount(s?.percent);
+  const before = Object.fromEntries((a.results_before_adaptation || []).map((r) => [r.test_id, r]));
   return html`<${Fragment}>
     <header className="head">
       <h1><${Link} to="/" go=${go} className="crumb">Analyses<//><span className="sep">/</span>${a.repo.owner}/${a.repo.name}</h1>
       <${Pill} cls=${(STATUS[a.status] || ["idle"])[0]}>${(STATUS[a.status] || [0, a.status])[1]}<//>
-      <span className="meta">${a.repo.local ? `Local folder · ${a.repo.name}` : html`<a className="ext" href=${a.url} target="_blank" rel="noopener">GitHub ↗</a>`}${a.repo.commit ? ` · ${a.repo.commit.slice(0, 8)}` : ""}${a.repo.files ? ` · ${a.repo.files} files` : ""}${P.length ? ` · ${P[0].name} → ${P[1].name}` : ""}${a.status === "error" ? html` · <span className="badc">${a.error}</span>` : a.status !== "done" ? ` · ${last ? last.msg : "queued"}` : ""}</span>
+      <span className="meta">${a.repo.local ? `Local folder · ${a.repo.name}` : html`<a className="ext" href=${a.url} target="_blank" rel="noopener">GitHub ↗</a>`}${P.length ? ` · ${P[0].name} → ${P[1].name}` : ""}${a.status === "error" ? html` · <span className="badc">${a.error}</span>` : ""}</span>
       <div className="actions">
         <button className="btn sm" type="button" onClick=${() => go("/")}>New analysis</button>
       </div>
     </header>
 
-    <div className=${`track ${a.status === "done" ? "quiet" : ""}`}>${STAGES.map(([k, l]) => {
+    <div className=${`track ${a.status === "done" ? "quiet" : ""}`}>${STAGES.filter(([k]) => a.stages[k] && a.stages[k] !== "skipped" || k !== "docs").map(([k, l]) => {
       const st = a.stages[k];
       const msg = [...(a.events || [])].reverse().find((e) => e.stage === k)?.msg;
       const ms = a.stage_ms?.[k];
-      return html`<div key=${k} className=${`tstage ${st}`}><span className="tn">${l}${ms != null && html`<span className="t-ms">${secs(ms)}</span>`}</span><span className="tm">${msg || (st === "todo" ? "waiting" : st)}</span></div>`;
+      return html`<div key=${k} className=${`tstage ${st}`}><span className="tn">${l}${ms != null && html`<span className="t-ms">${secs(ms)}</span>`}</span><span className="tm">${msg || ""}</span></div>`;
     })}</div>
 
     <${Verdict} a=${a} onAsk=${onAsk} />
@@ -346,12 +393,12 @@ function Analysis({ id, tick, go, onAsk }) {
           <div className="card-h"><h2>Portability</h2><span className="grow"></span>${a.status === "running" && html`<${Pill} cls="run">running<//>`}</div>
           <div className="score">
             <div className="ring-wrap"><${Ring} value=${s?.verified || 0} total=${s?.total || 1} color=${pctColor} />
-              <span className="ring-n">${s?.percent == null ? "—" : `${s.percent}%`}</span></div>
+              <span className="ring-n">${pct == null ? "—" : `${pct}%`}</span></div>
             <div className="tally">
-              <div><b>${s ? `${s.verified}/${s.total}` : "—"}</b>verified on target</div>
-              <div><b className=${s?.failed ? "bad-t" : ""}>${s?.failed ?? "—"}</b>fail</div>
-              <div><b>${s?.unsupported ?? "—"}</b>unsupported</div>
-              <div><b>${s?.untested ?? "—"}</b>not tested</div>
+              <div><b>${s ? `${s.verified}/${s.total}` : "—"}</b>verified</div>
+              ${s?.failed > 0 && html`<div><b className="bad-t">${s.failed}</b>fail</div>`}
+              ${s?.unsupported > 0 && html`<div><b>${s.unsupported}</b>unsupported</div>`}
+              ${s?.untested > 0 && html`<div><b>${s.untested}</b>not tested</div>`}
             </div>
           </div>
           <div className="why" hidden>${P.length ? html`Reference <b>${P[0].name}</b> vs target <b>${P[1].name}</b>${P.some((p) => p.simulated) ? " (simulated providers)" : ""}. Code signs requests for region <b>${a.code_region?.value || "—"}</b>.` : ""}</div>
@@ -359,34 +406,31 @@ function Analysis({ id, tick, go, onAsk }) {
         <${Briefing} a=${a} />
       </div>
 
+      <div className="stack">
       <section className="card glass">
         <div className="card-h"><h2>Found in your code</h2><span className="grow"></span>
-          ${a.speed && html`<span className="chip">${a.speed.lines.toLocaleString("en")} lines read in ${a.speed.ms < 1000 ? `${Math.round(a.speed.ms)} ms` : `${(a.speed.ms / 1000).toFixed(1)} s`} · ${a.speed.cores} core${a.speed.cores > 1 ? "s" : ""}</span>`}
-          ${a.scan && html`<span className="chip">${Object.values(a.scan.operations).reduce((x, y) => x + y, 0)} S3 call sites · ${a.scan.s3_files.length} files</span>`}</div>
-        <div className="card-b">${items.length ? items.map((it) => {
+          ${a.speed && html`<span className="chip speed" title=${`${a.speed.files} files · ${a.speed.cores} core(s)`}>${a.speed.lines.toLocaleString("en")} lines · ${a.speed.ms < 1000 ? `${Math.round(a.speed.ms)} ms` : `${(a.speed.ms / 1000).toFixed(1)} s`}</span>`}</div>
+        <div className="card-b">${items.length ? items.map((it, n) => {
           const v = a.verdict?.[it];
-          const lines = ev.filter((e) => e.item === it).slice(0, 3);
-          return html`<div key=${it} className="item">
-            <div className="item-h"><b>${ITEM[it] || it}</b><span className="k">${it}</span><span className="grow"></span>
+          const lines = ev.filter((e) => e.item === it).slice(0, 1);
+          return html`<div key=${it} className="item" style=${{ animationDelay: `${n * 70}ms` }}>
+            <div className="item-h"><b>${ITEM[it] || it}</b><span className="grow"></span>
               ${v ? html`<${Pill} cls=${VERDICT[v][0]}>${VERDICT[v][1]}<//>` : html`<${Pill} cls="idle">pending<//>`}</div>
             ${lines.map((e, i) => html`<div key=${i} className="ev-line"><a href=${blobUrl(a, e.file, e.line)} target="_blank" rel="noopener" title=${`${e.file}:${e.line}`}>${e.file.split("/").pop()}:${e.line}</a><code>${e.code}</code></div>`)}
           </div>`;
         }) : html`<${Empty}>${a.scan ? "No object-storage usage found in this repository." : "Scanning…"}<//>`}</div>
       </section>
+      ${a.docs_for && html`<${Docs} a=${a} />`}
+      </div>
 
       <section className="card glass">
         <div className="card-h"><h2>Tests</h2><span className="grow"></span><${SourceBadge} src=${plan?.source} /></div>
         <div className="card-b">
-          ${(plan?.validator || []).length > 0 && html`<div className="note" title=${plan.validator.join(" · ")}>${plan.validator.length} test(s) added by the RISE validator</div>`}
-          ${a.adaptation && html`<div className="adapt">
-            <div className="card-h"><b>Adaptation</b><span className="grow"></span><${SourceBadge} src=${a.adaptation.proposal.source} /></div>
-            <div className="why">${a.adaptation.proposal.diagnosis}</div>
-            ${a.adaptation.applied && html`<div className="diff"><span className="minus">−</span><span className="minus">${a.adaptation.proposal.key} = ${a.adaptation.before[a.adaptation.proposal.key]}</span>
-              <span className="plus">+</span><span className="plus">${a.adaptation.proposal.key} = ${a.adaptation.proposal.value}</span></div>
-              <div><${Pill} cls=${a.adaptation.retest.passed === a.adaptation.retest.total ? "ok" : "bad"}>retest ${a.adaptation.retest.passed}/${a.adaptation.retest.total}<//></div>`}
-          </div>`}
-          ${plan ? html`<div className="colh"><span>test</span><span>reference</span><span>target</span></div>
-            ${plan.tests.map((t) => html`<${TestRow} key=${t.id} t=${t} r=${ref[t.id]} x=${tgt[t.id]} />`)}`
+          ${a.adaptation && html`<${Adapt} a=${a} name=${P[1]?.name || "target"} />`}
+          ${plan ? html`<div className="colh tcols"><span>What we check</span><span title=${P[0]?.name}>${P[0]?.name.split(" ")[0] || "from"}</span><span title=${P[1]?.name}>${P[1]?.name.split(" ")[0] || "to"}</span></div>
+            ${plan.tests.map((t, n) => html`<${TestRow} key=${t.id} n=${n} t=${t} r=${ref[t.id]} x=${tgt[t.id]} b=${before[t.id]} fix=${a.adaptation?.proposal?.key} />`)}`
+            : P[1]?.docs_only ? html`<div className="docs-cta"><b>Not proven yet</b><span>Documentation is a promise. Connect ${P[1].name} and RISE runs the same tests for real.</span>
+                <button type="button" className="btn sm" onClick=${() => go("/connect")}>Connect ${P[1].name.split(" ")[0]}</button></div>`
             : html`<${Empty}>${a.stages.plan === "skipped" ? "No storage behaviour to test." : "The AI test plan appears here."}<//>`}
         </div>
       </section>
@@ -629,7 +673,7 @@ function StepView({ k, S }) {
   switch (k) {
     case "connect": return html`<dl className="kv">${S.providers.map((pr) => html`<${Fragment} key=${pr.id}><dt>${pr.id}</dt>
       <dd>${pr.name} · ${pr.endpoint} · ${S.health?.[pr.id]?.ok ? html`<span className="okc">reachable</span>` : html`<span className="badc">${S.health?.[pr.id]?.error?.message || "unknown"}</span>`}</dd><//>`)}
-      <dt>link</dt><dd>${S.health?.link?.result}</dd><dt>AI</dt><dd>${S.ai.model} · ${S.ai.configured ? "key configured" : "no key"}</dd></dl>`;
+      <dt>link</dt><dd>${S.health?.link?.result}</dd><dt>AI</dt><dd>${S.ai.configured ? "key configured" : "no key"}</dd></dl>`;
     case "discover": {
       const ops = Object.entries(p.operations).sort((x, y) => y[1] - x[1]);
       return p.observed_calls ? html`<div className="split2"><table><thead><tr><th>Operation</th><th>Calls</th></tr></thead>

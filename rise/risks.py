@@ -67,6 +67,10 @@ def find(files: dict[str, str], scan: dict, hits: dict | None = None) -> list[di
     if ev := h["keys"]:
         add("hardcoded-keys", "high", "Cloud keys written in the code",
             "Anyone with the repository can use these keys. Revoke them and load keys from the environment.", ev)
+    if un := scan.get("unrecognised"):
+        add("untested-calls", "medium", f"{len(un)} storage call{'s' if len(un) != 1 else ''} RISE does not test",
+            f"RISE found these calls but has no real test for them: {', '.join(sorted(un)[:8])}. Check each one on the target "
+            "by hand before you move.", [e for e in scan["evidence"] if e["category"] == "unrecognised"][:6])
     if scan.get("uses_s3"):
         if not h["fallback"]:
             n = len(scan.get("s3_files") or [])

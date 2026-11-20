@@ -12,11 +12,11 @@ import time
 import uuid
 from concurrent.futures import ThreadPoolExecutor
 
-from . import ai, config as C, fast, repo, scan as scanner
+from . import ai, config as C, docs, fast, repo, scan as scanner
 from .engine import COVERABLE, KINDS, TestSpec, run as run_test
 from .storage import make_client
 
-STAGES = ["fetch", "scan", "plan", "test", "adapt", "report"]
+STAGES = ["fetch", "scan", "docs", "plan", "test", "adapt", "report"]
 POOL = ThreadPoolExecutor(max_workers=24, thread_name_prefix="rise-test")  # S3 calls are I/O-bound: run them all at once
 STORE = C.DATA / "analyses"
 STORE.mkdir(parents=True, exist_ok=True)
@@ -66,8 +66,9 @@ class Analyses:
                 continue
 
     # ---------- public API ----------
-    def start(self, url: str, ref_p: C.Provider, tgt_p: C.Provider, token: str | None = None, goal: str = "",
-              group: str | None = None, local: dict | None = None) -> dict:
+    def start(self, url: str, ref_p: C.Provider, tgt_p: C.Provider | None, token: str | None = None, goal: str = "",
+              group: str | None = None, local: dict | None = None, docs_key: str | None = None) -> dict:
+        """tgt_p None = the destination is not connected yet: RISE reads its documentation only (docs_key)."""
         if local:  # files from the local MCP client, already filtered by repo.local
             owner, name, ref, url = "local", local["name"], "local", local["url"]
         else:
@@ -78,8 +79,13 @@ class Analyses:
         a = {"id": aid, "url": url,
              "repo": {"owner": owner, "name": name, "ref": ref or "HEAD", "local": bool(local)}, "status": "queued", "stage": None,
              "stages": {s: "todo" for s in STAGES}, "created": now(), "events": [],
-             "providers": [ref_p.describe() | {"role": "reference"}, tgt_p.describe() | {"role": "target"}],
+             "providers": [ref_p.describe() | {"role": "reference"}, tgt_p.describe() | {"role": "target"} if tgt_p else
+                           {"id": f"docs:{docs_key}", "name": docs.PROVIDERS[docs_key]["name"], "simulated": False,
+                            "docs_only": True, "role": "target"}],
              "goal": goal[:300], "group": group, "private": bool(token)}
+        # read the destination's docs when it is a provider RISE knows (by connection, or named in the goal)
+        a["docs_for"] = docs_key or (docs.of_connection(a["providers"][1]) if tgt_p else None) \
+            or (docs.detect(goal) if tgt_p and not tgt_p.simulated else None)
         with self.lock:
             self.items[aid] = a
             self._save(a)
@@ -179,10 +185,10 @@ class Analyses:
         fast_note = f"{speed['lines']:,} lines in {speed['ms']:,.0f} ms on {speed['cores']} core{'s' if speed['cores'] > 1 else ''} · "
         # the plain-language briefing is written while the test plan is written: it adds no time
         brief_f = POOL.submit(ai.brief, a.get("goal") or "", result, risks, a["providers"])
-        if not result["uses_s3"]:
+        if not result["uses_s3"] and not result["unrecognised"]:
             self._stage(aid, "scan", "done", fast_note + f"No S3 object-storage calls found in {len(files)} files; "
                                              f"{len(result['lockin'])} other cloud services detected")
-            for s in ("plan", "test", "adapt"):
+            for s in ("docs", "plan", "test", "adapt"):
                 self._stage(aid, s, "skipped")
             self._update(aid, brief=brief_f.result())
             self._report(aid)
@@ -190,8 +196,38 @@ class Analyses:
         self._stage(aid, "scan", "done", fast_note + f"{sum(result['operations'].values())} S3 call sites, "
                                          f"{len(prof['items'])} behaviours, {len(result['lockin'])} other services")
 
+        # DOCS (in parallel with the plan): what the destination's official documentation says about each behaviour
+        key = a.get("docs_for")
+        docs_f = None
+        if key:
+            self._stage(aid, "docs", "running", f"Reading {docs.PROVIDERS[key]['name']} documentation")
+            docs_f = POOL.submit(docs.check, key, prof["items"], code_region)
+        else:
+            self._stage(aid, "docs", "skipped")
+
+        def docs_done():
+            if not docs_f:
+                return
+            try:
+                d = docs_f.result()
+            except Exception as e:  # noqa: BLE001 — docs are extra evidence; tests still decide
+                self._stage(aid, "docs", "fail", f"Documentation unavailable: {e}")
+                return
+            n = sum(f["status"] == "documented" for f in d["findings"])
+            self._update(aid, docs=d)
+            self._stage(aid, "docs", "done", f"{n}/{len(d['findings'])} behaviours documented by {d['name']}"
+                        + (f" · docs list regions {', '.join(d['regions'][:3])}… code signs {code_region}" if d["region_mismatch"] else ""))
+
+        if T is None:  # not connected: documentation only, said plainly
+            docs_done()
+            for s in ("plan", "test", "adapt"):
+                self._stage(aid, s, "skipped", f"Connect {a['providers'][1]['name']} to prove it with real tests" if s == "test" else None)
+            self._update(aid, brief=brief_f.result())
+            self._report(aid)
+            return
+
         # PLAN
-        self._stage(aid, "plan", "running", f"AI is writing the test plan ({C.OPENROUTER_MODEL})")
+        self._stage(aid, "plan", "running", "AI is writing the test plan")
         app_cfg = {"target": {"region": code_region, "addressing_style": "path"}}
         plan = ai.plan(prof, a["providers"], app_cfg, result["evidence"])
         self._update(aid, plan=plan, app_config=app_cfg)
@@ -236,6 +272,7 @@ class Analyses:
             self._update(aid, adaptation=record)
         else:
             self._stage(aid, "adapt", "skipped", "Nothing to adapt: the target passed every test")
+        docs_done()
         self._update(aid, brief=brief_f.result())
         self._report(aid)
 
@@ -254,6 +291,8 @@ class Analyses:
                 continue
             statuses = {target.get(t["id"], {}).get("status", "untested") for t in covering}
             verdict[item] = "pass" if statuses == {"pass"} else "unsupported" if "unsupported" in statuses else "fail"
+        for call in (a.get("scan") or {}).get("unrecognised") or {}:  # storage calls RISE has no test for: never "ready"
+            verdict[call] = "untested"
         n = len(verdict) or 1
         passed = sum(v == "pass" for v in verdict.values())
         score = {"verified": passed, "total": len(verdict), "percent": round(100 * passed / n) if verdict else None,
@@ -262,6 +301,10 @@ class Analyses:
                  "untested": sum(v == "untested" for v in verdict.values()),
                  "lockin_services": len(a.get("lockin") or [])}
         self._update(aid, verdict=verdict, score=score, untested=[k for k, v in verdict.items() if v == "untested"])
-        self._update(aid, decision=decide(score, verdict, a.get("adaptation")))
+        D = decide(score, verdict, a.get("adaptation"))
+        if a["providers"][1].get("docs_only") and a.get("docs") and D["kind"] != "no_storage":
+            f = a["docs"]["findings"]
+            D |= {"kind": "documented", "title": f"{sum(x['status'] == 'documented' for x in f)}/{len(f)} documented · not yet proven"}
+        self._update(aid, decision=D)
         self._stage(aid, "report", "done", f"{passed}/{len(verdict)} storage behaviours verified on the target"
                                            f" · {score['lockin_services']} other cloud services to plan for")

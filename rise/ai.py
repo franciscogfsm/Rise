@@ -68,13 +68,15 @@ Rules:
 - Use only catalogue kinds. Parameters must mirror what the app really does (content types, metadata keys, prefixes, sizes, non-ASCII keys).
 - Every observed operation/feature must be covered by a test, or listed in not_covered with a reason.
 - risks: concrete portability risks for this app and these providers (e.g. client signing region vs provider region, metadata handling, presigned URLs, key encoding). Never claim a result: tests decide.
+- rationale: ONE plain sentence, max 16 words, for a non-expert: what breaks for the app's users if this test fails. No API names.
 - summary: ONE sentence, max 30 words, stating what the app depends on and the single biggest portability risk. No preamble.
 - Max 12 tests. ids short like t1. Unused params = null. JSON only."""
 
 ADAPT_SYSTEM = """You are the adaptation engine of RISE. Some compatibility tests failed against the destination.
 Propose ONE configuration change to the application's S3 client for the destination, chosen only from
 allowed_changes, that addresses the root cause. If no allowed change fits, use key "none".
-Base the diagnosis on the error codes/messages and the provider description. JSON only."""
+Base the diagnosis on the error codes/messages and the provider description.
+diagnosis: ONE plain sentence, max 25 words, for a non-expert: why the destination rejected the requests. JSON only."""
 
 
 def _call(system: str, user: dict, name: str, schema: dict) -> tuple[dict, dict]:

@@ -18,7 +18,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 from . import config as C
-from . import agent, connect, fast
+from . import agent, connect, docs, fast
 from .analysis import Analyses
 from .journey import Journey, StepError
 from .link import Link
@@ -101,8 +101,11 @@ class AnalyzeIn(BaseModel):
 @app.post("/api/analyses")
 def analyze(body: AnalyzeIn):
     targets = list(dict.fromkeys(body.targets or [body.target]))[:4]
-    ref_p, tgt_ps = connect.provider(body.reference), [connect.provider(t) for t in targets]
-    if not ref_p or not all(tgt_ps):
+    doc_keys = {t: t.removeprefix("docs:") for t in targets if t.startswith("docs:")}  # not connected: read its docs only
+    if any(k not in docs.PROVIDERS for k in doc_keys.values()):
+        raise HTTPException(422, "RISE has no documentation source for that provider.")
+    ref_p, tgt_ps = connect.provider(body.reference), [None if t in doc_keys else connect.provider(t) for t in targets]
+    if not ref_p or not all(p or t in doc_keys for p, t in zip(tgt_ps, targets)):
         raise HTTPException(422, "Unknown connection. Pick a reference and a target from Connections.")
     if body.reference in targets:
         raise HTTPException(422, "The reference cannot also be a target. Pick two different connections.")
@@ -110,7 +113,7 @@ def analyze(body: AnalyzeIn):
     group = uuid.uuid4().hex[:10] if len(tgt_ps) > 1 else None
     try:
         local = repo_local(body.files, body.name) if body.files is not None else None
-        started = [A.start(body.url, ref_p, t, body.token, goal, group, local) for t in tgt_ps]
+        started = [A.start(body.url, ref_p, p, body.token, goal, group, local, doc_keys.get(t)) for p, t in zip(tgt_ps, targets)]
     except RepoError as e:
         raise HTTPException(422, str(e)) from e
     return started[0] | {"compare": group, "ids": [a["id"] for a in started]}

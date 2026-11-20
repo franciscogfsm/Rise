@@ -8,7 +8,7 @@ never runs shell, and cannot change anything outside these actions.
 import re
 import uuid
 
-from . import ai, connect, repo
+from . import ai, connect, docs, repo
 
 ACTIONS = ["none", "test_connection", "test_all_connections", "start_analysis", "open_add_connection", "open_page"]
 SCHEMA = {
@@ -170,9 +170,12 @@ def intent(text: str) -> dict:
     ids = [c["id"] for c in conns]
     ref = next((c["id"] for c in conns if not c["simulated"]), ids[0] if ids else "source")
     tgts = [c["id"] for c in conns if c["role"] == "target" and c["id"] != ref] or [i for i in ids if i != ref][:1]
-    out = {"url": url, "reference": ref, "targets": tgts, "goal": rest, "by": "rules", "ai": None}
+    out = {"url": url, "reference": ref, "targets": tgts, "goal": rest, "by": "rules", "ai": None, "missing": None}
     if not rest:
         return out
+    named = docs.detect(rest)  # a cloud RISE has docs for: never stand in a different (e.g. simulated) connection for it
+    if named and not any(docs.of_connection(c) == named for c in conns):
+        return out | {"targets": [], "goal": rest[:120], "missing": {"key": named, "name": docs.PROVIDERS[named]["name"]}}
     try:
         raw, meta = ai._call(INTENT_SYSTEM, {"request": rest, "connections": [
             {"id": c["id"], "name": c["name"], "region": c["region"], "simulated": c["simulated"], "default_role": c["role"]}
@@ -181,6 +184,8 @@ def intent(text: str) -> dict:
         return out
     r = raw.get("reference")
     t = [x for x in dict.fromkeys(raw.get("targets") or []) if x in ids and x != r][:4]
+    if named:  # the named cloud is connected: target exactly that connection
+        t = [c["id"] for c in conns if docs.of_connection(c) == named and c["id"] != r] or t
     if r in ids and t:
         out |= {"reference": r, "targets": t, "by": "ai", "ai": meta}
     out["goal"] = str(raw.get("goal") or rest)[:120]
