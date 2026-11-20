@@ -17,7 +17,7 @@ RISE.slide({
         <path class="draw" style="--i:5;stroke:var(--accent)" d="M35 13h14v14" stroke-width="6.5"/>
       </svg>
       <p class="from rv" style="--i:2">From “we think we can move” to “here is the proof”. In 10 seconds.</p>
-      <h2 class="display split">Don't hope your migration works. Prove it.</h2>
+      <h2 class="display split"><span class="soft">Don't hope your migration works.</span> Prove it.</h2>
       <p class="sign rv" style="--i:9"><b>RISE</b>Built to rise when clouds fall.</p>
     </div>`,
 

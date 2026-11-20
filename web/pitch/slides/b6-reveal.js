@@ -66,9 +66,11 @@ RISE.slide({
     const ok = reqs.filter(r => r.ok);
     const fromDest = ok.filter(r => r.provider === "destination");
     const st = el.querySelector(".statement");
-    st.textContent = fromDest.length && pr?.switch ? "You didn't just watch RISE. RISE powered what you just watched."
-      : ok.length ? "Every image in this deck came through RISE."
-      : "Open the pitch through RISE to see where each image came from.";
+    // duas vozes, como na capa: a primeira metade mais leve, a segunda em tinta
+    const [soft, strong] = fromDest.length && pr?.switch ? ["You didn't just watch RISE.", "RISE powered what you just watched."]
+      : ok.length ? ["Every image in this deck", "came through RISE."]
+      : ["Open the pitch through RISE", "to see where each image came from."];
+    st.innerHTML = `<span class="soft">${soft}</span> ${strong}`;
     delete st.dataset.splitDone;
     FX.split(el);
 

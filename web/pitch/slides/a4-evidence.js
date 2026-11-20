@@ -42,6 +42,14 @@ RISE.slide({
     .row .ai { font-size: 26px; line-height: 1.3; color: var(--faint-ink); }
     .row .rise { font-size: 26px; line-height: 1.3; font-weight: 600; color: var(--ink); padding-left: 32px; }
     .row code { font: 500 24px var(--f-mono); color: var(--accent); background: rgba(37,99,235,.08); padding: 4px 10px; border-radius: 8px; }
+    /* ✕ coral do lado da IA, ✓ mint do lado do RISE */
+    .hd span:nth-child(2) { color: var(--bad); padding-left: 52px; }
+    .hd .r { color: var(--ok); padding-left: 84px; }
+    .row .ai, .row .rise { position: relative; padding-left: 52px; }
+    .row .rise { margin-left: 32px; padding-left: 52px; }
+    .row .ai::before, .row .rise::before { position: absolute; left: 0; top: .1em; width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; font: 700 18px/1 var(--f-ui); }
+    .row .ai::before { content: "✕"; color: var(--bad); background: var(--bad-bg); }
+    .row .rise::before { content: "✓"; color: var(--ok); background: var(--ok-bg); }
     .rise-col { position: absolute; z-index: 0; top: -22px; bottom: -14px; right: -28px; width: calc((100% - 240px - 96px) / 2 + 28px); --radius: 28px; }`,
 
   init(el) {

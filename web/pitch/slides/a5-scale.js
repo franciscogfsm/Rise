@@ -16,10 +16,10 @@ Se perguntarem: o 7,000× é uma estimativa (cerca de 3,6 caracteres por token).
       <h2 class="title split">Measured on Apache Airflow.</h2>
       <p class="repo rv" style="--i:2">10,593 files, 2.3 million lines, 91 MB</p>
       <div class="grid">
-        <div class="st rv" style="--i:3"><b>0.86 s</b><span>to scan every file and map the risks</span></div>
-        <div class="st rv" style="--i:4"><b>3,700</b><span>tokens per analysis, small repo or huge</span></div>
-        <div class="st rv" style="--i:5"><b>&lt;$0.0003</b><span>per analysis. 3,000+ for one dollar</span></div>
-        <div class="st rv" style="--i:6"><b>7,000×</b><span>fewer tokens than sending the repo to an AI</span></div>
+        <div class="st glass rv" style="--i:3"><b>0.86 s</b><span>to scan every file and map the risks</span></div>
+        <div class="st glass rv" style="--i:4"><b>3,700</b><span>tokens per analysis, small repo or huge</span></div>
+        <div class="st glass rv" style="--i:5"><b>&lt;$0.0003</b><span>per analysis. 3,000+ for one dollar</span></div>
+        <div class="st glass rv" style="--i:6"><b>7,000×</b><span>fewer tokens than sending the repo to an AI</span></div>
       </div>
       <p class="note rv" style="--i:8">Measured 20 Nov 2026. 7,000× is an estimate (about 25M tokens at 3.6 characters per token).</p>
     </div>`,
@@ -27,9 +27,11 @@ Se perguntarem: o 7,000× é uma estimativa (cerca de 3,6 caracteres por token).
   css: `
     .sc { height: 100%; display: grid; grid-template-rows: auto auto 1fr auto; gap: 18px; }
     .repo { font: 500 26px var(--f-mono); color: var(--muted); }
-    .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 56px; align-self: center; }
-    .st { border-top: 3px solid var(--ink); padding-top: 24px; display: grid; gap: 14px; align-content: start; }
-    .st b { font-size: 96px; line-height: .9; font-weight: 700; letter-spacing: -.055em; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; align-self: center; }
+    /* cada número num mosaico de vidro; o 7,000× em destaque azul */
+    .st { --radius: 32px; padding: 40px 36px 44px; display: grid; gap: 14px; align-content: start; }
+    .st b { font-size: 84px; line-height: .9; font-weight: 700; letter-spacing: -.055em; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .st:last-child { background: color-mix(in srgb, var(--accent) 9%, #fff); box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--accent) 35%, transparent), var(--shadow); }
     .st:last-child b { color: var(--accent); }
     .st span { font-size: var(--t2); line-height: 1.3; color: var(--muted); max-width: 16ch; }
     .note { font: 400 18px var(--f-mono); color: var(--faint-ink); }`,

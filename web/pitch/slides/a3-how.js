@@ -58,16 +58,40 @@ RISE.slide({
     .step:last-child .ico { color: var(--ok); }
     .n { margin-top: 14px; font: 500 20px/1 var(--f-mono); color: var(--faint-ink); }
     .step h3 { font-size: 40px; font-weight: 600; letter-spacing: -.03em; }
-    .step p { font-size: var(--t1); line-height: 1.35; color: var(--muted); max-width: 13ch; }`,
+    .step p { font-size: var(--t1); line-height: 1.35; color: var(--muted); max-width: 13ch; }
+
+    /* ── Motion: uma só sequência. A linha desenha-se e cada passo acende quando ela lhe chega. ──
+       --k é a posição do passo (0–5); --t0 é quando a linha começa; --dt o tempo entre passos. */
+    --t0: 500ms; --dt: 300ms;
+    .ask span { display: inline-block; opacity: 0; translate: 0 12px; transition: opacity .5s var(--e-out), translate .7s var(--e-out); }
+    &.cur .ask span { opacity: 1; translate: 0 0; }
+    &.cur .ask span:nth-child(1) { transition-delay: 260ms; }
+    &.cur .ask span:nth-child(2) { transition-delay: 380ms; }
+    &.cur .ask span:nth-child(3) { transition-delay: 500ms; }
+    &.cur .rail path { transition-duration: calc(var(--dt) * 5 + 300ms); transition-timing-function: cubic-bezier(.45, 0, .25, 1); transition-delay: var(--t0); }
+    &.cur .step.rv { transition-delay: calc(var(--t0) + var(--k) * var(--dt)); }
+    .ico { transform: scale(.6); transition: transform .8s var(--e-spring), box-shadow .6s var(--e-out); }
+    &.cur .ico { transform: none; transition-delay: calc(var(--t0) + 120ms + var(--k) * var(--dt)); }
+    &.cur .ico .draw { transition-duration: .8s; transition-delay: calc(var(--t0) + 220ms + var(--k) * var(--dt)); }
+    /* a resposta acende a mint no fim, com um único pulso */
+    &.cur .step:last-child .ico { box-shadow: inset 0 1px 0 #fff, inset 0 0 0 3px var(--ok), var(--shadow); transition-delay: calc(var(--t0) + 6 * var(--dt) + 300ms); }
+    .pulse { position: absolute; inset: 0; border-radius: inherit; pointer-events: none; opacity: 0; }
+    &.cur .step:last-child .pulse { animation: how-pulse 1.1s var(--e-out) calc(var(--t0) + 6 * var(--dt) + 300ms) 1 both; }`,
+
+  globalCss: `
+    @keyframes how-pulse { 0% { opacity: .9; box-shadow: 0 0 0 0 color-mix(in srgb, var(--ok) 55%, transparent); } 100% { opacity: 0; box-shadow: 0 0 0 26px color-mix(in srgb, var(--ok) 0%, transparent); } }
+    html.still .slide[data-slide="how"] .pulse { animation: none !important; }`,
 
   init(el) {
     el.querySelector(".steps").innerHTML = this.STEPS.map(([verb, line, icon], i) => `
-      <li class="step rv" style="--i:${3 + i * 2}">
-        <div class="ico glass"><svg viewBox="0 0 48 48" fill="none" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">${icon}</svg></div>
+      <li class="step rv" style="--k:${i}">
+        <div class="ico glass"><svg viewBox="0 0 48 48" fill="none" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">${icon}</svg><span class="pulse" aria-hidden="true"></span></div>
         <span class="n">0${i + 1}</span>
         <h3>${verb}</h3>
         <p>${line}</p>
       </li>`).join("");
+    // os traços dos ícones desenham-se (FX.draw mede o comprimento)
+    el.querySelectorAll(".ico svg > *").forEach(p => p.classList.add("draw"));
     FX.prep(el);
   },
   enter() { FX.act("solution"); },
