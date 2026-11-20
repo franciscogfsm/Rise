@@ -41,6 +41,7 @@ class Journey:
         self.router = Router()
         self.router.observer = self._observe
         self.app = AssetService(self.router)
+        self.traffic_on = False
         self._fresh()
 
     # ---------- state ----------
@@ -48,7 +49,7 @@ class Journey:
         with self.lock:
             self.run_id = uuid.uuid4().hex[:8]
             self.started = now()
-            self.events, self.observations, self.trace = [], [], []
+            self.events, self.observations, self.trace, self.traffic = [], [], [], []
             self.steps = {s: "todo" for s in STEPS}
             self.health = self.plan = self.results = self.results_before = None
             self.adaptation = self.migration = self.switch = self.cut = self.live = None
@@ -355,6 +356,52 @@ class Journey:
                             + (" · source unreachable" if source_state and not source_state["reachable"] else ""))
         return self.snapshot()
 
+    # ---------- live user traffic ----------
+    def traffic_start(self):
+        with self.lock:
+            if self.traffic_on:
+                return self.snapshot()
+            self.traffic_on = True
+        threading.Thread(target=self._traffic_loop, daemon=True, name="rise-traffic").start()
+        self.event("traffic", "Live user traffic started: a real GET every 300 ms through asset-service's router")
+        return self.snapshot()
+
+    def traffic_stop(self):
+        self.traffic_on = False
+        self.event("traffic", "Live user traffic stopped")
+        return self.snapshot()
+
+    def _traffic_loop(self):
+        keys = [k for k, *_ in assets()]
+        i = 0
+        while self.traffic_on:
+            t0 = time.perf_counter()
+            pid = self.router.active
+            p, key = self.router.provider(pid), keys[i % len(keys)]
+            i += 1
+            rec = {"ts": now(), "provider": pid, "key": key}
+            try:
+                r = self.router.client(pid).get_object(Bucket=p.bucket, Key=key)
+                rec |= {"ok": True, "request_id": request_id(r), "bytes": len(r["Body"].read())}
+            except (ClientError, BotoCoreError, OSError) as e:
+                rec |= {"ok": False, "error": err_info(e)["code"]}
+            rec["ms"] = round((time.perf_counter() - t0) * 1000)
+            with self.lock:
+                self.traffic.append(rec)
+                del self.traffic[:-600]
+                self._bump()
+            time.sleep(max(0.0, 0.3 - (time.perf_counter() - t0)))
+
+    def traffic_stats(self) -> dict:
+        with self.lock:
+            pts = list(self.traffic)
+        ms = sorted(p["ms"] for p in pts if p["ok"])
+        after = [p for p in pts if self.switch and p["ts"] >= self.switch["at"]]
+        return {"on": self.traffic_on, "total": len(pts), "failed": sum(not p["ok"] for p in pts),
+                "after_switch": len(after), "failed_after_switch": sum(not p["ok"] for p in after),
+                "by_provider": dict(Counter(p["provider"] for p in pts if p["ok"])),
+                "p50_ms": ms[len(ms) // 2] if ms else None}
+
     # ---------- pitch assets ----------
     def serve_asset(self, key: str, rid: str) -> dict:
         try:
@@ -394,6 +441,7 @@ class Journey:
                 "remaining_untested": sorted(set(prof["items"]) - tested)
                 + [n["item"] for n in plan.get("not_covered") or []],
                 "pitch_requests": self.trace[-60:],
+                "live_traffic": self.traffic_stats(),
                 "events": self.events,
             }
         doc["digest_sha256"] = hashlib.sha256(json.dumps(doc, sort_keys=True, default=str).encode()).hexdigest()
@@ -410,4 +458,6 @@ class Journey:
                 "results": self.results, "results_before": self.results_before, "adaptation": self.adaptation,
                 "migration": self.migration, "switch": self.switch, "cut": self.cut, "live": self.live,
                 "trace": self.trace[-30:], "events": self.events[-40:],
+                "traffic": {**self.traffic_stats(), "points": [
+                    {k: p.get(k) for k in ("ts", "provider", "ok", "ms", "error")} for p in self.traffic[-200:]]},
             }

@@ -21,7 +21,7 @@ _load_dotenv()
 
 
 def env(key: str, default: str = "") -> str:
-    return os.environ.get(key, default)
+    return os.environ.get(key) or default  # empty values in .env fall back to the default
 
 
 DATA = Path(env("RISE_DATA_DIR", str(ROOT / ".rise")))

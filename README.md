@@ -27,6 +27,8 @@ These are survey answers, not measured migrations. Even "S3-compatible" provider
 | Cut | RISE closes the network link between the app and the source (TCP refused). This is reversible. |
 | Prove | The app writes a new, unique object and reads it back from the destination. The Freedom Proof (`/api/proof`) records all of this, with a digest. It also lists what remained **untested**. |
 
+**Live traffic:** while the steps run, RISE can send a real GET every 300 ms through the app's storage router. The dashboard plots each request by provider and latency, marks the switch and the cut, and counts failures since the switch. In our runs that count was **0**.
+
 The pitch (`/pitch`) loads its visuals through the same app route (`/app/assets/…`, unique request id, `no-store`), so the audience sees content that RISE switched over live.
 
 **AI safety:** the model never touches storage, secrets or a shell. If OpenRouter is down, RISE uses the last valid AI plan, **labelled CACHED**, or a rule-based plan, **labelled RULES**. The demo keeps working either way.

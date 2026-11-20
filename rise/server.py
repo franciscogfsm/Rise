@@ -22,6 +22,7 @@ async def lifespan(_app):
         await link.start()
     await asyncio.to_thread(J.boot)
     yield
+    J.traffic_on = False
     if link:
         await link.cut()
 
@@ -33,6 +34,7 @@ ACTIONS = {
     "connect": J.connect, "discover": J.discover, "analyze": J.analyze, "challenge": J.challenge,
     "adapt": J.adapt, "verify": J.verify, "switch": J.switch_to_destination, "cut": J.cut_source,
     "restore": J.restore_source, "prove": J.prove_new_operation, "reset": J.reset,
+    "traffic_on": J.traffic_start, "traffic_off": J.traffic_stop,
 }
 
 

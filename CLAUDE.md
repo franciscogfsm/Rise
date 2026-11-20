@@ -20,6 +20,12 @@ We are building **RISE — The Proof of Cloud Freedom** live at the hackathon. G
 - Judging: Innovation, Applicability, Technical complexity (quality, implementation, use of AI and cloud infra), Presentation & clarity — each 1–5, **equal weight**.
 - Schedule: hack 08:45–12:30 and 13:30–15:45 · pitches 15:45–16:55. Internal code freeze **15:00**.
 
+## Stack (decided)
+- Backend: Python 3.12 · FastAPI · boto3 · httpx · pydantic (`rise/`). Run on Linux (event VM or WSL) via `scripts/run.sh`.
+- Dashboard: **React 18 + htm**, vendored in `web/vendor` (no Node build, works offline). UI code in `web/app.js`, tokens in `web/rise.css`.
+- Simulated providers: moto (source, us-east-1) + Garage (destination, `DEST_REGION`). AI: OpenRouter `z-ai/glm-5.3-flash`.
+- Tests: `python -m pytest -q` (end-to-end journey on two real S3 servers).
+
 ## Hard rules for the code
 - Every thing the UI shows must come from real backend state/events. No fake animations of things that did not happen.
 - Secrets only in env vars (`.env`, git-ignored). Never in browser, never committed.

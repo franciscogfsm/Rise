@@ -86,6 +86,9 @@ def test_full_journey(journey):
     j.verify()
     assert j.migration["ok"] and len(j.migration["objects"]) >= 5
 
+    import time
+    j.traffic_start()  # real requests keep flowing while we switch and cut
+    time.sleep(1.2)
     j.switch_to_destination()
     assert j.router.active == "destination" and j.switch["probe"]["provider"] == "destination"
 
@@ -98,6 +101,12 @@ def test_full_journey(journey):
 
     served = j.serve_asset("slides/stat-89.svg", "test-rid")
     assert served["provider"] == "destination" and served["body"].startswith(b"<svg")
+
+    time.sleep(1.2)
+    j.traffic_stop()
+    stats = j.traffic_stats()
+    assert stats["after_switch"] >= 3 and stats["failed_after_switch"] == 0, stats
+    assert stats["by_provider"].get("source") and stats["by_provider"].get("destination")
 
     proof = j.proof()
     assert len(proof["digest_sha256"]) == 64 and proof["new_operation_after_switch"]["match"]

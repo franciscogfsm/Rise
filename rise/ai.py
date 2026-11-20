@@ -65,6 +65,7 @@ Rules:
 - Use only catalogue kinds. Parameters must mirror what the app really does (content types, metadata keys, prefixes, sizes, non-ASCII keys).
 - Every observed operation/feature must be covered by a test, or listed in not_covered with a reason.
 - risks: concrete portability risks for this app and these providers (e.g. client signing region vs provider region, metadata handling, presigned URLs, key encoding). Never claim a result: tests decide.
+- summary: ONE sentence, max 30 words, stating what the app depends on and the single biggest portability risk. No preamble.
 - Max 8 tests. ids short like t1. Unused params = null. JSON only."""
 
 ADAPT_SYSTEM = """You are the adaptation engine of RISE. Some compatibility tests failed against the destination.
@@ -79,6 +80,7 @@ def _call(system: str, user: dict, name: str, schema: dict) -> tuple[dict, dict]
     t0 = time.perf_counter()
     r = httpx.post(URL, timeout=40, headers={"Authorization": f"Bearer {C.OPENROUTER_KEY}", "X-Title": "RISE"}, json={
         "model": C.OPENROUTER_MODEL, "temperature": 0.2,
+        "reasoning": {"effort": "low"},  # this endpoint requires reasoning; low effort cuts latency ~16 s → ~6 s
         "messages": [{"role": "system", "content": system}, {"role": "user", "content": json.dumps(user)}],
         "response_format": {"type": "json_schema", "json_schema": {"name": name, "strict": True, "schema": schema}},
         "provider": {"require_parameters": True},
