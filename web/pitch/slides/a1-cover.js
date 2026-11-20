@@ -1,4 +1,4 @@
-/* Parte A · 1 · Capa: a marca desenha-se, uma frase. */
+/* Parte A · 1 · Capa: o ícone desenha-se, a marca em grande ao centro e uma frase em duas vozes. */
 RISE.slide({
   id: "cover",
   title: "Cover",
@@ -10,10 +10,6 @@ RISE.slide({
 
   html: `
     <div class="cover">
-      <div class="copy">
-        <h1 class="display split">Don't hope your migration works. Prove it.</h1>
-        <p class="tag rv" style="--i:8"><span class="dot act-c"></span>Live demo inside this deck</p>
-      </div>
       <div class="hero-wrap rv fade" style="--i:0">
         <div class="halo"></div>
         <svg class="hero" viewBox="0 0 64 64" fill="none" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -24,15 +20,22 @@ RISE.slide({
           <path class="draw" style="--i:5;stroke:var(--accent)" d="M35 13h14v14" stroke-width="6.5"/>
         </svg>
       </div>
+      <div class="copy">
+        <p class="word rv scale" style="--i:3">RISE</p>
+        <h1 class="display split"><span class="soft">Don't hope your migration works.</span> Prove it.</h1>
+        <p class="tag rv" style="--i:8"><span class="dot act-c"></span>Live demo inside this deck</p>
+      </div>
     </div>`,
 
   css: `
-    .cover { height: 100%; display: grid; grid-template-columns: 1fr 520px; align-items: center; gap: 60px; }
-    .copy { display: grid; gap: 52px; justify-items: start; }
-    .display { max-width: 12ch; }
-    .hero-wrap { position: relative; width: 520px; height: 520px; }
-    .halo { position: absolute; inset: 60px; border-radius: 50%; background: radial-gradient(closest-side, color-mix(in srgb, var(--accent) 20%, transparent), transparent); filter: blur(30px); }
-    .hero { position: relative; width: 100%; height: 100%; overflow: visible; }`,
+    .cover { height: 100%; display: grid; justify-items: center; align-content: center; gap: 10px; text-align: center; }
+    .hero-wrap { position: relative; width: 240px; height: 240px; }
+    .halo { position: absolute; inset: 10px; border-radius: 50%; background: radial-gradient(closest-side, color-mix(in srgb, var(--accent) 20%, transparent), transparent); filter: blur(30px); }
+    .hero { position: relative; width: 100%; height: 100%; overflow: visible; }
+    .copy { display: grid; gap: 34px; justify-items: center; }
+    .word { font: 700 230px/.82 var(--f-ui); letter-spacing: .06em; padding-left: .06em; color: var(--ink); }
+    .display { font-size: 64px; max-width: 30ch; letter-spacing: -.03em; }
+    .soft { color: var(--faint-ink); }`,
 
   globalCss: `#deck:has(.slide[data-slide="cover"].cur) > .brand { opacity: 0; transform: translateY(-8px); }`,
 
