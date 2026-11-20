@@ -18,7 +18,7 @@ Se perguntarem: Garage é um provider local simulado, a AWS Stockholm é real.`,
     ["media/demo-3.png", "47.5% 46%", 1, "Every S3 call, with file:line", 1.9],  // push in on "Found in your code"
     ["media/demo-4.png", "50% 30%", 1, "Ready to migrate. One fix, proven on both clouds."],
   ],
-  DUR: 2600,
+  DUR: 4500,
 
   html: `
     <h2 class="headline rv">From repo to proof.</h2>

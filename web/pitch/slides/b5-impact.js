@@ -4,6 +4,7 @@ RISE.slide({
   title: "Impact",
   time: "3:08 – 3:30",
   notes: `
+"And it lives where developers work: our MCP server puts RISE inside Claude Code. Type /rise, and the folder you are in gets checked with real tests. .env files never leave your machine."
 "A Leaseweb team could use RISE to check a customer's S3 compatibility before scheduling the migration. Teams can run it themselves with Docker. Today the tests cover object storage. The project is open source."
 (aos 3:30, avançar para o vídeo)`,
 
@@ -19,11 +20,11 @@ RISE.slide({
             <code><span class="ps">$ </span>docker compose up</code>
             <span class="out">RISE on http://localhost:8080</span>
           </div>
-          <ul class="pts">
-            <li class="rv" style="--i:4">No cloud account. No AI key.</li>
-            <li class="rv" style="--i:5">Python, JavaScript, Go, Java, PHP.</li>
-            <li class="rv" style="--i:6">Fits Leaseweb onboarding: customers arrive with proof.</li>
-          </ul>
+          <div class="cmd mcp glass rv" style="--i:5">
+            <span class="tbar" aria-hidden="true"><i></i><i></i><i></i><em>Claude Code · MCP</em></span>
+            <code><span class="ps">&gt; </span>/rise move to Leaseweb</code>
+            <span class="out">Real tests · the exact edit · file:line</span>
+          </div>
         </div>
         <div class="right">
           <p class="lbl rv" style="--i:4">Provider presets</p>
@@ -50,7 +51,8 @@ RISE.slide({
     .cmd code { padding: 10px 30px 0; font: 500 34px var(--f-mono); color: var(--ink); }
     .cmd .ps { color: var(--muted); }
     .cmd .out { padding: 0 30px; font: 500 24px/1.3 var(--f-mono); color: var(--ok); }
-    .pts { list-style: none; display: grid; gap: 18px; margin-top: 36px; }
+    .left { display: grid; gap: 26px; }
+    .mcp .out { color: var(--accent); }
     .pts li { position: relative; padding-left: 50px; font-size: var(--t2); line-height: 1.35; }
     .pts li::before { content: "✓"; position: absolute; left: 0; top: .05em; width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; font: 700 18px/1 var(--f-ui); color: var(--ok); background: var(--ok-bg); }
     .lbl { font-size: var(--t1); font-weight: 600; color: var(--muted); margin-bottom: 18px; }

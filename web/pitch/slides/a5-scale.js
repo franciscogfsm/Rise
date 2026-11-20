@@ -18,17 +18,19 @@ If asked: the token figure is an estimate from our own test (Claude used 564k to
 
       <div class="fast-layout">
         <div class="fast-hero glass rv left" style="--i:3">
-          <p class="fast-label">Tested on real repos · today</p>
+          <div class="repos"><b>339</b><p><strong>real repos</strong>scanned today · Sentry, Airflow, aws-cli…</p></div>
           <b>40M</b>
           <p>lines in <strong>84 s</strong></p>
-          <span>339 real repos · Sentry, Airflow, aws-cli…</span>
           <div class="prec"><b>0</b><p><strong>S3 calls missed</strong>14,887 checked against the official S3 API</p></div>
         </div>
         <div class="fast-cost glass rv right" style="--i:5">
           <p class="fast-label">To read those 40M lines</p>
           <div class="bar llm"><span>Claude<br>ChatGPT</span><i></i><b>≈ 365M tokens</b><em>≈ $730 · days of agent time</em></div>
           <div class="bar rise"><span>RISE</span><i></i><b>0 tokens</b><em>$0 · 84 s</em></div>
-          <div class="speed"><div><b>350×</b><span>faster than Claude</span></div><div><b>254×</b><span>faster than OpenAI Codex</span></div></div>
+          <div class="speed">
+            <div><b>350×</b><span>faster than Claude</span><small>Same answer, <i>every run</i></small></div>
+            <div><b>254×</b><span>faster than OpenAI Codex</span><small>Found <i>41/42</i> S3 calls · Codex 42/42</small></div>
+          </div>
         </div>
       </div>
 
@@ -48,7 +50,10 @@ If asked: the token figure is an estimate from our own test (Claude used 564k to
     .fast-label { font: 600 21px/1.2 var(--f-mono); color: var(--muted); }
     .fast-hero > b { font-size: 150px; line-height: .9; letter-spacing: -.07em; color: var(--accent); }
     .fast-hero > p:nth-child(3) { font-size: 44px; line-height: 1.08; letter-spacing: -.035em; }
-    .fast-hero > span { font-size: 23px; color: var(--muted); }
+    .repos { display: flex; align-items: center; gap: 18px; padding-bottom: 14px; margin-bottom: 4px; border-bottom: 1px solid var(--line); }
+    .repos b { font-size: 92px; line-height: .9; font-weight: 700; letter-spacing: -.06em; color: var(--ink); }
+    .repos p { display: grid; gap: 4px; font-size: 20px; color: var(--muted); }
+    .repos strong { font-size: 34px; letter-spacing: -.02em; color: var(--ink); }
     .prec { margin-top: 10px; display: flex; align-items: center; gap: 20px; padding: 16px 22px; border-radius: 20px; background: var(--ok-bg);
       opacity: 0; transform: scale(.94); transition: opacity .5s var(--e-out) 2.6s, transform .8s var(--e-spring) 2.6s; }
     &.cur .prec { opacity: 1; transform: none; }
@@ -71,7 +76,9 @@ If asked: the token figure is an estimate from our own test (Claude used 564k to
     .bar > em { grid-column: 2; font: 600 22px/1 var(--f-mono); font-style: normal; color: var(--muted); }
     .bar.rise > em { color: var(--accent); }
     .speed { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; padding-top: 22px; border-top: 1px solid var(--line); }
-    .speed div { display: flex; align-items: baseline; gap: 14px; }
+    .speed div { display: grid; grid-template-columns: auto 1fr; align-items: baseline; gap: 6px 14px; }
+    .speed small { grid-column: 1 / -1; font: 500 19px/1.3 var(--f-mono); color: var(--muted); }
+    .speed small i { font-style: normal; font-weight: 700; color: var(--ok); }
     .speed b { font-size: 64px; line-height: .9; font-weight: 700; letter-spacing: -.05em; color: var(--accent); }
     .speed span { font-size: 24px; font-weight: 600; color: var(--muted); }
     .codex { display: flex; align-items: baseline; gap: 12px; padding-top: 18px; border-top: 1px solid var(--line); font-size: 24px; color: var(--muted); }

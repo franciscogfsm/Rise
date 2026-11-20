@@ -188,21 +188,65 @@ bash scripts/run.sh      # simulated providers + RISE on 127.0.0.1:8080
 
 Stop the providers with `bash scripts/stop.sh`. Run the tests (two real S3 servers in-process, plus the real link cut) with `~/.venvs/rise/bin/python -m pytest -q`.
 
-### Use it from Claude Code (`/rise`)
+### Use it from your AI assistant (MCP)
 
-With RISE running (`docker compose up`), open Claude Code **in this repo** and type:
+RISE ships an **MCP server** ([rise/mcp.py](rise/mcp.py)). Your AI assistant can check the project you are working in without leaving the editor: *"can this code move to Leaseweb?"*. It uses only the Python standard library, so there is nothing to install.
+
+**1. Start RISE** (it does the real work; the MCP server only talks to it):
+
+```bash
+docker compose up --build        # RISE on http://localhost:8080
+```
+
+**2. Connect your assistant.**
+
+- **Claude Code, in this repo:** nothing to do. The repo ships [.mcp.json](.mcp.json) and the `/rise` command ([.claude/commands/rise.md](.claude/commands/rise.md)). Open Claude Code here and approve the `rise` server once.
+- **Claude Code, in any other project:** register it once, then copy `.claude/commands/rise.md` into that project's `.claude/commands/` if you want the `/rise` shortcut:
+
+  ```bash
+  claude mcp add rise -- python /path/to/Rise/rise/mcp.py
+  ```
+
+- **Any other MCP client** (Cursor, Claude Desktop, …): add this to its MCP config:
+
+  ```json
+  { "mcpServers": { "rise": { "command": "python", "args": ["/path/to/Rise/rise/mcp.py"],
+                              "env": { "RISE_URL": "http://127.0.0.1:8080" } } } }
+  ```
+
+**3. Ask.**
 
 ```
 /rise move this app to Leaseweb
 ```
 
-The repo ships [.mcp.json](.mcp.json) and [.claude/commands/rise.md](.claude/commands/rise.md), so Claude Code finds the MCP server on its own (approve it once). For **any other project**, register it once:
+or, in plain words: *"use rise_check on this folder: can we move from AWS to Leaseweb?"*
+
+The assistant replies with:
+- the answer (**Ready**, **Ready with 1 change** or **Not ready**);
+- the exact change and where it goes in your code;
+- the risks with `file:line`;
+- a link to the full evidence in the RISE dashboard.
+
+**The two tools it gets:**
+
+| Tool | What it does |
+|---|---|
+| `rise_connections` | Lists the clouds RISE can test (simulated and your own), so *"Leaseweb"* or *"AWS"* map to connection ids |
+| `rise_check` | Sends the folder's source to RISE, runs the analysis with real tests, and returns the result |
+
+**What leaves your machine.** Only source files go to *your* RISE: up to 50 MB of text, with `.env` files, `node_modules`, `.git` and binaries skipped. The AI inside RISE never sees the whole code. It gets about 40 lines of evidence, with keys redacted.
+
+**RISE running elsewhere** (a team server or the event VM): point the MCP server at it, and set the password if RISE has one:
 
 ```bash
-claude mcp add rise -- python /path/to/Rise/rise/mcp.py
+claude mcp add rise -e RISE_URL=https://rise.example.com -e RISE_PASSWORD=... -- python /path/to/Rise/rise/mcp.py
 ```
 
-Then copy `.claude/commands/rise.md` into that project, or just ask Claude: *"use rise_check on this folder, can we move to Leaseweb?"*. The MCP server uses only the Python standard library. It reads the folder, skips `.env` files, `node_modules` and binaries, and sends the source to RISE at `RISE_URL` (default `http://127.0.0.1:8080`; `RISE_PASSWORD` too if you set one). It returns the answer, the 1 change, the risks with `file:line` and a link to the full evidence.
+**If it fails:**
+- *"RISE is not running at …"*: start RISE (step 1), or fix `RISE_URL`. The port is 8080 with Docker; `scripts/run.sh` uses whatever port you set.
+- *"Folder too large"*: point `rise_check` at the sub-folder that holds the storage code.
+- *401*: set `RISE_PASSWORD` to the password RISE was started with.
 
 ### Use your real clouds
 
