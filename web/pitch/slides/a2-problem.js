@@ -20,7 +20,7 @@ Não comentar as etiquetas por baixo das imagens: são pedidos reais ao RISE e v
 
   html: `
     <div class="prob">
-      <h2 class="title split">Companies want to leave their cloud. They decide on assumptions.</h2>
+      <h2 class="title split">Companies leave their cloud on assumptions.</h2>
       <div class="cards"></div>
       <p class="src rv" style="--i:6">Leaseweb Digital Independence Survey 2026, 800 senior leaders. Survey responses.</p>
     </div>`,
