@@ -1,14 +1,11 @@
-/* Parte B · 10 · Aplicabilidade: qualquer repo, qualquer cloud S3, um comando. E o que fica de fora. */
+/* Aplicabilidade: onboarding, instalação e âmbito dos testes. */
 RISE.slide({
   id: "impact",
   title: "Impact",
-  time: "3:55 – 4:25",
+  time: "3:08 – 3:30",
   notes: `
-"RISE works on any repository and any S3-compatible cloud. Presets for seven providers, Leaseweb included. Today we tested AWS live."
-"One Docker command. No cloud account needed, no AI key needed."
-"For Leaseweb, this goes straight into onboarding: the 89% who can't leave in three weeks get a way to find out, before they commit."
-"And we're honest about scope: today it proves object storage. Queues, databases and functions are flagged as lock-in, not yet tested."
-"It's open source, Apache 2.0."`,
+"A Leaseweb team could use RISE to check a customer's S3 compatibility before scheduling the migration. Teams can run it themselves with Docker. Today the tests cover object storage. The project is open source."
+(aos 3:30, avançar para o vídeo)`,
 
   PROVIDERS: ["AWS S3", "Leaseweb", "Backblaze B2", "Wasabi", "Scaleway", "Hetzner", "Cloudflare R2"],
 

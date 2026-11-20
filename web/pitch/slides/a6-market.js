@@ -1,16 +1,12 @@
-/* Parte A · 7 · O que já existe, como mapa 2×2.
+/* O que já existe, como mapa 2×2.
    X = quanto lê do teu código. Y = quanto prova que a mudança funciona no destino.
    Posições são um juízo qualitativo e defensável (ver notas), não uma medição. */
 RISE.slide({
   id: "market",
   title: "What exists",
-  time: "2:00 – 2:15",
+  time: "0:45 – 1:00",
   notes: `
-"What exists today? Two questions: does the tool read your code? And does it prove the move works?"
-"Bottom right: code analyzers and AI assistants read your code, but they prove nothing."
-"Top left: rclone, s3-tests and the hyperscalers' migration tools move or test the cloud, but never look at your app."
-"Top right: empty. That is the gap. No tool reads your code and proves the move."
-"Until now: RISE. It reads every call, and proves each one on the target."
+"Code analyzers show what your app depends on. Provider tests show what a cloud supports. RISE connects those two jobs. It uses your actual S3 calls to choose what to test on the target."
 If asked: AWS Migration Hub / Azure Migrate / Google Migration Center move you INTO their own cloud. rclone copies and can verify hashes. Ceph s3-tests test a provider, not your app. CAST Highlight / Konveyor (Red Hat MTA) flag cloud blockers with rules, no tests. AI assistants read code, cost tokens, no proof. Positions are our judgement, not a measurement.`,
 
   // [name, sub, x 0-100 (reads your code), y 0-100 (proves it works)]

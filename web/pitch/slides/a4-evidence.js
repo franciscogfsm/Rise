@@ -1,14 +1,10 @@
-/* Parte A · 4 · Porque é melhor do que pôr uma IA a ler o repositório. */
+/* Que evidência recebe o planeador de IA. */
 RISE.slide({
   id: "evidence",
   title: "AI reads evidence",
-  time: "1:05 – 1:25",
+  time: "1:30 – 1:45",
   notes: `
-"Why not just give the repository to an AI?"
-"A big repo doesn't fit in its context, so it samples and misses things. It can invent or forget dependencies, and it changes its mind between runs. Its proof is 'I think it uses SQS'."
-"RISE reads every file, deterministically. Same input, same output. Its proof is a file and a line."
-"The cost doesn't grow with the repo, it's under a second, and your code never leaves: the AI only sees the evidence, with keys redacted."
-(devagar) "The AI never reads your code. It reads the evidence."`,
+"The scan runs locally. With AI planning enabled, the model receives selected, redacted snippets. A test result can be traced back to a file and line in your repo. Here's how fast that scan runs."`,
 
   ROWS: [
     ["Large repo", "Doesn't fit. Samples and misses.", "Reads 100% of the files."],

@@ -1,18 +1,15 @@
-/* Parte A · 3 · Como funciona: do repositório ao veredicto. Cada passo diz quem o faz (código ou IA),
+/* Como funciona: do repositório ao veredicto. Cada passo diz quem o faz (código ou IA),
    porque a mensagem é essa: a IA sugere, o código decide. */
 RISE.slide({
   id: "how",
   title: "How it works",
-  time: "0:45 – 1:15",
+  time: "1:00 – 1:30",
   notes: `
-"You give RISE three things: a repository, your goal, and the clouds: where you are and where you want to go. Up to four targets to compare."
-(acompanhar a linha)
-"It downloads the repo into memory. The code is never executed."
-"A deterministic scan finds every S3 call, with file and line. No AI there."
-"The AI reads only that evidence and writes a test plan, in a strict JSON schema that we validate."
-"Thirteen kinds of real tests run on both clouds at the same time. A test passes only if the SHA-256 of the real bytes matches."
-"If something fails, the AI may propose one change, from an allow-list. We apply it and retest everything."
-"And the verdict is decided by code, never by the AI. Ready, ready with one change, or not ready. With a downloadable proof."
+"RISE answers one question first: can this codebase move? Before anyone migrates anything, before a provider like Leaseweb spends weeks on a client."
+"Paste the repo, pick the target. RISE reads every dependency, tests the calls that matter, and says: ready, ready with one change, or not ready."
+"The client knows in seconds if its stack can move. The provider doesn't lose weeks on one that can't."
+
+"Give RISE a repo and a target cloud. The local scanner finds S3 calls and points to the file and line. The AI builds a test plan from that evidence. RISE validates the plan and runs it against both clouds. If a test fails, RISE can try one allowed change and run it again. The test results decide the verdict."
 (apontar para a frase de baixo) "AI suggests. Code decides."`,
 
   STEPS: [
@@ -30,11 +27,11 @@ RISE.slide({
 
   html: `
     <div class="how">
-      <h2 class="title split">Paste a repo. <span class="soft">Get the truth.</span></h2>
+      <h2 class="title split">Can this codebase move? <span class="soft">Know before anyone starts.</span></h2>
       <div class="input glass rv" style="--i:2">
         <span class="field"><span class="lbl">repo</span><span class="val mono type">github.com/acme/shop</span></span>
         <span class="sep"></span>
-        <span class="field"><span class="lbl">to</span><span class="val">4 clouds</span></span>
+        <span class="field"><span class="lbl">to</span><span class="val">Leaseweb</span></span>
         <span class="go">Run</span>
       </div>
       <div class="track">
@@ -47,7 +44,10 @@ RISE.slide({
           </div>
         </div>
       </div>
-      <p class="punch rv" style="--i:12"><span class="soft">AI suggests.</span> Code decides.</p>
+      <div class="value rv" style="--i:12">
+        <div><span class="k">The client</span><b>Knows in seconds if its stack can move.</b></div>
+        <div><span class="k">The provider</span><b>No weeks lost on a stack that can't.</b></div>
+      </div>
     </div>`,
 
   css: `
@@ -89,7 +89,10 @@ RISE.slide({
     .out.warn { color: var(--warn); background: var(--warn-bg); }
     .out.bad { color: var(--bad); background: var(--bad-bg); }
 
-    .punch { font-size: 72px; line-height: 1; font-weight: 700; letter-spacing: -.045em; }
+    .value { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
+    .value > div { display: grid; gap: 10px; padding: 26px 32px; border-radius: 26px; background: rgba(255,255,255,.7); box-shadow: inset 0 0 0 1px var(--line); }
+    .value .k { font: 600 21px/1 var(--f-mono); color: var(--accent); }
+    .value b { font-size: 40px; line-height: 1.12; font-weight: 650; letter-spacing: -.03em; }
 
     /* ── Motion: uma sequência. O ponto percorre a linha e cada passo acende quando ele lhe chega. ── */
     --t0: 1700ms; --dt: 260ms;

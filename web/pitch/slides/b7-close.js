@@ -2,7 +2,7 @@
 RISE.slide({
   id: "close",
   title: "Close",
-  time: "4:45 – 5:00",
+  time: "4:36 – 4:51",
   notes: `
 (devagar) "Don't hope your migration works. Prove it."
 "RISE. Built to rise when clouds fall."

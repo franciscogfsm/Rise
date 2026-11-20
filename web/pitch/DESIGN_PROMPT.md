@@ -56,7 +56,6 @@ Light Liquid Glass, pérola e branco, com vidro com aresta refratada subtil. **A
 | b1-demo | `.active`, `.link`, `.browser .bar .host`, `.mode`, `.screen.app` (iframe da app real: **é o espaço da demo, não o reduzas nem o removas**), `.trace ol` |
 | b2-adapt | `.cols` (o JS gera 3 `section.col` com `.kind`, `.err`, `.diag`, `.change`, `.score`, `.pills`, `svg.arrow`; classes `.fail`/`.pass`; passos `s1`, `s2`) |
 | b3-integrity | `.grid` (o JS gera `.obj` com `.f`, `.chk`, `.h > code[data-h]`; classe `.go`), `.score .n`, `.score .of` |
-| b4-cut | `.src`/`.dst` `.name` `.sim` `.detail[data-s]`, `.link.left`/`.right` (`i.a`, `i.b`, `.x`); classes `.has-cut`/`.has-op` (o cabo só parte se o corte aconteceu); passos `s1`, `s2` |
 | b5-impact | (estático) |
 | b6-reveal | `.frame`, `.served`, `.statement.split[data-s="1"]`, `.timeline` (`.d`, `.d.dst`, `.sw`), `.legend`; passo `s1` |
 | b7-close | `.mark` com os 3 `path.draw`, `.display.split`, `.sign` |

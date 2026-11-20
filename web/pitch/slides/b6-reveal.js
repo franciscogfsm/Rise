@@ -1,10 +1,13 @@
-/* Parte B · 11 · Revelação: cada imagem do deck passou pelo RISE. A frase muda conforme o que é verdade. */
+/* Penúltimo slide: vídeo em ecrã inteiro, ou revelação do routing se o vídeo estiver desativado. */
 RISE.slide({
   id: "reveal",
-  title: "Reveal",
-  time: "4:25 – 4:45",
-  steps: 1,
-  notes: `
+  title: window.RISE_CONFIG?.revealVideo ? "Video" : "Reveal",
+  time: "3:30 – 4:36",
+  steps: window.RISE_CONFIG?.revealVideo ? 0 : 1,
+  notes: window.RISE_CONFIG?.revealVideo ? `
+O vídeo arranca ao entrar no slide. Deixar correr até ao fim (1 min 06 s).
+Fazer uma pausa breve e carregar uma vez em → para o fecho.
+` : `
 (passo 0: a imagem, pedida agora mesmo; a etiqueta diz quem a serviu)
 (automático) A frase escolhe-se sozinha a partir do Freedom Proof:
  · se houve pedidos do pitch servidos pelo destino depois do switch: "You didn't just watch RISE. RISE powered what you just watched."
@@ -41,22 +44,41 @@ RISE.slide({
     &.s1 .timeline .d, &.s1 .timeline .sw { transform: none; transition-delay: calc(400ms + var(--i) * 40ms); }
     .legend { display: flex; flex-wrap: wrap; gap: 14px; }
     .legend .dot { color: rgba(18,31,53,.3); }
-    .legend .dot.dst { color: var(--accent); }`,
+    .legend .dot.dst { color: var(--accent); }
+    &.film .rev { visibility: hidden; }`,
+
+  globalCss: `
+    .rise-film { position: fixed; inset: 0; z-index: 99999; background: #000; opacity: 0; pointer-events: none; transition: opacity .6s ease; }
+    .rise-film.on { opacity: 1; }
+    .rise-film video { display: block; width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
+    body:has(.rise-film.on), body:has(.rise-film.on) * { cursor: none !important; }`,
 
   init(el, api) {
     FX.prep(el);
-    if (api.config.revealVideo) {  // the film replaces the served image
-      const f = el.querySelector(".frame");
-      f.innerHTML = `<video src="${api.config.revealVideo}" playsinline preload="auto"></video>`;
-      f.classList.remove("glass");
+    if (api.config.revealVideo) {  // the film takes the whole screen: outside the scaled stage, above the deck's HUD, no controls
+      el.classList.add("film");
+      this._film = document.createElement("div");
+      this._film.className = "rise-film";
+      this._film.innerHTML = `<video src="${api.config.revealVideo}" playsinline preload="auto" disablepictureinpicture disableremoteplayback></video>`;
+      document.body.append(this._film);
     }
   },
-  leave(el) { const v = el.querySelector(".frame video"); if (v) { v.pause(); v.currentTime = 0; } },
+  leave() {
+    if (!this._film) return;
+    this._film.classList.remove("on");
+    const v = this._film.querySelector("video"); v.pause(); v.currentTime = 0;
+  },
 
   async enter(el, api) {
     FX.act("finale");
-    const v = el.querySelector(".frame video");
-    if (v) v.play().catch(() => { v.muted = true; v.play(); });  // browser blocked sound: play muted rather than not at all
+    const v = this._film?.querySelector("video");
+    if (v) {
+      this._film.classList.add("on");
+      v.muted = false; v.volume = 1; v.currentTime = 0;
+      // with sound: the presenter's key presses count as the user gesture browsers require
+      v.play().catch(() => { v.muted = true; v.play(); });  // only if the browser still blocks sound: play muted rather than not at all
+      return;
+    }
     await Promise.all([v ? null : this._asset(el, api), this._render(el, api)]);
   },
 

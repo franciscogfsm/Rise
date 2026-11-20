@@ -4,77 +4,53 @@ RISE.slide({
   title: "Problem",
   time: "0:15 – 0:35",
   notes: `
-"Leaseweb asked 800 senior leaders this year."
-"89% could not move their critical workloads off their main provider within three weeks. 79% expect AI to make it worse. And 73% would pay more to be independent."
-(são respostas a um inquérito, não migrações medidas)
-Não comentar as etiquetas por baixo das imagens: são pedidos reais ao RISE e vão importar no fim.`,
-
-  /* Só para a pré-visualização local (etiqueta "Local preview"). Ao vivo, as imagens vêm do RISE. */
-  local: [
-    ["89%", "can't move critical workloads off their main provider in 3 weeks"],
-    ["79%", "expect AI to deepen that dependence"],
-    ["73%", "would pay 11% more to be independent"],
-  ],
+"Leaseweb asked 800 senior leaders this year. 89% said they could not move their critical workloads off their main cloud within three weeks."
+"And the ones who do move, pay for it. McKinsey asked 450 IT leaders: 75% went over budget, 38% ran more than a quarter late. More than 100 billion dollars wasted in three years."
+"Why? Nobody knows what will break until they move."
+Fontes: Leaseweb Digital Independence Survey 2026 (respostas a inquérito). McKinsey, "Cloud-migration opportunity: Business value grows, but missteps abound", Oct 2021, ~450 CIOs/IT leaders.`,
 
   html: `
     <div class="prob">
-      <div class="heads">
-        <h2 class="title t-a split">Leaving your cloud is a <span class="soft">leap of faith.</span></h2>
-      </div>
-      <div class="body-area">
-        <div class="pain">
-          <div class="cards"></div>
-          <p class="src rv" style="--i:6">Leaseweb Digital Independence Survey 2026, 800 senior leaders. Survey responses.</p>
+      <h2 class="title split">Leaving your cloud is a <span class="soft">leap of faith.</span></h2>
+      <div class="board">
+        <div class="hero rv" style="--i:2">
+          <b>89<small>%</small></b>
+          <p>can't move their critical workloads<br>off their main cloud <strong>in 3 weeks.</strong></p>
+          <span class="cite">Leaseweb survey 2026 · 800 leaders</span>
+        </div>
+        <div class="side">
+          <div class="moved glass rv right" style="--i:4">
+            <span class="k">Those who move anyway</span>
+            <div class="nums">
+              <div><b>75<small>%</small></b><p>over budget</p></div>
+              <div><b>38<small>%</small></b><p>a quarter late</p></div>
+              <div><b>$100B</b><p>wasted in 3 years</p></div>
+            </div>
+            <span class="cite">McKinsey 2021 · 450 IT leaders</span>
+          </div>
+          <p class="why rv right" style="--i:6"><span class="k">Why?</span> Nobody knows what will break <strong>until they move.</strong></p>
         </div>
       </div>
     </div>`,
 
   css: `
-    .prob { height: 100%; display: grid; grid-template-rows: auto 1fr; gap: 48px; }
-    .heads { display: grid; }
-    .heads > .title { grid-area: 1 / 1; max-width: 26ch; transition: opacity var(--d-2) var(--e-out), filter var(--d-2) var(--e-out); }
+    .prob { height: 100%; display: grid; grid-template-rows: auto 1fr; gap: 40px; }
+    .board { display: grid; grid-template-columns: 1fr 1.05fr; gap: 64px; align-items: center; }
+    .hero b { display: block; font-size: 290px; line-height: .82; font-weight: 700; letter-spacing: -.06em; color: var(--bad); }
+    b small { font-size: .5em; letter-spacing: -.02em; }
+    .hero p { margin-top: 24px; font-size: 40px; line-height: 1.2; font-weight: 500; letter-spacing: -.02em; }
+    .hero strong { color: var(--bad); font-weight: 700; }
+    .cite { display: block; margin-top: 18px; font: 500 18px/1.2 var(--f-mono); color: var(--faint-ink); }
+    .side { display: grid; gap: 36px; }
+    .moved { --radius: 30px; padding: 32px 38px 26px; }
+    .k { font: 600 21px/1 var(--f-mono); color: var(--muted); }
+    .nums { margin-top: 20px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+    .nums b { display: block; font-size: 84px; line-height: .9; font-weight: 700; letter-spacing: -.05em; color: var(--bad); }
+    .nums p { margin-top: 10px; font-size: 26px; line-height: 1.15; font-weight: 600; color: var(--ink); }
+    .why { font-size: 44px; line-height: 1.15; font-weight: 650; letter-spacing: -.03em; }
+    .why .k { display: block; margin-bottom: 10px; }
+    .why strong { color: var(--accent); }`,
 
-    .body-area { display: grid; min-height: 0; }
-    .pain { grid-area: 1 / 1; min-height: 0; }
-    .pain { display: grid; grid-template-rows: 1fr auto; gap: 28px; transition: opacity var(--d-2) var(--e-out), transform var(--d-2) var(--e-out), filter var(--d-2) var(--e-out); }
-
-    .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 32px; align-items: center; }
-    .stat { display: grid; gap: 14px; }
-    .frame { aspect-ratio: 16 / 9; overflow: hidden; }
-    .frame img { display: block; width: 100%; height: 100%; object-fit: cover; }
-    .frame:has(img) { border-radius: 16px; box-shadow: var(--shadow); }
-    .fallback { height: 100%; padding: 32px 36px; display: grid; align-content: center; gap: 10px; }
-    .fallback b { font-size: 120px; line-height: .9; font-weight: 700; letter-spacing: -.05em; }
-    .fallback span { font-size: var(--t1); line-height: 1.35; color: var(--muted); max-width: 24ch; }
-    .served { font-size: 18px; gap: 6px 10px; }
-    .served .pill { font-size: 17px; padding: 6px 12px; }
-    .src { font: 400 19px/1.4 var(--f-mono); color: var(--muted); }
-
-`,
-
-  init(el, api) {
-    el.querySelector(".cards").innerHTML = api.config.stats.map((key, k) => `
-      <figure class="stat rv" style="--i:${2 + k}">
-        <div class="frame glass" data-key="${api.esc(key)}">
-          <div class="fallback"><b class="num">${this.local[k][0]}</b><span>${this.local[k][1]}</span></div>
-        </div>
-        <figcaption class="served"></figcaption>
-      </figure>`).join("");
-    FX.prep(el);
-  },
-
-  /* Pedidos novos, sem cache, sempre que o slide aparece. */
-  async enter(el, api) {
-    FX.act("problem");
-    const providers = await api.live.providers();
-    el.querySelectorAll(".frame").forEach(async f => {
-      const r = await api.live.asset(f.dataset.key);
-      f.parentElement.querySelector(".served").innerHTML = api.served(r, providers);
-      if (!r.ok) return;
-      const old = f.querySelector("img");
-      f.innerHTML = `<img alt="" src="${r.url}">`;
-      f.classList.remove("glass"); // o cartão servido já traz o seu próprio vidro
-      if (old) URL.revokeObjectURL(old.src);
-    });
-  },
+  init(el) { FX.prep(el); },
+  enter() { FX.act("problem"); },
 });

@@ -1,6 +1,6 @@
 # Pitch RISE
 
-Pitch de 5 minutos em HTML: 4 minutos de slides e 1 minuto de demo ao vivo. Segue o design system Pearl Pro ([DESIGN_SYSTEM.md](../../DESIGN_SYSTEM.md)) e as regras do [CLAUDE.md](../../CLAUDE.md).
+Pitch em HTML com limite de 5 minutos. O vídeo começa às 3:30 e é o penúltimo slide. O fecho começa às 4:36, com 15 segundos de guião e 9 segundos de margem. Segue o design system Pearl Pro ([DESIGN_SYSTEM.md](../../DESIGN_SYSTEM.md)) e as regras do [CLAUDE.md](../../CLAUDE.md).
 
 ## Abrir
 
@@ -18,15 +18,15 @@ Teclas:
 
 | Parte | Slides | Ficheiros |
 |---|---|---|
-| A: a história | Cover, Problem, How it works, AI reads evidence, Benchmark | `slides/a1-*.js` a `slides/a5-*.js` |
-| B: a prova | Live demo, Source cut, Impact, Reveal, Close | `slides/b1-*.js` a `slides/b7-*.js` |
+| A | Capa, problema, lacuna, mercado, funcionamento, evidência, RISE Fast, modelo | `slides/a*.js` |
+| B | Produto, impacto, vídeo, fecho | `slides/b*.js` |
 | Partilhado | Motor, palco, motion, ligação à API | `core/`, `config.js`, `Rise_Pitch.html` |
 
 Regras para trabalharem os dois ao mesmo tempo sem conflitos:
 
 1. Cada pessoa só edita os ficheiros da sua parte. Cada slide é um ficheiro com o HTML, o CSS e o comportamento.
 2. Os ficheiros em `core/` e o `config.js` são partilhados: combinem antes de os mudar e façam commits pequenos.
-3. Para acrescentar um slide, criem o ficheiro e adicionem a linha `<script>` **só no bloco da vossa parte** do `Rise_Pitch.html`.
+3. Para acrescentar um slide, criem o ficheiro e registem-no no ponto correspondente em `Rise_Pitch.html`. Reservem as duas últimas posições para o vídeo e o fecho.
 4. Façam `git pull --rebase` antes de cada push. Como os ficheiros são separados, o merge é automático.
 5. O CSS de cada slide fica limitado a esse slide automaticamente, por isso não colide com o do outro.
 
