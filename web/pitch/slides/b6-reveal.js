@@ -28,7 +28,8 @@ RISE.slide({
     .rev { height: 100%; display: grid; grid-template-columns: 860px 1fr; gap: 80px; align-items: center; }
     .left { display: grid; gap: 24px; }
     .frame { aspect-ratio: 16 / 9; overflow: hidden; }
-    .frame:has(img) { border-radius: 36px; box-shadow: var(--shadow); }
+    .frame:has(img), .frame:has(video) { border-radius: 36px; box-shadow: var(--shadow); }
+    .frame video { display: block; width: 100%; height: 100%; object-fit: cover; background: #fff; }
     .frame img { display: block; width: 100%; height: 100%; object-fit: contain; }
     .right { display: grid; gap: 40px; align-content: center; }
     .statement { font-size: var(--t5); max-width: 15ch; }
@@ -42,11 +43,21 @@ RISE.slide({
     .legend .dot { color: rgba(18,31,53,.3); }
     .legend .dot.dst { color: var(--accent); }`,
 
-  init(el) { FX.prep(el); },
+  init(el, api) {
+    FX.prep(el);
+    if (api.config.revealVideo) {  // the film replaces the served image
+      const f = el.querySelector(".frame");
+      f.innerHTML = `<video src="${api.config.revealVideo}" playsinline preload="auto"></video>`;
+      f.classList.remove("glass");
+    }
+  },
+  leave(el) { const v = el.querySelector(".frame video"); if (v) { v.pause(); v.currentTime = 0; } },
 
   async enter(el, api) {
     FX.act("finale");
-    await Promise.all([this._asset(el, api), this._render(el, api)]);
+    const v = el.querySelector(".frame video");
+    if (v) v.play().catch(() => { v.muted = true; v.play(); });  // browser blocked sound: play muted rather than not at all
+    await Promise.all([v ? null : this._asset(el, api), this._render(el, api)]);
   },
 
   async _asset(el, api) {

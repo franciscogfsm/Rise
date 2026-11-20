@@ -11,6 +11,8 @@ window.RISE_CONFIG = {
   // Assets do pitch servidos pelo routing do RISE (criados em rise/seed.py).
   stats: ["slides/stat-89.svg", "slides/stat-79.svg", "slides/stat-73.svg"],
   revealAsset: "slides/independência.svg",
+  // Vídeo do slide de revelação (video/build/rise-film-720p.mp4). Vazio = mostra a imagem servida pelo RISE.
+  revealVideo: "media/rise-film.mp4",
   // Vídeo de backup da demo, por exemplo "media/demo.mp4" (tecla V). Aparece sempre marcado como gravação.
   demoVideo: "",
 };

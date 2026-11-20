@@ -360,7 +360,7 @@ SCENE("end", {
     <div class="center"><div>
       <div class="lock"><span class="word fx slam" style="--at:.5;--from:1.8">RISE</span><span class="mark"><i class="halo"></i>${LOGO(0.6)}</span></div>
       <i class="horizon fx grow-x" style="--at:.8"></i>
-      <p class="tag"><span class="soft">${words("Don't hope your migration works.", 0.75, .1)}</span> ${words("Prove it.", 2.35, .12)}</p>
+      <p class="tag"><span class="soft">${words("Don't hope your migration works.", 1.3, .1)}</span> ${words("Prove it.", 3.9, .12)}</p>
       <p class="sub fx in" style="--at:2.1">Storage compatibility, proven before you migrate.</p>
       <p class="meta fx in" style="--at:2.5">open source · Apache-2.0 · built live at InfraHack Portugal 2026</p>
     </div></div>

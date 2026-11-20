@@ -41,7 +41,7 @@ window.SCRIPT = {
       "sfx": [{ "t": 0.0, "s": "suck", "v": 0.7 }] },
     { "id": "proved",  "act": "proof",    "min": 2.4, "voAt": 0.1, "vo": "He proved it first.",
       "sfx": [{ "t": 0.0, "s": "hit", "v": 1.0 }] },
-    { "id": "end",     "act": "solution", "min": 4.6, "voAt": 0.6, "vo": "Don't hope your migration works. Prove it.",
+    { "id": "end",     "act": "solution", "min": 4.6, "voAt": 0.6, "vo": "RISE. Don't hope your migration works. Prove it.",
       "sfx": [{ "t": 0.0, "s": "whoosh", "v": 0.5 }, { "t": 0.55, "s": "boom", "v": 0.9 }, { "t": 2.6, "s": "shimmer", "v": 0.6 }] }
   ],
   "sfx": {

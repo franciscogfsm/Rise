@@ -1,5 +1,5 @@
 window.TIMING = {
- "total": 65.795,
+ "total": 66.265,
  "scenes": {
   "paul": {
    "start": 0.0,
@@ -81,9 +81,9 @@ window.TIMING = {
   },
   "end": {
    "start": 60.374,
-   "dur": 4.821,
+   "dur": 5.291,
    "voAt": 0.6,
-   "voDur": 3.971
+   "voDur": 4.441
   }
  }
 };
