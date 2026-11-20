@@ -1,0 +1,51 @@
+<!doctype html>
+<!--
+  RISE · pitch (5 min: 4 min de slides + 1 min de demo ao vivo). Design system: Pearl Pro (../rise.css).
+  Ao vivo:  RISE a correr → http://<host>:<porta>/static/pitch/index.html
+            Os slides pedem assets novos ao routing do RISE e mostram quem os serviu.
+  Ensaiar:  duplo clique neste ficheiro → pré-visualização local, sem pedidos reais.
+
+  TECLAS  → / espaço / PageDown = seguinte   ← / PageUp = anterior   Home / End
+          F ecrã inteiro   N notas do orador   T cronómetro
+          I usar a app no slide de demo (sair: clicar fora do ecrã)   V vídeo de backup
+  URL     #demo abre esse slide   ?static mostra tudo no estado final (PDF e capturas)
+
+  Quem edita o quê: README.md nesta pasta.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>RISE pitch</title>
+<link rel="icon" type="image/svg+xml" href="../brand/rise-icon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@300..700&family=Geist+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../rise.css">
+<link rel="stylesheet" href="core/deck.css">
+<script src="config.js"></script>
+<script src="core/live.js"></script>
+<script src="core/engine.js"></script>
+</head>
+<body>
+<main id="deck"></main>
+
+<!-- ═══ Parte A: a história (slides 1 a 4) ═══ -->
+<script src="slides/a1-hook.js"></script>
+<script src="slides/a2-problem.js"></script>
+<script src="slides/a3-solution.js"></script>
+<script src="slides/a4-ai.js"></script>
+<!-- novos slides da parte A entram aqui -->
+
+
+<!-- ═══ Parte B: a prova (slides 5 a 8) ═══ -->
+<script src="slides/b1-demo.js"></script>
+<script src="slides/b2-proof.js"></script>
+<script src="slides/b3-business.js"></script>
+<script src="slides/b4-reveal.js"></script>
+<!-- novos slides da parte B entram aqui -->
+
+
+<script>RISE.start();</script>
+</body>
+</html>
