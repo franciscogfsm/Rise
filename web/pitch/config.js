@@ -1,5 +1,5 @@
 /*
-  Ligação do pitch ao RISE. Servido pelo próprio RISE (/static/pitch/index.html) não é
+  Ligação do pitch ao RISE. Servido pelo próprio RISE (/static/pitch/Rise_Pitch.html) não é
   preciso mudar nada: usa a mesma origem. Aberto com duplo clique (file://) fica em modo
   "pré-visualização local": mostra a estrutura, mas nunca finge dados ou pedidos reais.
 */

@@ -4,8 +4,8 @@ Pitch de 5 minutos em HTML: 4 minutos de slides e 1 minuto de demo ao vivo. Segu
 
 ## Abrir
 
-- **Ao vivo:** com o RISE a correr (`scripts/run.sh`), abrir `http://<host>:<porta>/static/pitch/index.html`. Os slides pedem imagens novas ao routing do RISE (`/app/assets/...`) e mostram quem as serviu.
-- **Ensaio:** abrir `index.html` com duplo clique. Fica em pré-visualização local: vê-se a estrutura, mas nenhum pedido ou provider é inventado.
+- **Ao vivo:** com o RISE a correr (`scripts/run.sh`), abrir `http://<host>:<porta>/static/pitch/Rise_Pitch.html`. Os slides pedem imagens novas ao routing do RISE (`/app/assets/...`) e mostram quem as serviu.
+- **Ensaio:** abrir `Rise_Pitch.html` com duplo clique. Fica em pré-visualização local: vê-se a estrutura, mas nenhum pedido ou provider é inventado.
 - **Capturas e PDF:** acrescentar `?static` ao URL para ver tudo no estado final.
 
 Teclas:
@@ -20,13 +20,13 @@ Teclas:
 |---|---|---|
 | A: a história | Cover, Problem, How it works, Discover, AI test plan | `slides/a1-*.js` a `slides/a5-*.js` |
 | B: a prova | Live demo, Challenge to Adapt, Integrity, Source cut, Impact, Reveal, Close | `slides/b1-*.js` a `slides/b7-*.js` |
-| Partilhado | Motor, palco, motion, ligação à API | `core/`, `config.js`, `index.html` |
+| Partilhado | Motor, palco, motion, ligação à API | `core/`, `config.js`, `Rise_Pitch.html` |
 
 Regras para trabalharem os dois ao mesmo tempo sem conflitos:
 
 1. Cada pessoa só edita os ficheiros da sua parte. Cada slide é um ficheiro com o HTML, o CSS e o comportamento.
 2. Os ficheiros em `core/` e o `config.js` são partilhados: combinem antes de os mudar e façam commits pequenos.
-3. Para acrescentar um slide, criem o ficheiro e adicionem a linha `<script>` **só no bloco da vossa parte** do `index.html`.
+3. Para acrescentar um slide, criem o ficheiro e adicionem a linha `<script>` **só no bloco da vossa parte** do `Rise_Pitch.html`.
 4. Façam `git pull --rebase` antes de cada push. Como os ficheiros são separados, o merge é automático.
 5. O CSS de cada slide fica limitado a esse slide automaticamente, por isso não colide com o do outro.
 

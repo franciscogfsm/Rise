@@ -52,7 +52,7 @@ Se a app falhar: tecla V (vídeo de backup, marcado como gravação) e dizê-lo.
       api.frame(app, api.config.dashboardPath, { h: 900, title: "RISE dashboard" });
       el.querySelector(".host").textContent = location.host + api.config.dashboardPath;
     } else {
-      app.innerHTML = `<div class="empty"><div><strong>The live dashboard appears here</strong>Open this pitch through RISE: /static/pitch/index.html${api.config.demoVideo ? ", or press V for the recorded backup" : ""}.</div></div>`;
+      app.innerHTML = `<div class="empty"><div><strong>The live dashboard appears here</strong>Open this pitch through RISE: /static/pitch/Rise_Pitch.html${api.config.demoVideo ? ", or press V for the recorded backup" : ""}.</div></div>`;
     }
     this._seen = new Set();
     this._trace(el, api, null);
