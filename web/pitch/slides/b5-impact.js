@@ -12,7 +12,7 @@ Não dizer que já funciona com a Leaseweb Object Storage: o destino da demo é 
 
   html: `
     <div class="im">
-      <h2 class="title split">Customers arrive with proof, not with risk.</h2>
+      <h2 class="title split">Customers arrive with proof, <span class="soft">not with risk.</span></h2>
       <div class="row">
         <p class="sub rv" style="--i:3">RISE fits into a provider's onboarding. Before a customer moves, they connect their current cloud, run RISE, and watch their own app pass on the new one.</p>
         <ol class="road" aria-label="Adapters">

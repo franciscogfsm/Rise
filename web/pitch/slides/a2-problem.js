@@ -24,7 +24,7 @@ Não comentar a etiqueta por baixo da imagem: é um pedido real ao RISE e vai im
     <div class="prob">
       <div class="stage">
         <div class="frames"></div>
-        <p class="turn statement">Copying the data is easy. Proving the app still works is not.</p>
+        <p class="turn statement"><span class="soft">Copying the data is easy.</span> Proving the app still works is not.</p>
       </div>
       <div class="meta">
         <div class="served"></div>

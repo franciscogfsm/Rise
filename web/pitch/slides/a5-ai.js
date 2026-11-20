@@ -5,7 +5,7 @@ RISE.slide({
   time: "1:35 – 2:00",
   notes: `
 "Then the AI does the part it's good at. It reads that traffic and writes a structured test plan for this specific app. We validate the plan before anything runs."
-(lista) "These are the tests it wrote for this run."
+(lista) "These are the tests it planned for this run. If the AI misses a behaviour we observed, RISE adds that test itself. The plan can't silently skip what your app does."
 (em baixo) "And this is what it never does. It never runs commands, never sees a credential, never decides that a test passed, and never moves your traffic. Deterministic code does all of that."
 A etiqueta diz de onde veio o plano: Live AI, Cached AI ou Rules fallback. Se for cache, dizê-lo. Se aparecer "Example", não houve run: dizê-lo também.`,
 
@@ -22,7 +22,7 @@ A etiqueta diz de onde veio o plano: Live AI, Cached AI ou Rules fallback. Se fo
     <div class="plan">
       <div class="left">
         <p class="kicker rv">Challenge</p>
-        <h2 class="title split">The AI writes the tests. Deterministic code runs them.</h2>
+        <h2 class="title split">The AI plans the tests. <span class="soft">Deterministic code runs them.</span></h2>
         <div class="count rv" style="--i:4"><b class="big-num act-c">–</b><span class="unit">tests in the plan</span></div>
         <span class="origin pill idle rv" style="--i:5">Example</span>
       </div>
