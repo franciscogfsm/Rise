@@ -1,382 +1,467 @@
-// RISE dashboard — React 18 + htm (no build step; vendored in web/vendor so it works offline).
-// Everything rendered comes from /api/state (real backend state); nothing is animated on a timer.
-const { useState, useEffect, useCallback, Fragment } = React;
+// RISE web app — React 18 + htm (vendored, no build step).
+//   /          analyze any public GitHub repository (the product)
+//   /a/:id     one analysis: evidence from the code, AI test plan, real results on the target provider
+//   /demo      live switch of asset-service with real traffic, switch and source cut
+// Every number on screen comes from the backend; nothing is animated on a timer.
+const { useState, useEffect, useCallback, useRef, Fragment } = React;
 const html = htm.bind(React.createElement);
 
 const short = (h) => (h ? `${h.slice(0, 10)}…${h.slice(-6)}` : "—");
-const time = (ts) => (ts ? ts.slice(11, 19) : "");
+const clock = (ts) => (ts ? ts.slice(11, 19) : "");
 
-const STEPS = [
-  ["connect", "Connect", "p-discover"], ["discover", "Discover", "p-discover"], ["analyze", "Analyze", "p-analyze"],
-  ["challenge", "Challenge", "p-challenge"], ["adapt", "Adapt", "p-adapt"], ["verify", "Verify", "p-verify"],
-  ["switch", "Switch", "p-switch"], ["prove", "Prove", "p-proof"],
-];
-// the demo sequence (CUT sits between SWITCH and PROVE)
-const SEQUENCE = [
-  ["discover", (s) => s.steps.discover === "done"],
-  ["analyze", (s) => s.steps.analyze === "done"],
-  ["challenge", (s) => ["done", "attention"].includes(s.steps.challenge)],
-  ["adapt", (s) => ["done", "skipped"].includes(s.steps.adapt)],
-  ["verify", (s) => s.steps.verify === "done"],
-  ["switch", (s) => s.steps.switch === "done"],
-  ["cut", (s) => !!s.cut],
-  ["prove", (s) => s.steps.prove === "done"],
-];
-const LABEL = { discover: "Observe the app", analyze: "Generate tests with AI", challenge: "Run the challenge", adapt: "Adapt & retest",
-  verify: "Copy & verify data", switch: "Switch to destination", cut: "Cut the source", prove: "Prove a new operation" };
-
-async function api(path, method = "GET") {
-  const r = await fetch(path, { method, cache: "no-store" });
-  const body = await r.json().catch(() => ({}));
-  if (!r.ok) throw new Error(body.detail || `${r.status} ${r.statusText}`);
-  return body;
+async function api(path, method = "GET", body) {
+  const r = await fetch(path, { method, cache: "no-store", headers: body ? { "content-type": "application/json" } : {},
+    body: body ? JSON.stringify(body) : undefined });
+  const data = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(typeof data.detail === "string" ? data.detail : `${r.status} ${r.statusText}`);
+  return data;
 }
 
-// ---------- small pieces ----------
+// ---------- shared hooks & atoms ----------
+function useRoute() {
+  const [path, setPath] = useState(location.pathname);
+  useEffect(() => { const f = () => setPath(location.pathname); addEventListener("popstate", f); return () => removeEventListener("popstate", f); }, []);
+  const go = useCallback((p) => { if (p !== location.pathname) history.pushState({}, "", p); setPath(p); }, []);
+  return [path, go];
+}
+
+function useTick() {  // bumps whenever the backend state changes (SSE)
+  const [tick, setTick] = useState(0);
+  useEffect(() => {
+    const es = new EventSource("/api/events");
+    let t;
+    es.onmessage = () => { clearTimeout(t); t = setTimeout(() => setTick((x) => x + 1), 60); };
+    return () => es.close();
+  }, []);
+  return tick;
+}
+
 const Pill = ({ cls, children }) => html`<span className=${`pill ${cls}`}>${children}</span>`;
-const STEP_PILL = { done: ["ok", "Done"], skipped: ["ok", "Not needed"], attention: ["bad", "Attention"], fail: ["bad", "Failed"], running: ["run", "Running"] };
-const StepPill = ({ st }) => { const [c, t] = STEP_PILL[st] || ["idle", "Waiting"]; return html`<${Pill} cls=${c}>${t}<//>`; };
+const Dot = ({ cls }) => html`<span className=${`sdot ${cls}`}></span>`;
+const Empty = ({ children }) => html`<p className="empty">${children}</p>`;
+const Link = ({ to, go, className, children }) => html`<a href=${to} className=${className} onClick=${(e) => { e.preventDefault(); go(to); }}>${children}</a>`;
 
-function Btn({ action, children, cls = "ghost sm", ctx }) {
-  return html`<button className=${`btn ${cls}`} type="button" disabled=${ctx.disabled} onClick=${() => ctx.act(action)}>${children}</button>`;
-}
-
-function Head({ n, title, st, children }) {
-  return html`<div className="ph"><span className="eyebrow">${n}</span><h2>${title}</h2><span className="grow"></span>${children}${st !== undefined && html`<${StepPill} st=${st} />`}</div>`;
+function Ring({ value, total, color }) {
+  const r = 26, c = 2 * Math.PI * r, f = total ? value / total : 0;
+  return html`<svg className="ring" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r=${r} className="ring-bg" />
+    <circle cx="32" cy="32" r=${r} className="ring-fg" style=${color ? { stroke: color } : null} strokeDasharray=${c} strokeDashoffset=${c * (1 - f)} /></svg>`;
 }
 
 function SourceBadge({ src }) {
   if (!src) return null;
-  const text = src.mode === "live" ? `LIVE · ${src.model} · ${src.ms} ms`
-    : src.mode === "cached" ? `CACHED AI RESULT · from ${src.at}` : "RULE-BASED FALLBACK";
-  return html`<span className=${`src-badge ${src.mode}`}>${text}</span>`;
+  const text = src.mode === "live" ? `AI LIVE · ${src.model} · ${(src.ms / 1000).toFixed(1)} s`
+    : src.mode === "cached" ? `CACHED AI RESULT · ${src.at}` : "RULE-BASED FALLBACK";
+  return html`<span className=${`src-badge ${src.mode}`} title=${src.live_error || ""}>${text}</span>`;
 }
 
-const Empty = ({ children }) => html`<p className="empty">${children}</p>`;
+const ICON = {
+  scan: html`<svg viewBox="0 0 24 24"><path d="M4 7V5a1 1 0 0 1 1-1h2M17 4h2a1 1 0 0 1 1 1v2M20 17v2a1 1 0 0 1-1 1h-2M7 20H5a1 1 0 0 1-1-1v-2M7 12h10"/></svg>`,
+  live: html`<svg viewBox="0 0 24 24"><path d="M3 12h4l3-7 4 14 3-7h4"/></svg>`,
+  proof: html`<svg viewBox="0 0 24 24"><path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5M10 14l2 2 4-4"/></svg>`,
+};
 
-// ---------- layout ----------
+function Sidebar({ path, go, system, recent, children }) {
+  const P = system?.providers || [];
+  const H = system?.health || {};
+  return html`<aside className="side glass" aria-label="Navigation">
+    <div className="brand"><img src="/static/brand/rise-icon.svg" alt="" />
+      <div><div className="wm">RISE</div><div className="tag">Proof of Cloud Freedom</div></div></div>
+    <nav className="nav">
+      <${Link} to="/" go=${go} className=${path === "/" || path.startsWith("/a/") ? "on" : ""}>${ICON.scan}Analyze a repository<//>
+      <${Link} to="/demo" go=${go} className=${path === "/demo" ? "on" : ""}>${ICON.live}Live switch<span className="badge">LIVE</span><//>
+    </nav>
+    ${children}
+    ${recent && html`<${Fragment}>
+      <div className="side-h">Recent analyses</div>
+      <div className="recent">${recent.length ? recent.map((a) => {
+        const pct = a.score?.percent;
+        const cls = pct == null ? "" : pct >= 90 ? "score-ok" : pct >= 60 ? "score-mid" : "score-bad";
+        return html`<${Link} key=${a.id} to=${`/a/${a.id}`} go=${go} className=${path === `/a/${a.id}` ? "on" : ""}>
+          <span className="rn">${a.repo.owner}/${a.repo.name}</span>
+          <span className=${`rs ${cls}`}>${a.status === "done" ? (pct == null ? "—" : `${pct}%`) : a.status === "error" ? "!" : "…"}</span>
+          <span className="ro">${a.status === "done" ? `${a.score?.verified ?? 0}/${a.score?.total ?? 0} verified · ${clock(a.created)}` : a.status}</span><//>`;
+      }) : html`<${Empty}>No analyses yet.<//>`}</div><//>`}
+    <div className="sys">
+      ${P.map((p, i) => html`<div key=${p.id} className="sys-row"><${Dot} cls=${H[p.id]?.ok ? "ok" : H[p.id] ? "bad" : "idle"} />
+        <span>${i === 0 ? "Reference" : "Target"} · ${p.name}</span><b>${p.simulated ? "sim" : "real"}</b></div>`)}
+      <div className="sys-row"><${Dot} cls=${system?.ai?.configured ? "live" : "warn"} /><span>AI</span><b>${system?.ai?.configured ? "ready" : "no key"}</b></div>
+      <div className="sys-meta">${system?.ai?.model || ""}${P.map((p) => html`<${Fragment} key=${p.id}><br />${p.name} · ${p.documented_region}<//>`)}</div>
+    </div>
+  </aside>`;
+}
+
+// =====================================================================================
+// PRODUCT
+// =====================================================================================
+const EXAMPLES = [
+  ["CandyShare · Next.js", "https://github.com/Anonymous961/CandyShare"],
+  ["assetstorageservice · Python", "https://github.com/priteshgudge/assetstorageservice"],
+  ["s3PresignedUrl_v3 · TypeScript", "https://github.com/ucapistranmtz/s3PresignedUrl_v3"],
+];
+const ITEM = {
+  PutObject: "Upload objects", GetObject: "Download objects", HeadObject: "Read object metadata", ListObjectsV2: "List objects",
+  DeleteObject: "Delete objects", GeneratePresignedUrl: "Presigned URLs", PresignedGet: "Presigned downloads", CopyObject: "Server-side copy",
+  MultipartUpload: "Multipart upload", "user-metadata": "Custom metadata", "content-type": "Content types", "range-read": "Range reads",
+  "prefix-list": "Prefix listing", "hierarchical-keys": "Folder-style keys", "unicode-key": "Non-ASCII keys", "object-tagging": "Object tags",
+  "server-side-encryption": "Server-side encryption", "storage-class": "Storage classes", acl: "Access control lists", versioning: "Versioning",
+  lifecycle: "Lifecycle rules", "bucket-policy": "Bucket policies", "event-notifications": "Event notifications", "cache-control": "Cache-Control",
+};
+const VERDICT = { pass: ["ok", "verified"], fail: ["bad", "fails"], unsupported: ["warn", "unsupported"], untested: ["idle", "not tested"] };
+const STAGES = [["fetch", "Fetch"], ["scan", "Scan code"], ["plan", "AI plan"], ["test", "Real tests"], ["adapt", "Adapt"], ["report", "Report"]];
+
+function Home({ go, toast }) {
+  const [url, setUrl] = useState("");
+  const [busy, setBusy] = useState(false);
+  const submit = async (u) => {
+    setBusy(true);
+    try { const a = await api("/api/analyses", "POST", { url: u }); go(`/a/${a.id}`); }
+    catch (e) { toast(e.message); } finally { setBusy(false); }
+  };
+  return html`<div className="home"><div className="hero">
+    <div className="eyebrow">Cloud portability verification · object storage</div>
+    <h1>Can your code leave its cloud?<br />Prove it before you move.</h1>
+    <p>Paste a public GitHub repository. RISE reads the code, finds every object-storage behaviour it depends on, has AI turn that into tests, and runs them for real on the target provider.</p>
+    <form className="ask glass" onSubmit=${(e) => { e.preventDefault(); submit(url); }}>
+      <input value=${url} onInput=${(e) => setUrl(e.target.value)} placeholder="https://github.com/owner/repository" aria-label="GitHub repository URL" autoFocus />
+      <button className="btn" type="submit" disabled=${busy || !url.trim()}>${busy ? "Starting…" : "Analyze →"}</button>
+    </form>
+    <div className="examples"><span>try</span>${EXAMPLES.map(([l, u]) => html`<button key=${u} type="button" onClick=${() => { setUrl(u); submit(u); }}>${l}</button>`)}</div>
+    <div className="how">${[
+      ["01 · scan", "Evidence from code", "Every S3 call, setting and other cloud service, with file and line."],
+      ["02 · ai", "Test plan by AI", "OpenRouter LLM writes a structured plan; RISE validates it before anything runs."],
+      ["03 · verify", "Real tests, two providers", "Synthetic data, SHA-256 on real bytes, on the reference and on the target."],
+      ["04 · prove", "Portability proof", "Score, failures, one safe config fix, and what was not tested."],
+    ].map(([n, t, d]) => html`<div key=${n} className="glass"><span className="eyebrow">${n}</span><b>${t}</b><span className="d">${d}</span></div>`)}</div>
+  </div></div>`;
+}
+
+function blobUrl(a, file, line) {
+  const base = a.url.split("/tree/")[0];
+  const ref = a.repo.ref !== "HEAD" ? a.repo.ref : /^[0-9a-f]{40}$/.test(a.repo.commit || "") ? a.repo.commit : "HEAD";
+  return `${base}/blob/${ref}/${file.split("/").map(encodeURIComponent).join("/")}#L${line}`;
+}
+
+function TestRow({ t, r, x }) {
+  const failed = [...(x?.checks || []), ...(r?.checks || [])].filter((c) => !c.ok);
+  const bad = x && x.status !== "pass";
+  const Res = ({ v }) => v ? html`<span className=${`res ${v.status}`}>${v.status.toUpperCase()}</span>` : html`<span className="res untested">—</span>`;
+  return html`<div className=${`trow ${bad ? "bad" : ""}`}>
+    <div className="tt"><b>${t.title}</b><div className="k">${t.id} · ${t.kind} · ${t.origin}</div></div>
+    <${Res} v=${r} /><${Res} v=${x} />
+    ${(t.rationale || bad) && html`<div className="tc">
+      ${t.rationale && html`<div className="why">${t.rationale}</div>`}
+      ${bad && x.error && html`<div className="err">${x.error.code}${x.error.status ? ` · HTTP ${x.error.status}` : ""} · ${x.error.message}</div>`}
+      ${bad && (x.checks || []).filter((c) => !c.ok).map((c, i) => html`<div key=${i} className="err">${c.name}: expected ${JSON.stringify(c.expected)}, got ${JSON.stringify(c.actual)}</div>`)}
+    </div>`}
+  </div>`;
+}
+
+function Analysis({ id, tick, go }) {
+  const [a, setA] = useState(null);
+  const [err, setErr] = useState(null);
+  useEffect(() => { api(`/api/analyses/${id}`).then(setA, (e) => setErr(e.message)); }, [id, tick]);
+  if (err) return html`<div className="home"><${Empty}>${err}<//></div>`;
+  if (!a) return html`<div className="home"><${Empty}>Loading…<//></div>`;
+  const s = a.score, plan = a.plan, R = a.results;
+  const ref = Object.fromEntries((R?.reference || []).map((r) => [r.test_id, r]));
+  const tgt = Object.fromEntries((R?.target || []).map((r) => [r.test_id, r]));
+  const ev = a.scan?.evidence || [];
+  const items = Object.keys(a.verdict || {}).length ? Object.keys(a.verdict) : (a.profile?.items || []);
+  const last = a.events?.[a.events.length - 1];
+  const pctColor = s?.percent == null ? null : s.percent >= 90 ? "var(--ok)" : s.percent >= 60 ? "var(--warn)" : "var(--bad)";
+  const P = a.providers || [];
+  return html`<${Fragment}>
+    <header className="head">
+      <div>
+        <div className="eyebrow">Analysis ${a.id} · ${a.repo.files ? `${a.repo.files} files` : ""} ${a.repo.commit ? `· ${a.repo.commit.slice(0, 8)}` : ""}</div>
+        <h1><a className="ext" style=${{ color: "inherit" }} href=${a.url} target="_blank" rel="noopener">${a.repo.owner}/${a.repo.name}</a></h1>
+        <div className="sub">${a.status === "error" ? html`<span style=${{ color: "var(--bad)" }}>${a.error}</span>` : last ? last.msg : "Queued"}</div>
+      </div>
+      <div className="actions">
+        ${a.status === "done" && html`<a className="btn ghost sm" href=${`/api/analyses/${a.id}/proof`} target="_blank" rel="noopener">Portability proof (JSON)</a>`}
+        <button className="btn sm" type="button" onClick=${() => go("/")}>New analysis</button>
+      </div>
+    </header>
+
+    <div className="track">${STAGES.map(([k, l]) => {
+      const st = a.stages[k];
+      const msg = [...(a.events || [])].reverse().find((e) => e.stage === k)?.msg;
+      return html`<div key=${k} className=${`tstage ${st}`}><span className="tn">${l}</span><span className="tm">${msg || (st === "todo" ? "waiting" : st)}</span></div>`;
+    })}</div>
+
+    <div className="cols">
+      <div className="stack">
+        <section className="card glass">
+          <div className="card-h"><h2>Portability</h2><span className="grow"></span>${a.status === "running" && html`<${Pill} cls="run">running<//>`}</div>
+          <div className="score">
+            <div className="ring-wrap"><${Ring} value=${s?.verified || 0} total=${s?.total || 1} color=${pctColor} />
+              <span className="ring-n">${s?.percent == null ? "—" : `${s.percent}%`}</span></div>
+            <div className="tally">
+              <div><b>${s ? `${s.verified}/${s.total}` : "—"}</b>verified on target</div>
+              <div><b className=${s?.failed ? "bad-t" : ""}>${s?.failed ?? "—"}</b>fail</div>
+              <div><b>${s?.unsupported ?? "—"}</b>unsupported</div>
+              <div><b>${s?.untested ?? "—"}</b>not tested</div>
+            </div>
+          </div>
+          <div className="why">${P.length ? html`Reference <b>${P[0].name}</b> vs target <b>${P[1].name}</b>${P.some((p) => p.simulated) ? " (simulated providers)" : ""}. Code signs requests for region <b>${a.code_region?.value || "—"}</b>.` : ""}</div>
+        </section>
+        <section className="card glass" style=${{ flex: 1 }}>
+          <div className="card-h"><h2>Other cloud lock-in</h2><span className="grow"></span><span className="chip">${(a.lockin || []).length} services</span></div>
+          <div className="card-b">${(a.lockin || []).length ? a.lockin.map((l) => html`<div key=${l.service} className="item">
+              <div className="item-h"><b>${l.service}</b><span className="grow"></span><span className="res untested">NOT TESTED</span></div>
+              ${l.evidence.slice(0, 2).map((e, i) => html`<div key=${i} className="ev-line"><a href=${blobUrl(a, e.file, e.line)} target="_blank" rel="noopener">${e.file}:${e.line}</a><code>${e.code}</code></div>`)}
+            </div>`) : html`<${Empty}>${a.scan ? "No other cloud services found in the code." : "Waiting for the scan…"}<//>`}</div>
+        </section>
+      </div>
+
+      <section className="card glass">
+        <div className="card-h"><h2>Found in your code</h2><span className="grow"></span>
+          ${a.scan && html`<span className="chip">${Object.values(a.scan.operations).reduce((x, y) => x + y, 0)} S3 call sites · ${a.scan.s3_files.length} files</span>`}</div>
+        <div className="card-b">${items.length ? items.map((it) => {
+          const v = a.verdict?.[it];
+          const lines = ev.filter((e) => e.item === it).slice(0, 3);
+          return html`<div key=${it} className="item">
+            <div className="item-h"><b>${ITEM[it] || it}</b><span className="k">${it}</span><span className="grow"></span>
+              ${v ? html`<${Pill} cls=${VERDICT[v][0]}>${VERDICT[v][1]}<//>` : html`<${Pill} cls="idle">pending<//>`}</div>
+            ${lines.map((e, i) => html`<div key=${i} className="ev-line"><a href=${blobUrl(a, e.file, e.line)} target="_blank" rel="noopener">${e.file}:${e.line}</a><code>${e.code}</code></div>`)}
+          </div>`;
+        }) : html`<${Empty}>${a.scan ? "No object-storage usage found in this repository." : "Scanning…"}<//>`}</div>
+      </section>
+
+      <section className="card glass">
+        <div className="card-h"><h2>Tests</h2><span className="grow"></span><${SourceBadge} src=${plan?.source} /></div>
+        <div className="card-b">
+          ${plan?.summary && html`<p className="summary" style=${{ marginBottom: 10 }}>${plan.summary}</p>`}
+          ${(plan?.validator || []).map((n, i) => html`<div key=${i} className="note">validator · ${n}</div>`)}
+          ${a.adaptation && html`<div className="adapt">
+            <div className="card-h"><b>Adaptation</b><span className="grow"></span><${SourceBadge} src=${a.adaptation.proposal.source} /></div>
+            <div className="why">${a.adaptation.proposal.diagnosis}</div>
+            ${a.adaptation.applied && html`<div className="diff"><span className="minus">−</span><span className="minus">${a.adaptation.proposal.key} = ${a.adaptation.before[a.adaptation.proposal.key]}</span>
+              <span className="plus">+</span><span className="plus">${a.adaptation.proposal.key} = ${a.adaptation.proposal.value}</span></div>
+              <div><${Pill} cls=${a.adaptation.retest.passed === a.adaptation.retest.total ? "ok" : "bad"}>retest ${a.adaptation.retest.passed}/${a.adaptation.retest.total}<//></div>`}
+          </div>`}
+          ${plan ? html`<div className="colh"><span>test</span><span>reference</span><span>target</span></div>
+            ${plan.tests.map((t) => html`<${TestRow} key=${t.id} t=${t} r=${ref[t.id]} x=${tgt[t.id]} />`)}`
+            : html`<${Empty}>${a.stages.plan === "skipped" ? "No storage behaviour to test." : "The AI test plan appears here."}<//>`}
+        </div>
+      </section>
+    </div>
+  <//>`;
+}
+
+// =====================================================================================
+// LIVE SWITCH DEMO
+// =====================================================================================
+const JSTEPS = [["connect", "Connect"], ["discover", "Discover"], ["analyze", "Analyze"], ["challenge", "Challenge"],
+  ["adapt", "Adapt"], ["verify", "Verify"], ["switch", "Switch & cut"], ["prove", "Prove"]];
+const SEQUENCE = [
+  ["discover", (s) => s.steps.discover === "done"], ["analyze", (s) => s.steps.analyze === "done"],
+  ["challenge", (s) => ["done", "attention"].includes(s.steps.challenge)], ["adapt", (s) => ["done", "skipped"].includes(s.steps.adapt)],
+  ["verify", (s) => s.steps.verify === "done"], ["switch", (s) => s.steps.switch === "done"], ["cut", (s) => !!s.cut],
+  ["prove", (s) => s.steps.prove === "done"],
+];
+const LABEL = { discover: "Observe the app", analyze: "Generate tests with AI", challenge: "Run the challenge", adapt: "Adapt & retest",
+  verify: "Copy & verify data", switch: "Switch to destination", cut: "Cut the source", prove: "Prove a new operation" };
+const STEP_OF = { cut: "switch" };
+
 function stepDetail(k, S) {
   const pl = S.plan, R = S.results, a = S.adaptation, m = S.migration, pass = (pid) => R[pid].filter((r) => r.status === "pass").length;
   switch (k) {
     case "connect": return S.health ? `${["source", "destination"].filter((p) => S.health[p]?.ok).length}/2 providers reachable` : "checking…";
-    case "discover": return S.profile.observed_calls ? `${S.profile.observed_calls} real calls · ${Object.keys(S.profile.operations).length} operations` : "observe the app";
-    case "analyze": return pl ? `${pl.tests.length} tests · ${pl.source.mode === "live" ? `AI live ${(pl.source.ms / 1000).toFixed(1)} s` : pl.source.mode}` : "AI writes the tests";
-    case "challenge": return R ? `destination ${pass("destination")}/${R.destination.length} · source ${pass("source")}/${R.source.length}` : "run on both providers";
+    case "discover": return S.profile.observed_calls ? `${S.profile.observed_calls} real calls · ${Object.keys(S.profile.operations).length} ops` : "observe the app";
+    case "analyze": return pl ? `${pl.tests.length} tests · ${pl.source.mode === "live" ? `AI ${(pl.source.ms / 1000).toFixed(1)} s` : pl.source.mode}` : "AI writes the tests";
+    case "challenge": return R ? `target ${pass("destination")}/${R.destination.length} · source ${pass("source")}/${R.source.length}` : "both providers";
     case "adapt": return S.steps.adapt === "skipped" ? "not needed" : a?.applied ? `${a.proposal.key} → ${a.proposal.value}` : a ? "no safe change" : "fix what fails";
-    case "verify": return m ? `${m.objects.filter((o) => o.match).length}/${m.objects.length} SHA-256 match` : "copy & hash the data";
+    case "verify": return m ? `${m.objects.filter((o) => o.match).length}/${m.objects.length} SHA-256 match` : "copy & hash data";
     case "switch": return S.active === "destination" ? (S.link_up === false ? "on destination · source cut" : "on destination") : "route: source";
     case "prove": return S.live ? `new object on ${S.live.provider} ${S.live.match ? "✓" : "✗"}` : "freedom proof";
     default: return "";
   }
 }
 
-function Ring({ done, total }) {
-  const r = 26, c = 2 * Math.PI * r;
-  return html`<svg className="ring" viewBox="0 0 64 64" aria-hidden="true">
-    <circle cx="32" cy="32" r=${r} className="ring-bg" />
-    <circle cx="32" cy="32" r=${r} className="ring-fg" strokeDasharray=${c} strokeDashoffset=${c * (1 - done / total)} />
-  </svg>`;
-}
-
-const Dot = ({ cls }) => html`<span className=${`sdot ${cls}`}></span>`;
-
-function Sidebar({ S, next }) {
-  const done = STEPS.filter(([k]) => ["done", "skipped"].includes(S.steps[k])).length;
-  const nextKey = next === "cut" ? "switch" : next;
-  const T = S.traffic, src = S.plan?.source;
-  const avail = T.total ? (100 * (T.total - T.failed) / T.total) : 100;
-  return html`<aside className="side glass" aria-label="Journey">
-    <div className="brand"><img src="/static/brand/rise-icon.svg" alt="" />
-      <div><div className="wm">RISE</div><div className="tag">Proof of Cloud Freedom</div></div></div>
-
+function JourneyNav({ S, next, view, setView }) {
+  const done = JSTEPS.filter(([k]) => ["done", "skipped"].includes(S.steps[k])).length;
+  const nextKey = STEP_OF[next] || next;
+  return html`<${Fragment}>
     <div className="progress">
-      <div className="ring-wrap"><${Ring} done=${done} total=${STEPS.length} /><span className="ring-n">${done}<small>/${STEPS.length}</small></span></div>
-      <div><div className="p-title">${done === STEPS.length ? "Freedom proven" : `${done} of ${STEPS.length} verified`}</div>
+      <div className="ring-wrap"><${Ring} value=${done} total=${JSTEPS.length} /><span className="ring-n">${done}<small>/${JSTEPS.length}</small></span></div>
+      <div><div className="p-title">${done === JSTEPS.length ? "Freedom proven" : `${done} of ${JSTEPS.length} verified`}</div>
         <div className="p-sub">${next ? `Next · ${LABEL[next]}` : "Every step backed by evidence"}</div></div>
     </div>
-
-    <ol className="steps">${STEPS.map(([k, l, anchor], i) => {
+    <ol className="steps">${JSTEPS.map(([k, l], i) => {
       const st = S.steps[k];
       const state = ["done", "skipped"].includes(st) ? "done" : ["attention", "fail"].includes(st) ? "bad" : st === "running" ? "running" : k === nextKey ? "next" : "todo";
-      return html`<li key=${k} className=${`step s-${state}`}>
-        <a href=${`#${anchor}`}>
-          <span className="bubble">${state === "done" ? "✓" : state === "bad" ? "!" : String(i + 1).padStart(2, "0")}</span>
-          <span className="st-body"><span className="st-title">${l}</span><span className="st-detail">${stepDetail(k, S)}</span></span>
-        </a></li>`;
+      return html`<li key=${k} className=${`step s-${state} ${view === k ? "sel" : ""}`}><button type="button" onClick=${() => setView(k)}>
+        <span className="bubble">${state === "done" ? "✓" : state === "bad" ? "!" : String(i + 1).padStart(2, "0")}</span>
+        <span className="st-body"><span className="st-title">${l}</span><span className="st-detail">${stepDetail(k, S)}</span></span></button></li>`;
     })}</ol>
-
-    <div className="sys">
-      <div className="sys-row"><${Dot} cls=${S.link_up === false ? "bad" : S.health?.source?.ok ? "ok" : "idle"} /><span>Source</span>
-        <b>${S.link_up === false ? "cut" : S.active === "source" ? "serving" : "standby"}</b></div>
-      <div className="sys-row"><${Dot} cls=${S.health?.destination?.ok ? (S.active === "destination" ? "live" : "ok") : "idle"} /><span>Destination</span>
-        <b>${S.active === "destination" ? "serving" : S.migration?.ok ? "verified" : "standby"}</b></div>
-      <div className="sys-row"><${Dot} cls=${S.ai.configured ? "live" : "warn"} /><span>AI</span>
-        <b>${S.ai.configured ? (src?.mode === "live" ? `live · ${(src.ms / 1000).toFixed(1)} s` : "ready") : "no key"}</b></div>
-      <div className="sys-row"><${Dot} cls=${!T.on ? "idle" : T.failed ? "bad" : "ok"} /><span>Traffic</span>
-        <b>${T.total ? `${avail.toFixed(avail === 100 ? 0 : 2)}% · ${T.failed} failed` : "off"}</b></div>
-      <div className="sys-meta mono">${S.ai.model}<br />run ${S.run_id}</div>
-    </div>
-  </aside>`;
-}
-
-function Traffic({ S, ctx }) {
-  const T = S.traffic, pts = T.points;
-  const at = (ts) => { const i = pts.findIndex((p) => p.ts >= ts); return i < 0 ? null : (i / Math.max(pts.length, 1)) * 100; };
-  const markers = [];
-  if (S.switch) markers.push(["switch", at(S.switch.at), "switch"]);
-  if (S.cut) markers.push(["cut", at(S.cut.at), "source cut"]);
-  if (S.cut?.restored_at) markers.push(["restore", at(S.cut.restored_at), "restored"]);
-  const maxMs = Math.max(60, ...pts.map((p) => p.ms));
-  return html`<section className="panel glass w12 traffic" id="p-traffic">
-    <${Head} n="LIVE" title="Real user traffic through asset-service">
-      ${T.on ? html`<${Pill} cls="run">streaming<//>` : null}
-      <button className=${`btn sm ${T.on ? "ghost" : ""}`} type="button" onClick=${() => ctx.act(T.on ? "traffic_off" : "traffic_on")}>${T.on ? "Stop traffic" : "Start live traffic"}</button>
-    <//>
-    <div className="t-wrap">
-      <div className="kpis t-kpis">
-        <div className="kpi"><div className="v">${T.total}</div><div className="l">real requests</div></div>
-        <div className="kpi"><div className=${`v ${T.failed ? "bad-t" : ""}`}>${T.failed}</div><div className="l">failed</div></div>
-        <div className="kpi"><div className=${`v ${S.switch && !T.failed_after_switch ? "ok-t" : ""}`}>${S.switch ? T.failed_after_switch : "—"}</div><div className="l">failed since switch</div></div>
-        <div className="kpi"><div className="v">${T.p50_ms ?? "—"}<small>${T.p50_ms != null ? " ms" : ""}</small></div><div className="l">p50 latency</div></div>
-      </div>
-      <div className="bars-box">
-        <div className="bars">${pts.length ? pts.map((p, i) => html`<i key=${i} title=${`${p.ts.slice(11, 23)} · ${p.provider} · ${p.ok ? `${p.ms} ms` : p.error}`}
-            className=${p.ok ? p.provider : "fail"} style=${{ height: p.ok ? `${18 + 82 * Math.min(1, p.ms / maxMs)}%` : "100%" }}></i>`)
-          : html`<span className="empty">Start live traffic: RISE sends a real GET every 300 ms through the app's storage router, so the switch and the cut happen under load.</span>`}</div>
-        ${markers.filter(([, x]) => x !== null).map(([k, x, label]) => html`<div key=${k} className=${`mark m-${k}`} style=${{ left: `${x}%` }}><span>${label}</span></div>`)}
-        <div className="legend mono"><span><i className="source"></i>source</span><span><i className="destination"></i>destination</span><span><i className="fail"></i>failed</span><span className="muted">bar height = latency · last ${pts.length} requests</span></div>
-      </div>
-    </div>
-  </section>`;
+  <//>`;
 }
 
 function Providers({ S }) {
   const cut = S.link_up === false;
-  return html`<section className="providers" aria-label="Providers">
-    ${S.providers.map((p, i) => {
-      const h = S.health?.[p.id], cfg = S.app_config[p.id], isSrc = p.id === "source";
-      const dim = isSrc && cut, active = S.active === p.id;
-      let status = h?.ok ? ["ok", "Online"] : h ? ["bad", "Unreachable"] : ["idle", "Unknown"];
-      if (dim) status = ["bad", "Disconnected"];
-      else if (active) status = ["live", "Serving the app"];
-      else if (!isSrc) status = S.migration?.ok ? ["ok", "Verified"] : ["idle", "Standby"];
-      const card = html`<div key=${p.id} className=${`prov glass ${dim ? "dim" : ""} ${active ? "active" : ""}`}>
-        <div className="top"><span className="eyebrow">${isSrc ? "Source" : "Destination"}</span>${p.simulated && html`<span className="sim">simulated</span>`}</div>
-        <div className="name">${p.name}</div>
-        <div className="meta">endpoint <b>${isSrc ? p.app_endpoint : p.endpoint}</b><br />
-          provider region <b>${p.documented_region}</b> · bucket <b>${p.bucket}</b><br />
-          app signs with <b>${cfg.region}</b> · ${cfg.addressing_style}-style</div>
-        <${Pill} cls=${status[0]}>${status[1]}<//>
-      </div>`;
-      return i === 0 ? html`<${Fragment} key="src">${card}
-        <div className=${`route ${cut ? "cut" : ""}`}><div className="wire"></div>
-          <div className="lbl">${cut ? "source link cut" : S.active === "destination" ? "app → destination" : "app → source"}</div></div><//>` : card;
-    })}
-  </section>`;
+  const card = (p) => {
+    const h = S.health?.[p.id], cfg = S.app_config[p.id], isSrc = p.id === "source", dim = isSrc && cut, active = S.active === p.id;
+    let st = h?.ok ? ["ok", "Online"] : h ? ["bad", "Unreachable"] : ["idle", "Unknown"];
+    if (dim) st = ["bad", "Disconnected"]; else if (active) st = ["live", "Serving the app"]; else if (!isSrc) st = S.migration?.ok ? ["ok", "Verified"] : ["idle", "Standby"];
+    return html`<div className=${`prov glass ${dim ? "dim" : ""} ${active ? "active" : ""}`}>
+      <div className="top"><span className="eyebrow">${isSrc ? "Source" : "Destination"}</span>${p.simulated && html`<span className="sim">simulated</span>`}<span className="grow"></span><${Pill} cls=${st[0]}>${st[1]}<//></div>
+      <div className="name">${p.name}</div>
+      <div className="meta">${isSrc ? p.app_endpoint : p.endpoint} · region <b>${p.documented_region}</b> · app signs <b>${cfg.region}</b></div>
+    </div>`;
+  };
+  return html`<section className="providers">${card(S.providers[0])}
+    <div className=${`route ${cut ? "cut" : ""}`}><div className="wire"></div><div className="lbl">${cut ? "source cut" : S.active === "destination" ? "app → destination" : "app → source"}</div></div>
+    ${card(S.providers[1])}</section>`;
 }
 
-// ---------- panels ----------
-function Discover({ S, ctx }) {
-  const p = S.profile, ops = Object.entries(p.operations).sort((a, b) => b[1] - a[1]), feats = Object.keys(p.features);
-  return html`<section className="panel glass w5" id="p-discover">
-    <${Head} n="02 · DISCOVER" title="Observed behaviour" st=${S.steps.discover}><${Btn} action="discover" ctx=${ctx}>Observe app<//><//>
-    ${p.observed_calls ? html`
-      <div className="kpis">
-        <div className="kpi"><div className="v">${p.observed_calls}</div><div className="l">real S3 calls captured</div></div>
-        <div className="kpi"><div className="v">${ops.length}</div><div className="l">operations</div></div>
-        <div className="kpi"><div className="v">${feats.length}</div><div className="l">behaviours</div></div>
-      </div>
-      <div className="tw"><table><thead><tr><th>Operation</th><th>Calls</th></tr></thead>
-        <tbody>${ops.map(([o, n]) => html`<tr key=${o}><td className="mono">${o}</td><td className="mono">${n}</td></tr>`)}</tbody></table></div>
-      <div className="chips">${feats.map((f) => html`<span key=${f} className="chip">${f}</span>`)}</div>
-      <div className="muted mono">content types: ${p.content_types.join(", ") || "—"} · metadata keys: ${p.metadata_keys.join(", ") || "—"}</div>`
-    : html`<${Empty}>RISE instruments asset-service's S3 SDK client and records every call it makes. Run “Observe app”.<//>`}
-  </section>`;
-}
-
-function Analyze({ S, ctx }) {
-  const pl = S.plan;
-  return html`<section className="panel glass w7" id="p-analyze">
-    <${Head} n="03 · ANALYZE" title="AI-generated test plan" st=${S.steps.analyze}><${SourceBadge} src=${pl?.source} /><${Btn} action="analyze" ctx=${ctx}>Generate<//><//>
-    ${pl ? html`
-      <p className="summary">${pl.summary}</p>
-      ${pl.source.live_error && html`<div className="note">Live AI call failed: ${pl.source.live_error}</div>`}
-      ${(pl.validator || []).map((n, i) => html`<div key=${i} className="note">validator · ${n}</div>`)}
-      <div>${pl.tests.map((t) => html`<div key=${t.id} className="test new"><span className="id">${t.id}</span>
-        <div><b>${t.title}</b> <span className="chip">${t.kind}</span> <span className="origin">${t.origin}</span><div className="why">${t.rationale}</div></div></div>`)}</div>
-      ${pl.risks?.length > 0 && html`<div><div className="eyebrow" style=${{ margin: "6px 0" }}>Risks the AI flagged (tests decide)</div>
-        ${pl.risks.map((r, i) => html`<div key=${i} className="risk"><span className=${`sev ${r.severity}`}>${r.severity}</span>
-          <div><b>${r.title}</b><div className="why muted">${r.detail}</div></div></div>`)}</div>`}`
-    : html`<${Empty}>The AI reads the observed profile and writes a structured plan using only RISE's executable test catalogue. RISE validates it before anything runs.<//>`}
+function Traffic({ S, act }) {
+  const T = S.traffic, pts = T.points;
+  const at = (ts) => { const i = pts.findIndex((p) => p.ts >= ts); return i < 0 ? null : (i / Math.max(pts.length, 1)) * 100; };
+  const marks = [];
+  if (S.switch) marks.push(["switch", at(S.switch.at), "switch"]);
+  if (S.cut) marks.push(["cut", at(S.cut.at), "source cut"]);
+  if (S.cut?.restored_at) marks.push(["restore", at(S.cut.restored_at), "restored"]);
+  const maxMs = Math.max(60, ...pts.map((p) => p.ms));
+  return html`<section className="traffic glass">
+    <div className="t-kpis">
+      <div className="kpi"><div className="v">${T.total}</div><div className="l">real requests</div></div>
+      <div className="kpi"><div className=${`v ${T.failed ? "bad-t" : ""}`}>${T.failed}</div><div className="l">failed</div></div>
+      <div className="kpi"><div className=${`v ${S.switch && !T.failed_after_switch ? "ok-t" : ""}`}>${S.switch ? T.failed_after_switch : "—"}</div><div className="l">failed since switch</div></div>
+      <div className="kpi"><div className="v">${T.p50_ms ?? "—"}<small>${T.p50_ms != null ? " ms" : ""}</small></div><div className="l">p50</div></div>
+    </div>
+    <div className="bars-box">
+      <div className="bars">${pts.length ? pts.map((p, i) => html`<i key=${i} title=${`${p.ts.slice(11, 23)} · ${p.provider} · ${p.ok ? `${p.ms} ms` : p.error}`}
+          className=${p.ok ? p.provider : "fail"} style=${{ height: p.ok ? `${18 + 82 * Math.min(1, p.ms / maxMs)}%` : "100%" }}></i>`)
+        : html`<span className="empty">Real GETs every 300 ms through the app's storage router: grey = source, blue = destination, red = failed.</span>`}</div>
+      ${marks.filter(([, x]) => x !== null).map(([k, x, l]) => html`<div key=${k} className=${`mark m-${k}`} style=${{ left: `${x}%` }}><span>${l}</span></div>`)}
+    </div>
+    <button className=${`btn sm ${T.on ? "ghost" : ""}`} type="button" onClick=${() => act(T.on ? "traffic_off" : "traffic_on")}>${T.on ? "Stop traffic" : "Start traffic"}</button>
   </section>`;
 }
 
 function ResCell({ r }) {
   if (!r) return html`<span className="res untested">UNTESTED</span>`;
   const failed = (r.checks || []).filter((c) => !c.ok), e = r.error;
-  // keyed by status: React remounts the badge when the result changes, which replays the flash
-  return html`<${Fragment}>
-    <span key=${r.status} className=${`res ${r.status} flash`}>${r.status.toUpperCase()}</span> <span className="muted mono">${r.ms} ms</span>
+  return html`<${Fragment}><span key=${r.status} className=${`res ${r.status} flash`}>${r.status.toUpperCase()}</span> <span className="muted mono">${r.ms} ms</span>
     ${e && html`<div className="err">${e.code}${e.status ? ` · HTTP ${e.status}` : ""} · ${e.message}</div>`}
-    ${failed.map((c, i) => html`<div key=${i} className="err">${c.name}: expected ${JSON.stringify(c.expected)}, got ${JSON.stringify(c.actual)}</div>`)}
+    ${failed.map((c, i) => html`<div key=${i} className="err">${c.name}: expected ${JSON.stringify(c.expected)}, got ${JSON.stringify(c.actual)}</div>`)}<//>`;
+}
+
+function StepView({ k, S }) {
+  const p = S.profile, pl = S.plan, R = S.results, a = S.adaptation, m = S.migration;
+  switch (k) {
+    case "connect": return html`<dl className="kv">${S.providers.map((pr) => html`<${Fragment} key=${pr.id}><dt>${pr.id}</dt>
+      <dd>${pr.name} · ${pr.endpoint} · ${S.health?.[pr.id]?.ok ? html`<span className="okc">reachable</span>` : html`<span className="badc">${S.health?.[pr.id]?.error?.message || "unknown"}</span>`}</dd><//>`)}
+      <dt>link</dt><dd>${S.health?.link?.result}</dd><dt>AI</dt><dd>${S.ai.model} · ${S.ai.configured ? "key configured" : "no key"}</dd></dl>`;
+    case "discover": {
+      const ops = Object.entries(p.operations).sort((x, y) => y[1] - x[1]);
+      return p.observed_calls ? html`<div className="split2"><table><thead><tr><th>Operation</th><th>Calls</th></tr></thead>
+        <tbody>${ops.map(([o, n]) => html`<tr key=${o}><td className="mono">${o}</td><td className="mono">${n}</td></tr>`)}</tbody></table>
+        <div style=${{ display: "grid", gap: 12, alignContent: "start" }}><div className="kpis"><div className="kpi"><div className="v">${p.observed_calls}</div><div className="l">real S3 calls captured</div></div>
+          <div className="kpi"><div className="v">${Object.keys(p.features).length}</div><div className="l">behaviours</div></div></div>
+          <div className="chips">${Object.keys(p.features).map((f) => html`<span key=${f} className="chip">${f}</span>`)}</div>
+          <div className="muted mono">content types: ${p.content_types.join(", ") || "—"}<br />metadata keys: ${p.metadata_keys.join(", ") || "—"}</div></div></div>`
+        : html`<${Empty}>RISE instruments asset-service's S3 SDK client and records every call it makes.<//>`;
+    }
+    case "analyze": return pl ? html`<p className="summary">${pl.summary}</p>${(pl.validator || []).map((n, i) => html`<div key=${i} className="note">validator · ${n}</div>`)}
+      <div className="split2" style=${{ marginTop: 10 }}><div>${pl.tests.map((t) => html`<div key=${t.id} className="item"><div className="item-h"><b>${t.title}</b><span className="k">${t.kind}</span></div><div className="why">${t.rationale}</div></div>`)}</div>
+      <div>${(pl.risks || []).map((r, i) => html`<div key=${i} className="item"><div className="item-h"><span className=${`res ${r.severity === "high" ? "fail" : "untested"}`}>${r.severity}</span><b>${r.title}</b></div><div className="why">${r.detail}</div></div>`)}</div></div>`
+      : html`<${Empty}>The AI turns the observed profile into a structured plan from RISE's executable catalogue.<//>`;
+    case "challenge": {
+      if (!R) return html`<${Empty}>Every planned test runs on both providers with synthetic data.<//>`;
+      const by = (pid) => Object.fromEntries(R[pid].map((r) => [r.test_id, r]));
+      const src = by("source"), dst = by("destination");
+      return html`<table><thead><tr><th>Test</th><th>Source</th><th>Destination</th></tr></thead><tbody>
+        ${pl.tests.map((t) => html`<tr key=${t.id} className=${dst[t.id] && dst[t.id].status !== "pass" ? "bad" : ""}><td><b>${t.title}</b><div className="mono muted">${t.kind}</div></td>
+          <td><${ResCell} r=${src[t.id]} /></td><td><${ResCell} r=${dst[t.id]} /></td></tr>`)}</tbody></table>`;
+    }
+    case "adapt": return a ? html`<div style=${{ display: "grid", gap: 10, maxWidth: 760 }}><div><${SourceBadge} src=${a.proposal.source} /></div><p className="summary">${a.proposal.diagnosis}</p>
+      ${a.applied && html`<div className="diff"><span className="minus">−</span><span className="minus">${a.proposal.key} = ${a.before[a.proposal.key]}</span><span className="plus">+</span><span className="plus">${a.proposal.key} = ${a.proposal.value}</span></div>
+        ${a.retest && html`<div><${Pill} cls=${a.retest.passed === a.retest.total ? "ok" : "bad"}>Retest ${a.retest.passed}/${a.retest.total} passed<//></div>`}`}</div>`
+      : html`<${Empty}>${S.steps.adapt === "skipped" ? "No incompatibility found, so nothing to adapt." : "When a test fails, the AI proposes one allowed client-config change; RISE applies it to the destination only and retests everything."}<//>`;
+    case "verify": return m ? html`<table><thead><tr><th>Object</th><th>Bytes</th><th>SHA-256 source → destination</th><th></th></tr></thead><tbody>
+      ${m.objects.map((o) => html`<tr key=${o.key}><td className="mono">${o.key}</td><td className="mono">${o.size}</td><td className="mono">${short(o.sha256_source)} → ${short(o.sha256_destination)}</td>
+        <td>${o.match && o.metadata_match ? html`<${Pill} cls="ok">match<//>` : html`<${Pill} cls="bad">mismatch<//>`}</td></tr>`)}</tbody></table>`
+      : html`<${Empty}>RISE copies the app's objects, reads them back from the destination and compares SHA-256 of the bytes.<//>`;
+    case "switch": case "prove": {
+      const sw = S.switch, c = S.cut, l = S.live;
+      return html`<div className="split2"><dl className="kv">
+        <dt>app route</dt><dd>${S.active}${sw ? ` · since ${clock(sw.at)}` : ""}</dd>
+        ${sw && html`<${Fragment}><dt>first read</dt><dd>${sw.probe.key} · ${sw.probe.provider} · req ${sw.probe.request_id}</dd><//>`}
+        ${c && html`<${Fragment}><dt>source TCP</dt><dd className="badc">${c.tcp_probe.result}</dd><dt>app → source</dt><dd className="badc">${c.app_probe.result}</dd><//>`}
+        ${l && html`<${Fragment}><dt>new object</dt><dd>${l.key}</dd><dt>served by</dt><dd className="okc">${l.provider} · put ${l.put_request_id} · get ${l.get_request_id}</dd>
+          <dt>sha256</dt><dd className=${l.match ? "okc" : "badc"}>${short(l.sha256_written)} ${l.match ? "= written ✓" : "≠ written"}</dd><//>`}
+      </dl><div><div className="eyebrow" style=${{ marginBottom: 6 }}>Events</div><div className="log">${S.events.slice(-10).reverse().map((e) => html`<div key=${e.seq} className=${`logrow ${e.kind}`}><span className="t">${clock(e.ts)}</span><span>${e.msg}</span></div>`)}</div></div></div>`;
+    }
+    default: return null;
+  }
+}
+
+function Demo({ S, act, busy, view, setView }) {
+  const next = SEQUENCE.find(([, done]) => !done(S))?.[0];
+  const disabled = busy || S.busy;
+  const k = view || STEP_OF[next] || next || "prove";
+  const title = { connect: "Providers", discover: "Observed behaviour", analyze: "AI-generated test plan", challenge: "Same tests, both providers",
+    adapt: "Constrained adaptation", verify: "Data copied & verified", switch: "Switch, cut, prove", prove: "Switch, cut, prove" }[k];
+  return html`<${Fragment}>
+    <header className="head">
+      <div><div className="eyebrow">Live switch · workload asset-service · S3 object storage</div><h1>Switch providers under live traffic</h1></div>
+      <div className="actions">
+        <a className="btn ghost sm" href="/api/demo/proof" target="_blank" rel="noopener">Freedom proof</a>
+        <button className="btn ghost sm" type="button" disabled=${disabled} onClick=${() => { setView(null); act("reset"); }}>Reset</button>
+        <button className=${`btn ${next === "cut" ? "danger" : ""}`} type="button" disabled=${disabled || !next} onClick=${() => { setView(null); act(next); }}>
+          ${disabled ? "Running…" : next ? `${LABEL[next]} →` : "Journey complete ✓"}</button>
+      </div>
+    </header>
+    <${Providers} S=${S} />
+    <${Traffic} S=${S} act=${act} />
+    <section className="card glass stage">
+      <div className="card-h"><span className="eyebrow">${k}</span><h2>${title}</h2><span className="grow"></span>
+        ${k === "analyze" && html`<${SourceBadge} src=${S.plan?.source} />`}</div>
+      <div className="card-b"><${StepView} k=${k} S=${S} /></div>
+    </section>
   <//>`;
 }
 
-function Challenge({ S, ctx }) {
-  const R = S.results, tests = S.plan?.tests || [];
-  const by = (pid) => Object.fromEntries((R?.[pid] || []).map((r) => [r.test_id, r]));
-  const src = by("source"), dst = by("destination");
-  const count = (pid) => R[pid].filter((r) => r.status === "pass").length;
-  return html`<section className="panel glass w7" id="p-challenge">
-    <${Head} n="04 · CHALLENGE" title="Same tests, both providers" st=${S.steps.challenge}><${Btn} action="challenge" ctx=${ctx}>Run<//><//>
-    ${R ? html`
-      <div className="kpis">
-        <div className="kpi"><div className="v">${count("destination")}/${R.destination.length}</div><div className="l">passed on destination</div></div>
-        <div className="kpi"><div className="v">${count("source")}/${R.source.length}</div><div className="l">passed on source</div></div>
-      </div>
-      <div className="tw"><table><thead><tr><th>Test</th><th>Source</th><th>Destination</th></tr></thead><tbody>
-        ${tests.map((t) => html`<tr key=${t.id} className=${dst[t.id] && dst[t.id].status !== "pass" ? "bad" : ""}>
-          <td><b>${t.title}</b><div className="mono muted">${t.id} · ${t.kind}</div></td>
-          <td><${ResCell} r=${src[t.id]} /></td><td><${ResCell} r=${dst[t.id]} /></td></tr>`)}
-      </tbody></table></div>`
-    : html`<${Empty}>Deterministic code runs every planned test on both providers with synthetic data and decides pass, fail or unsupported from checks on the real bytes. A matching HTTP status alone never counts as a pass.<//>`}
-  </section>`;
-}
-
-function Adapt({ S, ctx }) {
-  const a = S.adaptation, p = a?.proposal;
-  return html`<section className="panel glass w5" id="p-adapt">
-    <${Head} n="05 · ADAPT" title="Constrained adaptation" st=${S.steps.adapt}><${Btn} action="adapt" ctx=${ctx}>Adapt<//><//>
-    ${p ? html`
-      <div><${SourceBadge} src=${p.source} /></div>
-      <p className="summary">${p.diagnosis}</p>
-      ${a.applied && html`
-        <div className="diff"><span className="minus">−</span><span className="minus">${p.key} = ${a.before[p.key]}</span>
-          <span className="plus">+</span><span className="plus">${p.key} = ${p.value}</span></div>
-        <div className="muted mono">allowed keys only: region · addressing_style · confidence ${p.confidence}</div>
-        ${a.retest && html`<div><${Pill} cls=${a.retest.passed === a.retest.total ? "ok" : "bad"}>Retest ${a.retest.passed}/${a.retest.total} passed<//></div>`}`}
-      ${p.source.live_error && html`<div className="note">Live AI call failed: ${p.source.live_error}</div>`}`
-    : S.steps.adapt === "skipped" ? html`<${Empty}>No incompatibility found, so nothing to adapt.<//>`
-    : html`<${Empty}>When a test fails, the AI may propose one change to the app's S3 client settings, from an allow-list. RISE applies it only to the destination and retests everything.<//>`}
-  </section>`;
-}
-
-function Verify({ S, ctx }) {
-  const m = S.migration;
-  return html`<section className="panel glass w7" id="p-verify">
-    <${Head} n="06 · VERIFY" title="Data copied & verified" st=${S.steps.verify}><${Btn} action="verify" ctx=${ctx}>Copy & verify<//><//>
-    ${m ? html`
-      <div className="kpis"><div className="kpi"><div className="v">${m.objects.filter((o) => o.match).length}/${m.objects.length}</div><div className="l">objects with matching SHA-256</div></div></div>
-      <div className="tw"><table><thead><tr><th>Object</th><th>Bytes</th><th>SHA-256 source → destination</th><th></th></tr></thead><tbody>
-        ${m.objects.map((o) => html`<tr key=${o.key}><td className="mono">${o.key}</td><td className="mono">${o.size}</td>
-          <td className="mono">${short(o.sha256_source)}<br />${short(o.sha256_destination)}</td>
-          <td>${o.match && o.metadata_match ? html`<${Pill} cls="ok">match<//>` : html`<${Pill} cls="bad">mismatch<//>`}</td></tr>`)}
-      </tbody></table></div>`
-    : html`<${Empty}>RISE copies the app's objects to the destination, reads them back, and compares SHA-256 hashes of the actual bytes. ETags are not used as hashes.<//>`}
-  </section>`;
-}
-
-function Switch({ S, ctx }) {
-  const sw = S.switch, c = S.cut, l = S.live;
-  return html`<section className="panel glass w5" id="p-switch">
-    <${Head} n="07 · SWITCH" title="Switch, cut, prove" st=${S.steps.switch} />
-    <div className="row-btns">
-      <${Btn} action="switch" cls="sm" ctx=${ctx}>Switch to destination<//>
-      ${S.link_up === false ? html`<${Btn} action="restore" ctx=${ctx}>Restore source<//>` : html`<${Btn} action="cut" cls="danger sm" ctx=${ctx}>Cut the source<//>`}
-      <${Btn} action="prove" cls="sm" ctx=${ctx}>Prove a new operation<//>
-    </div>
-    <dl className="kv">
-      <dt>app route</dt><dd>${S.active}${sw ? ` · since ${time(sw.at)}` : ""}</dd>
-      ${sw && html`<${Fragment}><dt>first read</dt><dd>${sw.probe.key} · ${sw.probe.provider} · req ${sw.probe.request_id}</dd><//>`}
-      ${c && html`<${Fragment}><dt>source TCP</dt><dd className=${c.tcp_probe.reachable ? "" : "badc"}>${c.tcp_probe.result}</dd>
-        <dt>app → source</dt><dd className="badc">${c.app_probe.result}</dd><//>`}
-      ${l && html`<${Fragment}><dt>new object</dt><dd>${l.key}</dd>
-        <dt>served by</dt><dd className="okc">${l.provider} · put ${l.put_request_id} · get ${l.get_request_id}</dd>
-        <dt>sha256</dt><dd className=${l.match ? "okc" : "badc"}>${short(l.sha256_written)} ${l.match ? "= written ✓" : "≠ written"}</dd><//>`}
-    </dl>
-  </section>`;
-}
-
-function Proof({ S }) {
-  const ready = S.steps.prove === "done", tr = S.trace.slice(-6).reverse();
-  return html`<section className="panel glass w7" id="p-proof">
-    <${Head} n="08 · PROVE" title="RISE Freedom Proof" st=${S.steps.prove}>
-      <a className="btn ghost sm" href="/api/proof" target="_blank" rel="noopener">Open evidence JSON</a><//>
-    <p className="summary">${ready
-      ? html`Everything below was executed in this run. The proof records the tests, what changed, the integrity checks, the switch, the source cut and the new operation. It also lists what was <b>not</b> tested.`
-      : "The proof is built only from recorded events: observed calls, tests and their request IDs, changes applied, hashes, the switch and the source cut. It is not a certificate of universal safety."}</p>
-    <div className="eyebrow">Pitch assets served through asset-service</div>
-    ${tr.length ? html`<div className="tw"><table><tbody>${tr.map((t, i) => html`<tr key=${i}><td className="mono">${time(t.ts)}</td><td className="mono">${t.key}</td>
-      <td>${t.ok ? html`<${Pill} cls=${t.provider === "destination" ? "live" : "idle"}>${t.provider}<//>` : html`<${Pill} cls="bad">${t.error}<//>`}</td></tr>`)}</tbody></table></div>`
-      : html`<${Empty}>No pitch requests yet.<//>`}
-  </section>`;
-}
-
-function Log({ S }) {
-  const ev = S.events.slice().reverse();
-  return html`<section className="panel glass w5" id="p-log">
-    <${Head} n="LOG" title="Events" />
-    <div className="log">${ev.length ? ev.map((e) => html`<div key=${e.seq} className=${`ev ${e.kind}`}><span className="t">${time(e.ts)}</span><span>${e.msg}</span></div>`)
-      : html`<${Empty}>No events yet.<//>`}</div>
-  </section>`;
-}
-
-// ---------- app ----------
+// =====================================================================================
 function App() {
-  const [S, setS] = useState(null);
+  const [path, go] = useRoute();
+  const tick = useTick();
+  const [system, setSystem] = useState(null);
+  const [recent, setRecent] = useState([]);
+  const [demo, setDemo] = useState(null);
   const [busy, setBusy] = useState(false);
-  const [toast, setToast] = useState(null);
+  const [view, setView] = useState(null);
+  const [toastMsg, setToast] = useState(null);
+  const toastTimer = useRef();
+  const toast = useCallback((m) => { setToast(m); clearTimeout(toastTimer.current); toastTimer.current = setTimeout(() => setToast(null), 6000); }, []);
 
-  const showError = useCallback((msg) => { setToast(msg); setTimeout(() => setToast(null), 6000); }, []);
-  const refresh = useCallback(async () => {
-    try { setS(await api("/api/state")); } catch (e) { showError(`RISE server unreachable: ${e.message}`); }
-  }, [showError]);
+  useEffect(() => {
+    api("/api/system").then(setSystem, () => {});
+    api("/api/analyses").then(setRecent, () => {});
+    if (path === "/demo") api("/api/demo/state").then(setDemo, (e) => toast(e.message));
+  }, [tick, path, toast]);
 
   const act = useCallback(async (action) => {
     setBusy(true);
-    try { setS(await api(`/api/${action}`, "POST")); } catch (e) { showError(e.message); }
-    finally { setBusy(false); refresh(); }
-  }, [refresh, showError]);
+    try { setDemo(await api(`/api/demo/${action}`, "POST")); } catch (e) { toast(e.message); } finally { setBusy(false); }
+  }, [toast]);
 
-  useEffect(() => {
-    refresh();
-    const es = new EventSource("/api/events");
-    let t;
-    es.onmessage = () => { clearTimeout(t); t = setTimeout(refresh, 80); };
-    return () => es.close();
-  }, [refresh]);
+  let page;
+  if (path === "/demo") page = demo ? html`<${Demo} S=${demo} act=${act} busy=${busy} view=${view} setView=${setView} />` : html`<${Empty}>Connecting…<//>`;
+  else if (path.startsWith("/a/")) page = html`<${Analysis} id=${path.slice(3)} tick=${tick} go=${go} />`;
+  else page = html`<${Home} go=${go} toast=${toast} />`;
 
-  if (!S) return html`<main style=${{ padding: 40 }}><${Empty}>Connecting to RISE…<//></main>`;
-  const next = SEQUENCE.find(([, done]) => !done(S))?.[0];
-  const ctx = { act, disabled: busy || S.busy };
-
+  const next = demo && SEQUENCE.find(([, done]) => !done(demo))?.[0];
   return html`<${Fragment}>
     <div className="shell">
-      <${Sidebar} S=${S} next=${next} />
-      <main>
-        <header className="head">
-          <div>
-            <div className="eyebrow">Cloud portability verification · S3 object storage · workload asset-service</div>
-            <h1>Can asset-service run on the destination?</h1>
-            <p>RISE watches the app's real storage calls, has AI turn them into tests, runs them on both providers, and switches only on evidence.</p>
-          </div>
-          <div className="actions">
-            <button className="btn ghost" type="button" disabled=${ctx.disabled} onClick=${() => act("reset")}>Reset demo</button>
-            <button className="btn" type="button" disabled=${ctx.disabled || !next} onClick=${() => act(next)}>
-              ${ctx.disabled ? "Running…" : next ? `${LABEL[next]} →` : "Journey complete ✓"}</button>
-          </div>
-        </header>
-        <${Providers} S=${S} />
-        <div className="grid">
-          <${Traffic} S=${S} ctx=${ctx} />
-          <${Discover} S=${S} ctx=${ctx} /><${Analyze} S=${S} ctx=${ctx} />
-          <${Challenge} S=${S} ctx=${ctx} /><${Adapt} S=${S} ctx=${ctx} />
-          <${Verify} S=${S} ctx=${ctx} /><${Switch} S=${S} ctx=${ctx} />
-          <${Proof} S=${S} /><${Log} S=${S} />
-        </div>
-      </main>
+      <${Sidebar} path=${path} go=${go} system=${system} recent=${path === "/demo" ? null : recent}>
+        ${path === "/demo" && demo && html`<${JourneyNav} S=${demo} next=${next} view=${view || STEP_OF[next] || next} setView=${setView} />`}
+      <//>
+      <main>${page}</main>
     </div>
-    <div className=${`toast ${toast ? "on" : ""}`} role="status" aria-live="polite">${toast}</div>
+    <div className=${`toast ${toastMsg ? "on" : ""}`} role="status" aria-live="polite">${toastMsg}</div>
   <//>`;
 }
 

@@ -3,6 +3,7 @@
 The model never touches storage, secrets or the shell. Its JSON is schema-checked and validated
 before anything runs. Fallback order when the live call fails: cached (labelled) -> rules (labelled).
 """
+import hashlib
 import json
 import re
 import time
@@ -20,14 +21,15 @@ _n = lambda t: {"type": [t, "null"]}  # noqa: E731
 PARAMS_SCHEMA = {
     "type": "object", "additionalProperties": False,
     "required": ["size_bytes", "content_type", "metadata", "prefix", "count", "expires_seconds",
-                 "range_start", "range_end", "key_suffix"],
+                 "range_start", "range_end", "key_suffix", "storage_class"],
     "properties": {
         "size_bytes": _n("integer"), "content_type": _n("string"),
         "metadata": {"type": ["array", "null"], "items": {
             "type": "object", "additionalProperties": False, "required": ["key", "value"],
             "properties": {"key": {"type": "string"}, "value": {"type": "string"}}}},
         "prefix": _n("string"), "count": _n("integer"), "expires_seconds": _n("integer"),
-        "range_start": _n("integer"), "range_end": _n("integer"), "key_suffix": _n("string")},
+        "range_start": _n("integer"), "range_end": _n("integer"), "key_suffix": _n("string"),
+        "storage_class": _n("string")},
 }
 PLAN_SCHEMA = {
     "type": "object", "additionalProperties": False, "required": ["summary", "tests", "risks", "not_covered"],
@@ -58,15 +60,16 @@ ALLOWED = {"region": re.compile(r"^[a-z]{2,10}(-[a-z0-9]{1,12}){0,3}$"),
            "addressing_style": re.compile(r"^(path|virtual)$")}
 
 PLAN_SYSTEM = """You are the analysis engine of RISE, a cloud portability verification tool.
-Input: the S3 usage profile observed from a real application, its S3 client settings, the source and
-destination providers, and a catalogue of executable test kinds.
+Input: the S3 usage profile of a real application (from runtime instrumentation, or static analysis with
+file:line code evidence), its S3 client settings, the reference and target providers, and a catalogue of
+executable test kinds.
 Produce a compatibility test plan that checks exactly the behaviours THIS application depends on.
 Rules:
 - Use only catalogue kinds. Parameters must mirror what the app really does (content types, metadata keys, prefixes, sizes, non-ASCII keys).
 - Every observed operation/feature must be covered by a test, or listed in not_covered with a reason.
 - risks: concrete portability risks for this app and these providers (e.g. client signing region vs provider region, metadata handling, presigned URLs, key encoding). Never claim a result: tests decide.
 - summary: ONE sentence, max 30 words, stating what the app depends on and the single biggest portability risk. No preamble.
-- Max 8 tests. ids short like t1. Unused params = null. JSON only."""
+- Max 12 tests. ids short like t1. Unused params = null. JSON only."""
 
 ADAPT_SYSTEM = """You are the adaptation engine of RISE. Some compatibility tests failed against the destination.
 Propose ONE configuration change to the application's S3 client for the destination, chosen only from
@@ -109,7 +112,7 @@ def _cache(kind: str, value: dict | None = None) -> dict | None:
 
 def _validate_plan(raw: dict, profile: dict) -> dict:
     tests, notes, seen = [], [], set()
-    for i, t in enumerate((raw.get("tests") or [])[:8]):
+    for i, t in enumerate((raw.get("tests") or [])[:12]):
         try:
             spec = TestSpec(**{**t, "origin": "ai"})
         except (ValidationError, TypeError) as e:
@@ -140,17 +143,20 @@ def _validate_plan(raw: dict, profile: dict) -> dict:
             "risks": risks, "not_covered": not_covered, "validator": notes}
 
 
-def plan(profile: dict, providers: list[dict], app_config: dict) -> dict:
+def plan(profile: dict, providers: list[dict], app_config: dict, evidence: list[dict] | None = None) -> dict:
     user = {"observed_profile": profile, "application_s3_config": app_config, "providers": providers,
+            "code_evidence": (evidence or [])[:40],
             "catalogue": {k: f"{v['doc']} Covers: {', '.join(v['covers'])}" for k, v in KINDS.items()},
-            "limits": {"max_tests": 8, "max_size_bytes": MAX_SIZE}}
+            "limits": {"max_tests": 12, "max_size_bytes": MAX_SIZE}}
+    # a cached plan is only reused for the same observed behaviour
+    cache_key = "plan:" + hashlib.sha256(json.dumps(profile["items"]).encode()).hexdigest()[:16]
     try:
         raw, meta = _call(PLAN_SYSTEM, user, "rise_test_plan", PLAN_SCHEMA)
         result = _validate_plan(raw, profile) | {"source": {"mode": "live", **meta}}
-        return _cache("plan", result)
+        return _cache(cache_key, result)
     except Exception as e:  # noqa: BLE001 — any failure falls back, with the reason shown
         reason = f"{type(e).__name__}: {str(e)[:200]}"
-    cached = _cache("plan")
+    cached = _cache(cache_key)
     if cached:
         return cached | {"source": {**cached["source"], "mode": "cached", "live_error": reason}}
     tests = rules_plan(profile)

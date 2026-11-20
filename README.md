@@ -13,7 +13,21 @@ The Leaseweb Digital Independence Survey 2026 (published 4 Nov 2026) asked 800 s
 
 These are survey answers, not measured migrations. Even "S3-compatible" providers differ in behaviour and configuration, so teams need evidence, not assumptions.
 
-## The journey
+## The product: analyze any public repository (`/`)
+Paste a GitHub URL and RISE runs:
+
+`FETCH → SCAN → AI PLAN → REAL TESTS → ADAPT → REPORT`
+
+- **Fetch:** RISE downloads the repository archive in memory. It reads only text source files, never writes them to disk and never runs them.
+- **Scan:** deterministic rules find every object-storage call site and behaviour (boto3, AWS SDK JS v2/v3, Go, Java, PHP), including metadata, ranges, presigned URLs, multipart, tags, SSE, ACLs, storage classes and the signing region. Each finding has a **file:line** link. The scan also lists the **other cloud services** the code is locked into (SQS, DynamoDB, Lambda…), which RISE does not test yet.
+- **AI plan:** the LLM receives the profile plus the code evidence and returns a validated test plan, with rationales that cite the code.
+- **Real tests:** 13 test kinds run against the **reference** provider and the **target** provider, using the region the code actually signs with.
+- **Adapt:** for each failure, the AI may propose one allowed change to the client config. RISE then retests everything.
+- **Report:** a portability score (behaviours verified on the target), failures, unsupported features, untested items, lock-in, and a downloadable proof (`/api/analyses/{id}/proof`, with digest).
+
+The live switch demo is at `/demo` (described below).
+
+## The live switch journey (`/demo`)
 `CONNECT → DISCOVER → ANALYZE → CHALLENGE → ADAPT → VERIFY → SWITCH → (CUT) → PROVE`
 
 | Step | What really happens |

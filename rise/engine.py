@@ -28,6 +28,18 @@ KINDS = {
                     "doc": "PUT/GET/LIST an object whose key contains non-ASCII characters (`key_suffix`); key and bytes must round-trip."},
     "delete_object": {"covers": ["DeleteObject"],
                       "doc": "PUT then DELETE an object; a following HEAD must return 404."},
+    "copy_object": {"covers": ["CopyObject"],
+                    "doc": "Server-side COPY of an object; bytes (SHA-256) and user metadata must be preserved."},
+    "multipart_upload": {"covers": ["MultipartUpload"],
+                         "doc": "Multipart upload: a 5 MiB part plus a `size_bytes` part, complete, GET back; SHA-256 must match."},
+    "object_tagging": {"covers": ["object-tagging"],
+                       "doc": "PUT with object tags (from `metadata` pairs), read them with GetObjectTagging; tags must match."},
+    "server_side_encryption": {"covers": ["server-side-encryption"],
+                               "doc": "PUT with ServerSideEncryption=AES256; HEAD must report AES256 and bytes must round-trip."},
+    "storage_class": {"covers": ["storage-class"],
+                      "doc": "PUT with `storage_class` (e.g. STANDARD_IA); HEAD must report the same storage class."},
+    "acl": {"covers": ["acl"],
+            "doc": "PUT with canned ACL private, then GetObjectAcl; the provider must return an owner grant."},
 }
 COVERABLE = {c for k in KINDS.values() for c in k["covers"]}
 UNSUPPORTED_CODES = {"NotImplemented", "NotSupported", "UnsupportedOperation"}
@@ -49,6 +61,7 @@ class Params(BaseModel):
     range_start: int | None = None
     range_end: int | None = None
     key_suffix: str | None = None
+    storage_class: str | None = None
 
 
 class TestSpec(BaseModel):
@@ -185,8 +198,85 @@ def t_delete(c, b, base, p, ev):
         return _check(ev, "HEAD after delete", 404, e.response["ResponseMetadata"]["HTTPStatusCode"])
 
 
+def t_copy(c, b, base, p, ev):
+    data, md = os.urandom(_int(p.size_bytes, 1, MAX_SIZE, 2048)), _metadata(p)
+    src, dst = f"{base}/source.bin", f"{base}/copy.bin"
+    _put(c, b, src, data, ev, Metadata=md)
+    ev["requests"].append(request_id(c.copy_object(Bucket=b, Key=dst, CopySource={"Bucket": b, "Key": src})))
+    r, body = _get(c, b, dst, ev)
+    ok = _check(ev, "sha256(copy)", sha256(data), sha256(body))
+    ok &= _check(ev, "metadata preserved", md, {k.lower(): v for k, v in r.get("Metadata", {}).items()})
+    return ok
+
+
+def t_multipart(c, b, base, p, ev):
+    key = f"{base}/multipart.bin"
+    parts_data = [os.urandom(5 * 1024 * 1024), os.urandom(_int(p.size_bytes, 1, 1024 * 1024, 64 * 1024))]
+    m = c.create_multipart_upload(Bucket=b, Key=key)
+    ev["requests"].append(request_id(m))
+    try:
+        parts = []
+        for i, data in enumerate(parts_data, 1):
+            r = c.upload_part(Bucket=b, Key=key, PartNumber=i, UploadId=m["UploadId"], Body=data)
+            ev["requests"].append(request_id(r))
+            parts.append({"ETag": r["ETag"], "PartNumber": i})
+        ev["requests"].append(request_id(c.complete_multipart_upload(
+            Bucket=b, Key=key, UploadId=m["UploadId"], MultipartUpload={"Parts": parts})))
+    except (ClientError, BotoCoreError):
+        try:
+            c.abort_multipart_upload(Bucket=b, Key=key, UploadId=m["UploadId"])
+        except (ClientError, BotoCoreError):
+            pass
+        raise
+    _, body = _get(c, b, key, ev)
+    whole = b"".join(parts_data)
+    ok = _check(ev, "length", len(whole), len(body))
+    ok &= _check(ev, "sha256(bytes)", sha256(whole), sha256(body))
+    return ok
+
+
+def t_tagging(c, b, base, p, ev):
+    tags = _metadata(p) if p.metadata else {"project": "rise", "env": "test"}
+    key = f"{base}/tagged.txt"
+    _put(c, b, key, b"tagged", ev, Tagging="&".join(f"{k}={v}" for k, v in tags.items()))
+    r = c.get_object_tagging(Bucket=b, Key=key)
+    ev["requests"].append(request_id(r))
+    return _check(ev, "tags", tags, {t["Key"]: t["Value"] for t in r.get("TagSet", [])})
+
+
+def t_sse(c, b, base, p, ev):
+    data, key = os.urandom(_int(p.size_bytes, 1, MAX_SIZE, 2048)), f"{base}/encrypted.bin"
+    _put(c, b, key, data, ev, ServerSideEncryption="AES256")
+    h = c.head_object(Bucket=b, Key=key)
+    ev["requests"].append(request_id(h))
+    ok = _check(ev, "ServerSideEncryption", "AES256", h.get("ServerSideEncryption"))
+    _, body = _get(c, b, key, ev)
+    ok &= _check(ev, "sha256(bytes)", sha256(data), sha256(body))
+    return ok
+
+
+def t_storage_class(c, b, base, p, ev):
+    allowed = {"STANDARD_IA", "ONEZONE_IA", "INTELLIGENT_TIERING", "REDUCED_REDUNDANCY", "GLACIER_IR"}
+    sc = p.storage_class if p.storage_class in allowed else "STANDARD_IA"
+    key = f"{base}/class.bin"
+    _put(c, b, key, b"storage-class", ev, StorageClass=sc)
+    h = c.head_object(Bucket=b, Key=key)
+    ev["requests"].append(request_id(h))
+    return _check(ev, "StorageClass", sc, h.get("StorageClass", "STANDARD"))
+
+
+def t_acl(c, b, base, p, ev):
+    key = f"{base}/acl.txt"
+    _put(c, b, key, b"acl", ev, ACL="private")
+    r = c.get_object_acl(Bucket=b, Key=key)
+    ev["requests"].append(request_id(r))
+    return _check(ev, "owner grant present", True, any(g.get("Permission") == "FULL_CONTROL" for g in r.get("Grants", [])))
+
+
 FUNCS = {"put_get_roundtrip": t_put_get, "head_metadata": t_head, "list_prefix": t_list,
-         "presigned_get": t_presigned, "range_get": t_range, "unicode_key": t_unicode, "delete_object": t_delete}
+         "presigned_get": t_presigned, "range_get": t_range, "unicode_key": t_unicode, "delete_object": t_delete,
+         "copy_object": t_copy, "multipart_upload": t_multipart, "object_tagging": t_tagging,
+         "server_side_encryption": t_sse, "storage_class": t_storage_class, "acl": t_acl}
 assert set(FUNCS) == set(KINDS)
 
 

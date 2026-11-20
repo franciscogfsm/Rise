@@ -1,17 +1,26 @@
-"""RISE HTTP server: dashboard, pitch, journey API, and the asset route the pitch loads through."""
+"""RISE HTTP server.
+
+/            product: analyze any public GitHub repository and verify its storage portability
+/demo        live switch: the journey on asset-service, with real traffic, switch and source cut
+/pitch       pitch visuals loaded through asset-service
+"""
 import asyncio
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse, Response, StreamingResponse
 from fastapi.staticfiles import StaticFiles
+from pydantic import BaseModel
 
 from . import config as C
+from .analysis import Analyses
 from .journey import Journey, StepError
 from .link import Link
+from .repo import RepoError
 
 link = Link(C.LINK_PORT, C.SOURCE.endpoint) if C.SOURCE.simulated else None
 J = Journey(link)
+A = Analyses()
 WEB = C.ROOT / "web"
 
 
@@ -27,10 +36,65 @@ async def lifespan(_app):
         await link.cut()
 
 
-app = FastAPI(title="RISE", version="0.1.0", lifespan=lifespan)
+app = FastAPI(title="RISE", version="0.2.0", lifespan=lifespan)
 app.mount("/static", StaticFiles(directory=WEB), name="static")
+NO_STORE = {"Cache-Control": "no-store"}
 
-ACTIONS = {
+
+@app.get("/")
+@app.get("/demo")
+@app.get("/a/{aid}")
+def spa(aid: str | None = None):
+    return FileResponse(WEB / "index.html", headers=NO_STORE)
+
+
+@app.get("/pitch")
+def pitch():
+    return FileResponse(WEB / "pitch.html", headers=NO_STORE)
+
+
+# ---------- product: repository analyses ----------
+class AnalyzeIn(BaseModel):
+    url: str
+
+
+@app.post("/api/analyses")
+def analyze(body: AnalyzeIn):
+    try:
+        return A.start(body.url)
+    except RepoError as e:
+        raise HTTPException(422, str(e)) from e
+
+
+@app.get("/api/analyses")
+def analyses():
+    return A.list()
+
+
+@app.get("/api/analyses/{aid}")
+def analysis(aid: str):
+    a = A.get(aid)
+    if not a:
+        raise HTTPException(404, "Analysis not found")
+    return a
+
+
+@app.get("/api/analyses/{aid}/proof")
+def analysis_proof(aid: str):
+    p = A.proof(aid)
+    if not p:
+        raise HTTPException(404, "Analysis not found")
+    return p
+
+
+@app.get("/api/system")
+def system():
+    return {"providers": [C.SOURCE.describe(), C.DEST.describe()], "health": J.health,
+            "ai": {"configured": bool(C.OPENROUTER_KEY), "model": C.OPENROUTER_MODEL}}
+
+
+# ---------- live switch demo ----------
+DEMO = {
     "connect": J.connect, "discover": J.discover, "analyze": J.analyze, "challenge": J.challenge,
     "adapt": J.adapt, "verify": J.verify, "switch": J.switch_to_destination, "cut": J.cut_source,
     "restore": J.restore_source, "prove": J.prove_new_operation, "reset": J.reset,
@@ -38,32 +102,22 @@ ACTIONS = {
 }
 
 
-@app.get("/")
-def dashboard():
-    return FileResponse(WEB / "index.html", headers={"Cache-Control": "no-store"})
-
-
-@app.get("/pitch")
-def pitch():
-    return FileResponse(WEB / "pitch.html", headers={"Cache-Control": "no-store"})
-
-
-@app.get("/api/state")
-def state():
+@app.get("/api/demo/state")
+def demo_state():
     return J.snapshot()
 
 
-@app.get("/api/proof")
-def proof():
+@app.get("/api/demo/proof")
+def demo_proof():
     return J.proof()
 
 
-@app.post("/api/{action}")
-def act(action: str):  # sync on purpose: storage calls run in the threadpool, the event loop keeps the link alive
-    if action not in ACTIONS:
+@app.post("/api/demo/{action}")
+def demo_act(action: str):  # sync on purpose: storage calls run in the threadpool, the event loop keeps the link alive
+    if action not in DEMO:
         raise HTTPException(404, f"Unknown action {action!r}")
     try:
-        return ACTIONS[action]()
+        return DEMO[action]()
     except StepError as e:
         raise HTTPException(409, str(e)) from e
 
@@ -71,13 +125,14 @@ def act(action: str):  # sync on purpose: storage calls run in the threadpool, t
 @app.get("/api/events")
 async def events(request: Request):
     async def stream():
-        last = -1
+        last = None
         while not await request.is_disconnected():
-            if J.version != last:
-                last = J.version
-                yield f"data: {last}\n\n"
+            v = f"{J.version}.{A.version}"
+            if v != last:
+                last = v
+                yield f"data: {v}\n\n"
             await asyncio.sleep(0.25)
-    return StreamingResponse(stream(), media_type="text/event-stream", headers={"Cache-Control": "no-store"})
+    return StreamingResponse(stream(), media_type="text/event-stream", headers=NO_STORE)
 
 
 @app.get("/app/assets/{key:path}")
@@ -88,5 +143,5 @@ def asset(key: str, rid: str = ""):
     except StepError as e:
         raise HTTPException(502, str(e)) from e
     return Response(r["body"], media_type=r["content_type"] or "application/octet-stream", headers={
-        "Cache-Control": "no-store", "X-RISE-Provider": r["provider"], "X-RISE-Request-Id": r["request_id"] or "",
+        **NO_STORE, "X-RISE-Provider": r["provider"], "X-RISE-Request-Id": r["request_id"] or "",
         "X-RISE-SHA256": r["sha256"]})
