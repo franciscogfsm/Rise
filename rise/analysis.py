@@ -42,21 +42,22 @@ class Analyses:
                 continue
 
     # ---------- public API ----------
-    def start(self, url: str) -> dict:
+    def start(self, url: str, ref_p: C.Provider, tgt_p: C.Provider) -> dict:
         owner, name, ref = repo.parse(url)  # raises RepoError on bad input
         aid = uuid.uuid4().hex[:10]
         a = {"id": aid, "url": f"https://github.com/{owner}/{name}" + (f"/tree/{ref}" if ref else ""),
              "repo": {"owner": owner, "name": name, "ref": ref or "HEAD"}, "status": "queued", "stage": None,
-             "stages": {s: "todo" for s in STAGES}, "created": now(), "events": []}
+             "stages": {s: "todo" for s in STAGES}, "created": now(), "events": [],
+             "providers": [ref_p.describe() | {"role": "reference"}, tgt_p.describe() | {"role": "target"}]}
         with self.lock:
             self.items[aid] = a
             self._save(a)
-        threading.Thread(target=self._run, args=(aid,), daemon=True, name=f"rise-analysis-{aid}").start()
+        threading.Thread(target=self._run, args=(aid, ref_p, tgt_p), daemon=True, name=f"rise-analysis-{aid}").start()
         return a
 
     def list(self) -> list[dict]:
         with self.lock:
-            out = [{k: a.get(k) for k in ("id", "url", "repo", "status", "stage", "created", "finished", "score")}
+            out = [{k: a.get(k) for k in ("id", "url", "repo", "status", "stage", "created", "finished", "score", "providers")}
                    for a in self.items.values()]
         return sorted(out, key=lambda a: a["created"], reverse=True)
 
@@ -96,16 +97,11 @@ class Analyses:
             self._save(a)
             self.version += 1
 
-    def _clients(self, target_region):
-        ref = make_client(C.SOURCE.endpoint, C.SOURCE.region, C.SOURCE.access_key, C.SOURCE.secret_key)
-        tgt = make_client(C.DEST.endpoint, target_region, C.DEST.access_key, C.DEST.secret_key)
-        return ref, tgt
-
-    def _run(self, aid):
+    def _run(self, aid, ref_p, tgt_p):
         with self.run_lock:
             self._update(aid, status="running", started=now())
             try:
-                self._pipeline(aid)
+                self._pipeline(aid, ref_p, tgt_p)
                 self._update(aid, status="done", finished=now())
             except repo.RepoError as e:
                 self._fail(aid, str(e))
@@ -119,7 +115,7 @@ class Analyses:
                 a["stages"][a["stage"]] = "fail"
         self._update(aid, status="error", error=msg[:500], finished=now())
 
-    def _pipeline(self, aid):
+    def _pipeline(self, aid, P, T):  # P = reference provider, T = target provider
         a = self.items[aid]
         # FETCH
         self._stage(aid, "fetch", "running", "Downloading the repository archive from GitHub")
@@ -148,10 +144,9 @@ class Analyses:
 
         # PLAN
         self._stage(aid, "plan", "running", f"AI is writing the test plan ({C.OPENROUTER_MODEL})")
-        providers = [C.SOURCE.describe() | {"role": "reference"}, C.DEST.describe() | {"role": "target"}]
         app_cfg = {"target": {"region": code_region, "addressing_style": "path"}}
-        plan = ai.plan(prof, providers, app_cfg, result["evidence"])
-        self._update(aid, plan=plan, providers=providers, app_config=app_cfg)
+        plan = ai.plan(prof, a["providers"], app_cfg, result["evidence"])
+        self._update(aid, plan=plan, app_config=app_cfg)
         src = plan["source"]
         self._stage(aid, "plan", "done", f"{len(plan['tests'])} tests · {src['mode']}"
                     + (f" · {src.get('ms')} ms" if src["mode"] == "live" else ""))
@@ -159,11 +154,13 @@ class Analyses:
         # TEST
         specs = [TestSpec(**t) for t in plan["tests"]]
         self._stage(aid, "test", "running", f"Running {len(specs)} tests on both providers")
-        ref_c, tgt_c = self._clients(code_region)
+        # the reference signs as its provider documents; the target signs as the code does (that is the question)
+        ref_c = make_client(P.endpoint, P.region, P.access_key, P.secret_key)
+        tgt_c = make_client(T.endpoint, code_region, T.access_key, T.secret_key)
         results = {"reference": [], "target": []}
         for spec in specs:
-            results["reference"].append(run_test(spec, ref_c, C.SOURCE.test_bucket, aid, "reference"))
-            results["target"].append(run_test(spec, tgt_c, C.DEST.test_bucket, aid, "target"))
+            results["reference"].append(run_test(spec, ref_c, P.test_bucket, aid, "reference"))
+            results["target"].append(run_test(spec, tgt_c, T.test_bucket, aid, "target"))
             self._update(aid, results=results)
         bad = [x for x in results["target"] if x["status"] != "pass"]
         self._stage(aid, "test", "done", f"Target passed {len(specs) - len(bad)}/{len(specs)}; "
@@ -174,12 +171,12 @@ class Analyses:
             self._stage(aid, "adapt", "running", "Asking AI for one allowed client-config change")
             compact = [{"test_id": x["test_id"], "kind": x["kind"], "status": x["status"], "error": x["error"],
                         "failed_checks": [c for c in x["checks"] if not c["ok"]]} for x in bad]
-            proposal = ai.adapt(compact, app_cfg["target"], C.DEST.describe())
+            proposal = ai.adapt(compact, app_cfg["target"], T.describe())
             record = {"proposal": proposal, "applied": False}
             if proposal["key"] != "none":
                 after = {**app_cfg["target"], proposal["key"]: proposal["value"]}
-                tgt2 = make_client(C.DEST.endpoint, after["region"], C.DEST.access_key, C.DEST.secret_key, after["addressing_style"])
-                retest = [run_test(sp, tgt2, C.DEST.test_bucket, aid, "target") for sp in specs]
+                tgt2 = make_client(T.endpoint, after["region"], T.access_key, T.secret_key, after["addressing_style"])
+                retest = [run_test(sp, tgt2, T.test_bucket, aid, "target") for sp in specs]
                 still = [x for x in retest if x["status"] != "pass"]
                 record |= {"applied": True, "before": app_cfg["target"], "after": after,
                            "retest": {"passed": len(retest) - len(still), "total": len(retest)}}

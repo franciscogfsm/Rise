@@ -25,6 +25,11 @@ Paste a GitHub URL and RISE runs:
 - **Adapt:** for each failure, the AI may propose one allowed change to the client config. RISE then retests everything.
 - **Report:** a portability score (behaviours verified on the target), failures, unsupported features, untested items, lock-in, and a downloadable proof (`/api/analyses/{id}/proof`, with digest).
 
+Each analysis picks its **reference** and **target** from the connections.
+
+## Connections (`/connect`)
+Two built-in connections come from `.env`: `SOURCE_*` and `DEST_*`. You can add any S3-compatible provider from the UI, for example Leaseweb Object Storage, AWS S3 (leave the endpoint empty) or MinIO. You enter a name, endpoint, region, bucket, an optional test bucket, and keys. The keys are stored only on the server in `.rise/connections.json` (git-ignored, owner-only) and are never returned to the browser. **Test** makes real calls: it reaches the buckets, writes a probe object, reads it back and compares SHA-256, then deletes it. Each call reports its request ID, and failures come with a hint (wrong region, rejected key, missing bucket). Use a key limited to the buckets you name.
+
 The live switch demo is at `/demo` (described below).
 
 ## The live switch journey (`/demo`)
@@ -74,7 +79,11 @@ rise/workload.py   asset-service (the app under test) + its storage router
 rise/link.py       reversible TCP link to the source (the "cut")
 rise/engine.py     test catalogue + deterministic executor + rule-based plan
 rise/ai.py         OpenRouter: plan + adaptation, schema + validation + fallbacks
-rise/journey.py    the step orchestration, state and Freedom Proof
+rise/journey.py    the live-switch orchestration, state and Freedom Proof
+rise/repo.py       GitHub archive fetch (in memory, text files only)
+rise/scan.py       static scan: S3 call sites, behaviours, other-cloud lock-in
+rise/analysis.py   the product pipeline: fetch → scan → AI plan → tests → adapt → report
+rise/connect.py    connections: built-in (.env) + user-added, real connection test
 rise/server.py     FastAPI: dashboard, pitch, /api/*, /app/assets/*
 web/               dashboard (Light Liquid Glass design system), pitch, brand
 scripts/           setup / providers / run / stop
@@ -82,6 +91,6 @@ tests/             end-to-end journey test
 ```
 
 ## Limits (honest)
-- The MVP covers one category, S3 object storage, and 7 test kinds. Operations it did not test are listed in the proof.
+- The MVP covers one category, S3 object storage, and 13 test kinds. Operations it did not test are listed in the proof.
 - Passing these tests shows only that the observed operations work. It does not certify the whole application.
 - The cut is a network-level block of the simulated source link and does not affect any real cloud account.

@@ -2,6 +2,7 @@
 
 /            product: analyze any public GitHub repository and verify its storage portability
 /demo        live switch: the journey on asset-service, with real traffic, switch and source cut
+/connect     connections: the two providers RISE is connected to, with a real connection test
 /pitch       pitch visuals loaded through asset-service
 """
 import asyncio
@@ -13,6 +14,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 from . import config as C
+from . import connect
 from .analysis import Analyses
 from .journey import Journey, StepError
 from .link import Link
@@ -43,6 +45,7 @@ NO_STORE = {"Cache-Control": "no-store"}
 
 @app.get("/")
 @app.get("/demo")
+@app.get("/connect")
 @app.get("/a/{aid}")
 def spa(aid: str | None = None):
     return FileResponse(WEB / "index.html", headers=NO_STORE)
@@ -56,12 +59,19 @@ def pitch():
 # ---------- product: repository analyses ----------
 class AnalyzeIn(BaseModel):
     url: str
+    reference: str = "source"
+    target: str = "destination"
 
 
 @app.post("/api/analyses")
 def analyze(body: AnalyzeIn):
+    ref_p, tgt_p = connect.provider(body.reference), connect.provider(body.target)
+    if not ref_p or not tgt_p:
+        raise HTTPException(422, "Unknown connection. Pick a reference and a target from Connections.")
+    if body.reference == body.target:
+        raise HTTPException(422, "Reference and target must be two different connections.")
     try:
-        return A.start(body.url)
+        return A.start(body.url, ref_p, tgt_p)
     except RepoError as e:
         raise HTTPException(422, str(e)) from e
 
@@ -91,6 +101,40 @@ def analysis_proof(aid: str):
 def system():
     return {"providers": [C.SOURCE.describe(), C.DEST.describe()], "health": J.health,
             "ai": {"configured": bool(C.OPENROUTER_KEY), "model": C.OPENROUTER_MODEL}}
+
+
+# ---------- connections ----------
+@app.get("/api/connections")
+def connections():
+    return connect.overview()
+
+
+@app.post("/api/connections")
+async def connection_add(request: Request):  # keys arrive once, are stored server-side, and are never returned
+    body = await request.json()
+    if not isinstance(body, dict):
+        raise HTTPException(422, "Expected a JSON object")
+    try:
+        return connect.add(body)
+    except connect.ConnError as e:
+        raise HTTPException(422, str(e)) from e
+
+
+@app.delete("/api/connections/{cid}")
+def connection_remove(cid: str):
+    try:
+        if not connect.remove(cid):
+            raise HTTPException(404, f"Unknown connection {cid!r}")
+    except connect.ConnError as e:
+        raise HTTPException(409, str(e)) from e
+    return {"removed": cid}
+
+
+@app.post("/api/connections/{cid}/test")
+def connection_test(cid: str):  # real S3 calls against the configured provider
+    if not connect.provider(cid):
+        raise HTTPException(404, f"Unknown connection {cid!r}")
+    return connect.test(cid)
 
 
 # ---------- live switch demo ----------
