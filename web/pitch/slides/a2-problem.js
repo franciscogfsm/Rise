@@ -32,7 +32,7 @@ Não comentar as etiquetas por baixo das imagens: são pedidos reais ao RISE e v
     .stat { display: grid; gap: 14px; }
     .frame { aspect-ratio: 16 / 9; overflow: hidden; }
     .frame img { display: block; width: 100%; height: 100%; object-fit: cover; }
-    .frame:has(img) { border-radius: 30px; box-shadow: var(--shadow); }
+    .frame:has(img) { border-radius: 16px; box-shadow: var(--shadow); }
     .fallback { height: 100%; padding: 32px 36px; display: grid; align-content: center; gap: 10px; }
     .fallback b { font-size: 120px; line-height: .9; font-weight: 700; letter-spacing: -.05em; }
     .fallback span { font-size: var(--t1); line-height: 1.35; color: var(--muted); max-width: 24ch; }
