@@ -4,17 +4,16 @@ RISE.slide({
   title: "Live demo",
   time: "2:00 – 3:00",
   notes: `
-Um minuto. Narrar o que acontece, não a interface. Tecla I para clicar no dashboard; clicar fora do ecrã para voltar.
-1. "This is asset-service, a real app on its original provider. RISE has observed it and the AI wrote the plan."
-2. Challenge: "One behaviour differs on the destination." (coral) Adapt: "Constrained fix, retest, pass." (mint)
-3. Verify: "Every object copied, SHA-256 of the bytes on both sides."
-4. Switch, depois Cut: "The app now talks to the destination. And the source link is cut, for real."
-5. Só se mudar: apontar para a coluna da direita. "Watch who serves these requests."
-Se a app falhar: tecla V (vídeo de backup, marcado como gravação) e dizê-lo.`,
+Um minuto. Tecla I para clicar na app; clicar fora do ecrã para voltar. Se a app falhar: tecla V (vídeo de backup) e dizê-lo.
+1. Home: colar o repo, objetivo "Move to another cloud", de AWS S3 Stockholm (real) para o destino. Run analysis.
+2. A resposta em grande: "Ready, one change." Mostrar a mudança, um risco com file:line e um request ID real da AWS.
+3. (se houver tempo) Compare: "Best fit".
+4. /demo, preparado antes: "And here the app actually moves. We cut the old cloud, and the traffic keeps flowing on the new one."
+Só a AWS é real. Os outros destinos locais são simulados: dizê-lo se aparecerem.`,
 
   html: `
     <header class="rv">
-      <h2 class="headline">Live: one app, two providers, every step verified.</h2>
+      <h2 class="headline">Live demo</h2>
       <div class="status"><span class="active pill idle">Not connected</span><span class="link pill idle" hidden></span></div>
     </header>
     <div class="stage">
@@ -23,7 +22,7 @@ Se a app falhar: tecla V (vídeo de backup, marcado como gravação) e dizê-lo.
         <div class="screen app"></div>
       </div>
       <aside class="trace glass rv right" style="--i:3" aria-label="Requests made by this pitch">
-        <h3>Requests from this pitch</h3>
+        <h3>This deck's requests</h3>
         <ol></ol>
       </aside>
     </div>`,
@@ -49,10 +48,12 @@ Se a app falhar: tecla V (vídeo de backup, marcado como gravação) e dizê-lo.
     FX.prep(el);
     const app = el.querySelector(".app");
     if (api.live.online) {
-      api.frame(app, api.config.dashboardPath, { h: 900, title: "RISE dashboard" });
+      // O dashboard carrega 3 s depois da abertura: a seta da capa anima sem concorrência e,
+      // quando chegarmos à demo (minuto 2), a app já está pronta.
+      setTimeout(() => api.frame(app, api.config.dashboardPath, { h: 900, title: "RISE dashboard" }), 3000);
       el.querySelector(".host").textContent = location.host + api.config.dashboardPath;
     } else {
-      app.innerHTML = `<div class="empty"><div><strong>The live dashboard appears here</strong>Open this pitch through RISE: /static/pitch/index.html${api.config.demoVideo ? ", or press V for the recorded backup" : ""}.</div></div>`;
+      app.innerHTML = `<div class="empty"><div><strong>The live dashboard appears here</strong>Open this pitch through RISE: /static/pitch/Rise_Pitch.html${api.config.demoVideo ? ", or press V for the recorded backup" : ""}.</div></div>`;
     }
     this._seen = new Set();
     this._trace(el, api, null);
@@ -77,7 +78,7 @@ Se a app falhar: tecla V (vídeo de backup, marcado como gravação) e dizê-lo.
       return `<li class="${fresh ? "new" : ""}"><span class="pill ${!r.ok ? "bad" : r.provider === "destination" ? "live" : "idle"}">${api.esc(r.ok ? r.provider : "failed")}</span>
         <code>${api.esc(r.key)}</code>
         <small>${api.esc(String(r.ts || "").slice(11, 19))}  ${api.esc(r.ok ? String(r.request_id || "").slice(0, 10) : r.error || "")}</small></li>`;
-    }).join("") : `<li class="empty">No requests yet. They appear as the slides load their images through RISE.</li>`;
+    }).join("") : `<li class="empty">No requests yet.</li>`;
     if (!s) return;
     const active = el.querySelector(".active");
     active.className = "active pill " + (s.active === "destination" ? "live" : "idle");

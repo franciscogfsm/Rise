@@ -134,6 +134,8 @@
       b.classList.toggle("done", k < cur);
       b.setAttribute("aria-current", k === cur ? "step" : "false");
     });
+    const pad = n => String(n).padStart(2, "0");
+    $(".deck-count", deck).textContent = `${pad(cur + 1)} / ${pad(slides.length)}`;
     const d = slides[cur], nx = slides[cur + 1];
     $("#notes .head").innerHTML =
       `<b>${cur + 1} / ${slides.length}  ${esc(d.title)}</b>` +
@@ -204,6 +206,7 @@
     deck.insertAdjacentHTML("afterbegin", `<div class="blobs" aria-hidden="true"><i></i><i></i><i></i></div>`);
     deck.insertAdjacentHTML("beforeend",
       `<div class="brand">${MARK}<span>RISE</span></div>` +
+      `<div class="deck-count" aria-hidden="true"></div>` +
       `<nav class="progress" aria-label="Slides">${slides.map((d, k) =>
         `<button type="button" data-k="${k}" aria-label="${k + 1}. ${esc(d.title)}"></button>`).join("")}</nav>`);
     $(".progress", deck).addEventListener("click", e => {
@@ -226,7 +229,11 @@
     });
     fit();
     const [i, s] = fromHash();
-    show(i, s);
+    // A primeira entrada espera pelas fontes e por dois frames. Sem isto, a animação de abertura
+    // corria enquanto o browser ainda carregava e desenhava a página, perdia frames e parecia
+    // mais rápida do que nas entradas seguintes.
+    const settled = Promise.race([document.fonts?.ready ?? Promise.resolve(), new Promise(r => setTimeout(r, 1500))]);
+    settled.then(() => requestAnimationFrame(() => requestAnimationFrame(() => show(i, s))));
   }
 
   window.RISE = { slide, start, api };
