@@ -34,7 +34,17 @@
 
   /* Mede os traços SVG .draw para o desenho ter o comprimento certo. */
   function draw(root) {
-    root.querySelectorAll(".draw").forEach(p => { try { p.style.setProperty("--len", Math.ceil(p.getTotalLength()) + 1); } catch { /* sem geometria */ } });
+    root.querySelectorAll(".draw").forEach(p => {
+      let len;
+      try { len = String(Math.ceil(p.getTotalLength()) + 1); } catch { return; /* sem geometria */ }
+      if (p.style.getPropertyValue("--len") === len) return;
+      // getTotalLength() já calculou o estilo com o --len de defeito (1000): sem isto, a mudança
+      // para o valor medido vira uma transição de 1.4 s e o desenho arranca do 1000.
+      p.style.transition = "none";
+      p.style.setProperty("--len", len);
+      void getComputedStyle(p).strokeDashoffset;
+      p.style.transition = "";
+    });
   }
 
   /* Numera os .rv sem --i, por ordem no DOM, por grupo de passo. */
@@ -69,7 +79,8 @@
   function act(name) { const d = document.getElementById("deck"); if (d) d.dataset.act = name; }
 
   /* Prepara um slide de uma vez (chamar no init). */
-  function prep(root) { split(root); index(root); requestAnimationFrame(() => draw(root)); }
+  // Mede já (antes do primeiro show, senão a 1.ª animação usa o --len de defeito 1000) e outra vez no frame seguinte, para o caso de o browser ainda não ter geometria.
+  function prep(root) { split(root); index(root); draw(root); requestAnimationFrame(() => draw(root)); }
 
   window.FX = { still, split, draw, index, type, act, prep };
 })();
