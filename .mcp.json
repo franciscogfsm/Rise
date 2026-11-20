@@ -1,0 +1,5 @@
+{
+  "mcpServers": {
+    "rise": { "command": "python", "args": ["rise/mcp.py"], "env": { "RISE_URL": "http://127.0.0.1:8080" } }
+  }
+}

@@ -145,3 +145,43 @@ def _act(action: str, args: dict, analyses) -> dict | None:
             raise ValueError(f"Unknown page {path!r}")
         return {"navigate": path}
     raise ValueError(f"Unknown action {action!r}")
+
+
+# ---------- one-box request: "github.com/acme/shop, leave AWS for a European cloud" -> what to run ----------
+GH_URL = re.compile(r"(?:https?://)?(?:www\.)?github\.com/[\w.-]+/[\w.-]+")
+GH_TOKEN = re.compile(r"\b(?:gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,})\b")
+INTENT_SCHEMA = {"type": "object", "additionalProperties": False, "required": ["reference", "targets", "goal"],
+                 "properties": {"reference": {"type": "string"}, "targets": {"type": "array", "items": {"type": "string"}},
+                                "goal": {"type": "string"}}}
+INTENT_SYSTEM = """Map a user's request to a RISE storage migration check. connections: the user's storage (id, name, region, simulated).
+reference: id of the connection the app runs on today. targets: 1-4 ids to check moving to, never the reference.
+goal: the request restated in max 10 words, English, no repository URL.
+Match providers by name, cloud or region the user mentions. "compare", "all" or "best" = every connection except the reference. If the user names none: reference = the non-simulated connection
+if there is one, targets = the connections whose default_role is "target". JSON only."""
+
+
+def intent(text: str) -> dict:
+    """Repository URL by regex; reference/targets/goal by the AI, checked against real connection ids; rules when the AI is down."""
+    text = GH_TOKEN.sub("", text)  # a pasted token never reaches the AI (the browser strips it too)
+    m = GH_URL.search(text)
+    url = ("" if not m else m.group(0) if m.group(0).startswith("http") else "https://" + m.group(0)).removesuffix(".git")
+    rest = redact(GH_URL.sub("", text)).strip(" \t\n,.:;-—")[:300]
+    conns = connect.overview()
+    ids = [c["id"] for c in conns]
+    ref = next((c["id"] for c in conns if not c["simulated"]), ids[0] if ids else "source")
+    tgts = [c["id"] for c in conns if c["role"] == "target" and c["id"] != ref] or [i for i in ids if i != ref][:1]
+    out = {"url": url, "reference": ref, "targets": tgts, "goal": rest, "by": "rules", "ai": None}
+    if not rest:
+        return out
+    try:
+        raw, meta = ai._call(INTENT_SYSTEM, {"request": rest, "connections": [
+            {"id": c["id"], "name": c["name"], "region": c["region"], "simulated": c["simulated"], "default_role": c["role"]}
+            for c in conns]}, "rise_intent", INTENT_SCHEMA)
+    except Exception:  # noqa: BLE001 — the box works without the AI: defaults above
+        return out
+    r = raw.get("reference")
+    t = [x for x in dict.fromkeys(raw.get("targets") or []) if x in ids and x != r][:4]
+    if r in ids and t:
+        out |= {"reference": r, "targets": t, "by": "ai", "ai": meta}
+    out["goal"] = str(raw.get("goal") or rest)[:120]
+    return out

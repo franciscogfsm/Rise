@@ -18,11 +18,11 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 from . import config as C
-from . import agent, connect
+from . import agent, connect, fast
 from .analysis import Analyses
 from .journey import Journey, StepError
 from .link import Link
-from .repo import RepoError
+from .repo import RepoError, local as repo_local
 
 link = Link(C.LINK_PORT, C.SOURCE.endpoint) if C.SOURCE.simulated else None
 J = Journey(link)
@@ -36,6 +36,7 @@ async def lifespan(_app):
     if link:
         await link.start()
     await asyncio.to_thread(J.boot)
+    await asyncio.to_thread(fast.warm)  # start the scan workers now, not during the first analysis
     yield
     J.traffic_on = False
     if link:
@@ -93,6 +94,8 @@ class AnalyzeIn(BaseModel):
     targets: list[str] | None = None  # several targets = a comparison
     token: str | None = None  # GitHub token for a private repo: used for the download only
     goal: str = ""
+    files: dict[str, str] | None = None  # a local folder sent by the MCP client (rise/mcp.py) instead of a GitHub URL
+    name: str = ""
 
 
 @app.post("/api/analyses")
@@ -106,7 +109,8 @@ def analyze(body: AnalyzeIn):
     goal = agent.redact(body.goal.strip())[:300]  # the goal goes to the AI: strip anything key-like
     group = uuid.uuid4().hex[:10] if len(tgt_ps) > 1 else None
     try:
-        started = [A.start(body.url, ref_p, t, body.token, goal, group) for t in tgt_ps]
+        local = repo_local(body.files, body.name) if body.files is not None else None
+        started = [A.start(body.url, ref_p, t, body.token, goal, group, local) for t in tgt_ps]
     except RepoError as e:
         raise HTTPException(422, str(e)) from e
     return started[0] | {"compare": group, "ids": [a["id"] for a in started]}
@@ -179,6 +183,15 @@ def connection_test(cid: str):  # real S3 calls against the configured provider
     if not connect.provider(cid):
         raise HTTPException(404, f"Unknown connection {cid!r}")
     return connect.test(cid)
+
+
+class IntentIn(BaseModel):
+    text: str
+
+
+@app.post("/api/intent")
+def intent(body: IntentIn):  # one-box request -> repository, from, to, goal (never the token)
+    return agent.intent(body.text[:2000])
 
 
 # ---------- agent ----------

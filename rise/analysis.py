@@ -12,7 +12,7 @@ import time
 import uuid
 from concurrent.futures import ThreadPoolExecutor
 
-from . import ai, config as C, repo, risks as riskscan, scan as scanner
+from . import ai, config as C, fast, repo, scan as scanner
 from .engine import COVERABLE, KINDS, TestSpec, run as run_test
 from .storage import make_client
 
@@ -67,19 +67,23 @@ class Analyses:
 
     # ---------- public API ----------
     def start(self, url: str, ref_p: C.Provider, tgt_p: C.Provider, token: str | None = None, goal: str = "",
-              group: str | None = None) -> dict:
-        owner, name, ref = repo.parse(url)  # raises RepoError on bad input
+              group: str | None = None, local: dict | None = None) -> dict:
+        if local:  # files from the local MCP client, already filtered by repo.local
+            owner, name, ref, url = "local", local["name"], "local", local["url"]
+        else:
+            owner, name, ref = repo.parse(url)  # raises RepoError on bad input
+            url = f"https://github.com/{owner}/{name}" + (f"/tree/{ref}" if ref else "")
         token = repo.check_token(token)  # kept in the worker thread's arguments only, never in the record
         aid = uuid.uuid4().hex[:10]
-        a = {"id": aid, "url": f"https://github.com/{owner}/{name}" + (f"/tree/{ref}" if ref else ""),
-             "repo": {"owner": owner, "name": name, "ref": ref or "HEAD"}, "status": "queued", "stage": None,
+        a = {"id": aid, "url": url,
+             "repo": {"owner": owner, "name": name, "ref": ref or "HEAD", "local": bool(local)}, "status": "queued", "stage": None,
              "stages": {s: "todo" for s in STAGES}, "created": now(), "events": [],
              "providers": [ref_p.describe() | {"role": "reference"}, tgt_p.describe() | {"role": "target"}],
              "goal": goal[:300], "group": group, "private": bool(token)}
         with self.lock:
             self.items[aid] = a
             self._save(a)
-        threading.Thread(target=self._run, args=(aid, ref_p, tgt_p, token), daemon=True, name=f"rise-analysis-{aid}").start()
+        threading.Thread(target=self._run, args=(aid, ref_p, tgt_p, token, local), daemon=True, name=f"rise-analysis-{aid}").start()
         return a
 
     def list(self) -> list[dict]:
@@ -132,12 +136,12 @@ class Analyses:
             self._save(a)
             self.version += 1
 
-    def _run(self, aid, ref_p, tgt_p, token=None):
+    def _run(self, aid, ref_p, tgt_p, token=None, local=None):
         with self.run_lock:
             self._update(aid, status="running", started=now())
             t0 = time.perf_counter()
             try:
-                self._pipeline(aid, ref_p, tgt_p, token)
+                self._pipeline(aid, ref_p, tgt_p, token, local)
                 self._update(aid, status="done", finished=now(), duration_ms=round((time.perf_counter() - t0) * 1000))
             except repo.RepoError as e:
                 self._fail(aid, str(e))
@@ -151,37 +155,39 @@ class Analyses:
                 a["stages"][a["stage"]] = "fail"
         self._update(aid, status="error", error=msg[:500], finished=now())
 
-    def _pipeline(self, aid, P, T, token=None):  # P = reference provider, T = target provider
+    def _pipeline(self, aid, P, T, token=None, local=None):  # P = reference provider, T = target provider
         a = self.items[aid]
         # FETCH
-        self._stage(aid, "fetch", "running", "Downloading the repository archive from GitHub")
-        r = repo.fetch(a["url"], token)
+        self._stage(aid, "fetch", "running", "Reading the local folder" if local else "Downloading the repository archive from GitHub")
+        r = dict(local) if local else repo.fetch(a["url"], token)
         del token
         files = r.pop("files")
         self._update(aid, repo={**a["repo"], **r, "files": len(files)})
-        self._stage(aid, "fetch", "done", f"{len(files)} source files read ({r['archive_bytes'] // 1024} KB archive)")
+        self._stage(aid, "fetch", "done", f"{len(files)} source files read ({r['archive_bytes'] // 1024} KB"
+                                          f"{' sent from your machine' if local else ' archive'})")
 
         # SCAN
         self._stage(aid, "scan", "running", "Scanning code for object-storage usage and cloud lock-in")
-        result = scanner.scan(files)
+        result, risks, speed = fast.analyze(files)  # every CPU core; identical to the single-core scan
         prof = scanner.profile(result)
-        regions = sorted({m.group(1) for t in files.values() for m in REGION_LITERAL.finditer(t)})
+        regions = sorted({m.group(1) for t in files.values() if "egion" in t or "REGION" in t
+                          for m in REGION_LITERAL.finditer(t)})  # substring prefilter: the regex is slow on big repos
         code_region = regions[0] if regions else C.APP_REGION
-        self._update(aid, scan={k: v for k, v in result.items() if k != "lockin"}, profile=prof,
+        self._update(aid, scan={k: v for k, v in result.items() if k != "lockin"}, profile=prof, speed=speed,
                      lockin=result["lockin"], code_region={"value": code_region, "found": regions[:5]})
-        risks = riskscan.find(files, result)
         self._update(aid, risks=risks)
+        fast_note = f"{speed['lines']:,} lines in {speed['ms']:,.0f} ms on {speed['cores']} core{'s' if speed['cores'] > 1 else ''} · "
         # the plain-language briefing is written while the test plan is written: it adds no time
         brief_f = POOL.submit(ai.brief, a.get("goal") or "", result, risks, a["providers"])
         if not result["uses_s3"]:
-            self._stage(aid, "scan", "done", f"No S3 object-storage calls found in {len(files)} files; "
+            self._stage(aid, "scan", "done", fast_note + f"No S3 object-storage calls found in {len(files)} files; "
                                              f"{len(result['lockin'])} other cloud services detected")
             for s in ("plan", "test", "adapt"):
                 self._stage(aid, s, "skipped")
             self._update(aid, brief=brief_f.result())
             self._report(aid)
             return
-        self._stage(aid, "scan", "done", f"{sum(result['operations'].values())} S3 call sites, "
+        self._stage(aid, "scan", "done", fast_note + f"{sum(result['operations'].values())} S3 call sites, "
                                          f"{len(prof['items'])} behaviours, {len(result['lockin'])} other services")
 
         # PLAN

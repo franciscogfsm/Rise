@@ -12,9 +12,9 @@ CODE_EXT = {".py", ".js", ".mjs", ".cjs", ".ts", ".tsx", ".jsx", ".go", ".java",
 SKIP_DIRS = {"node_modules", "vendor", ".git", "dist", "build", "__pycache__", ".venv", "venv", "site-packages", "third_party"}
 SKIP_FILES = {"package-lock.json", "yarn.lock", "pnpm-lock.yaml", "poetry.lock", "Pipfile.lock", "composer.lock",
               "go.sum", "Cargo.lock", "bun.lockb", "tsconfig.json"}
-MAX_ZIP = 60 * 1024 * 1024
+MAX_ZIP = 200 * 1024 * 1024
 MAX_FILE = 400 * 1024
-MAX_FILES = 4000
+MAX_FILES = 50_000
 
 
 TOKEN_RE = re.compile(r"^[A-Za-z0-9_]{20,255}$")  # ghp_…, github_pat_…, gho_…
@@ -22,6 +22,27 @@ TOKEN_RE = re.compile(r"^[A-Za-z0-9_]{20,255}$")  # ghp_…, github_pat_…, gho
 
 class RepoError(Exception):
     pass
+
+
+def wanted(path: str) -> bool:
+    parts = path.split("/")
+    ext = "." + path.rsplit(".", 1)[-1].lower() if "." in parts[-1] else ""
+    return not (parts[-1] in SKIP_FILES or any(p in SKIP_DIRS for p in parts[:-1])
+                or (ext not in CODE_EXT and parts[-1] not in {"Dockerfile", ".env.example"}))
+
+
+def local(files: dict, name: str) -> dict:
+    """Files sent by the local MCP client (rise/mcp.py): same filters and limits as a GitHub archive."""
+    if not isinstance(files, dict) or not files:
+        raise RepoError("No source files were sent.")
+    kept = {p: t for p, t in files.items() if isinstance(p, str) and isinstance(t, str) and ".." not in p.split("/")
+            and wanted(p) and len(t.encode()) <= MAX_FILE
+            and not (p.rsplit("/", 1)[-1].startswith(".env") and not p.endswith(".env.example"))}  # never keep a real .env
+    if sum(len(t) for t in kept.values()) > 60 * 1024 * 1024 or len(kept) > MAX_FILES:
+        raise RepoError("The folder is too large to send; point RISE at a sub-folder.")
+    return {"owner": "local", "name": re.sub(r"[^A-Za-z0-9_.-]", "-", name or "project")[:100], "ref": "local", "commit": None,
+            "archive_bytes": sum(len(t.encode()) for t in kept.values()), "files": kept, "skipped": len(files) - len(kept),
+            "url": "local:" + (name or "project")[:100], "local": True}
 
 
 def parse(url: str) -> tuple[str, str, str | None]:
@@ -58,7 +79,7 @@ def fetch(url: str, token: str | None = None) -> dict:
             for chunk in r.iter_bytes():
                 buf.write(chunk)
                 if buf.tell() > MAX_ZIP:
-                    raise RepoError("Repository archive is larger than 60 MB; point RISE at a smaller repo or a sub-tree.")
+                    raise RepoError("Repository archive is larger than 200 MB; point RISE at a smaller repo or a sub-tree.")
     except httpx.HTTPError as e:
         raise RepoError(f"Could not download the repository: {e}") from e
 
@@ -69,9 +90,7 @@ def fetch(url: str, token: str | None = None) -> dict:
         commit = root.rstrip("/").rsplit("-", 1)[-1] if root else None
         for info in infos:
             path = info.filename[len(root):]
-            parts = path.split("/")
-            ext = "." + path.rsplit(".", 1)[-1].lower() if "." in parts[-1] else ""
-            if parts[-1] in SKIP_FILES or any(p in SKIP_DIRS for p in parts[:-1]) or (ext not in CODE_EXT and parts[-1] not in {"Dockerfile", ".env.example"}):
+            if not wanted(path):
                 continue
             if info.file_size > MAX_FILE or len(files) >= MAX_FILES:
                 skipped += 1

@@ -59,7 +59,7 @@ RISE server (Python 3.12, FastAPI)  ── rise/server.py
 
 Everything below is real, and each stage is streamed live to the browser.
 
-1. **Fetch.** RISE downloads the repository archive from GitHub **into memory**. Limits: 60 MB archive, 4,000 files, 400 KB per file, text source only. Nothing is written to disk and **no repository code is ever executed**. For a private repo you give a read-only token. It is used for this one download and then dropped: never stored, logged or sent to the AI.
+1. **Fetch.** RISE downloads the repository archive from GitHub **into memory**. Limits: 200 MB archive, 50,000 files, 400 KB per file, text source only. Nothing is written to disk and **no repository code is ever executed**. For a private repo you give a read-only token. It is used for this one download and then dropped: never stored, logged or sent to the AI.
 2. **Scan** (no AI). Deterministic rules find every S3 call site with its `file:line`. They cover boto3, AWS SDK JS v2/v3, Go, Java and PHP. The scan records the behaviours each call relies on: metadata, ranges, presigned URLs, multipart, tags, encryption, ACLs, storage classes, and the region the client signs with. It also lists other cloud services the code depends on (SQS, DynamoDB, Lambda…) as lock-in.
 3. **Risks** (no AI). Rules flag architecture risks, each with `file:line` evidence:
    - a single provider with no fallback (single point of failure);
@@ -155,7 +155,22 @@ bash scripts/run.sh       # providers + RISE on 127.0.0.1:8080
 bash scripts/stop.sh      # stop the providers
 ```
 
-**Tests:** `python -m pytest -q`. They run 40 tests, including an end-to-end journey on two real S3 servers in-process and the real link cut.
+**Tests:** `python -m pytest -q`. They run 43 tests, including an end-to-end journey on two real S3 servers in-process and the real link cut.
+
+### From Claude Code: `/rise` (MCP)
+
+`rise/mcp.py` is an MCP server over stdio, written with the Python standard library only. It exposes two tools:
+
+- `rise_connections` lists the configured clouds, with no keys;
+- `rise_check(path, goal, reference, targets)` analyses a folder.
+
+The `rise_check` flow:
+1. It reads the folder, skipping `.env*` (except `.env.example`), `node_modules`, build folders, binaries and files over 400 KB.
+2. It POSTs the files to `/api/analyses` as `files` instead of `url`.
+3. The server filters them again with the same rules as a GitHub archive (`repo.local`) and runs the normal pipeline.
+4. The client polls until the analysis is done and returns a text summary with the evidence link.
+
+[.mcp.json](../.mcp.json) registers the server for this repo, and [.claude/commands/rise.md](../.claude/commands/rise.md) adds `/rise <goal>`. For any other project, run `claude mcp add rise -- python /path/to/Rise/rise/mcp.py`. The client reads `RISE_URL` and `RISE_PASSWORD` from its environment.
 
 ## 10. Deploy for free (Render)
 

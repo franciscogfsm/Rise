@@ -60,3 +60,19 @@ def test_rules_adapt_reads_presigned_check_body():
         {"name": "http status", "ok": False, "actual": "400 <Error><Code>AuthorizationHeaderMalformed</Code></Error>"}]}]
     p = ai._rules_adapt(f, {"region": "us-east-1"}, {"documented_region": "nl-ams-1"})
     assert (p["key"], p["value"]) == ("region", "nl-ams-1")
+
+
+def test_local_folder_input_filters_like_github():
+    from rise import repo
+    r = repo.local({"app.py": "import boto3", ".env": "AWS_SECRET_ACCESS_KEY=x", "../etc/passwd": "x", "img.png": "x",
+                    "node_modules/a.js": "x", ".env.example": "BUCKET="}, "my app")
+    assert set(r["files"]) == {"app.py", ".env.example"} and r["name"] == "my-app" and r["local"]
+
+
+def test_mcp_server_speaks_jsonrpc():
+    from rise import mcp
+    init = mcp.handle({"jsonrpc": "2.0", "id": 1, "method": "initialize", "params": {"protocolVersion": "2025-06-18"}})
+    assert init["result"]["protocolVersion"] == "2025-06-18"
+    assert mcp.handle({"jsonrpc": "2.0", "method": "notifications/initialized"}) is None
+    names = {t["name"] for t in mcp.handle({"jsonrpc": "2.0", "id": 2, "method": "tools/list"})["result"]["tools"]}
+    assert names == {"rise_check", "rise_connections"}

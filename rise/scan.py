@@ -42,15 +42,17 @@ DETECT_S3 = re.compile(r"boto3|botocore|client\(\s*['\"]s3['\"]|resource\(\s*['\
                        r"aws-sdk-go(?:-v2)?/service/s3|software\.amazon\.awssdk\.services\.s3|Aws\\S3|minio|aws_s3_bucket")
 
 # Other cloud services the code depends on: real lock-in RISE does not test yet.
+# (pattern, cloud, literals): a pattern can only match text holding one of its literals (substring test: a fast prefilter)
 LOCKIN_RULES = [
-    (r"""(?:boto3\.(?:client|resource)|session\.client)\(\s*['"]([a-z0-9-]+)['"]""", "aws"),
-    (r"@aws-sdk/client-([a-z0-9-]+)", "aws"),
-    (r"aws-sdk-go(?:-v2)?/service/([a-z0-9]+)", "aws"),
-    (r"software\.amazon\.awssdk\.services\.([a-z0-9]+)", "aws"),
-    (r"resource\s+\"aws_([a-z0-9]+)_", "aws"),
-    (r"(azure)\.storage\.blob|@azure/(storage-blob)", "azure"),
-    (r"(google)\.cloud\.storage|@google-cloud/(storage)", "gcp"),
+    (r"""(?:boto3\.(?:client|resource)|session\.client)\(\s*['"]([a-z0-9-]+)['"]""", "aws", (".client(", ".resource(")),
+    (r"@aws-sdk/client-([a-z0-9-]+)", "aws", ("@aws-sdk/client-",)),
+    (r"aws-sdk-go(?:-v2)?/service/([a-z0-9]+)", "aws", ("aws-sdk-go",)),
+    (r"software\.amazon\.awssdk\.services\.([a-z0-9]+)", "aws", ("software.amazon.awssdk.services.",)),
+    (r"resource\s+\"aws_([a-z0-9]+)_", "aws", ('"aws_',)),
+    (r"(azure)\.storage\.blob|@azure/(storage-blob)", "azure", ("azure.storage.blob", "@azure/storage-blob")),
+    (r"(google)\.cloud\.storage|@google-cloud/(storage)", "gcp", ("google.cloud.storage", "@google-cloud/storage")),
 ]
+DETECT_NEEDS = ("boto", "s3", "S3", "minio")  # every DETECT_S3 alternative contains one of these
 AWS_NAMES = {"sqs": "SQS queues", "sns": "SNS notifications", "dynamodb": "DynamoDB", "lambda": "Lambda", "kinesis": "Kinesis",
              "ses": "SES email", "secretsmanager": "Secrets Manager", "kms": "KMS", "cognito-idp": "Cognito", "cognito": "Cognito",
              "sts": "STS", "iam": "IAM", "rds": "RDS", "ec2": "EC2", "ecs": "ECS", "eks": "EKS", "cloudwatch": "CloudWatch",
@@ -65,24 +67,34 @@ NOT_LOCKIN = {"s3", "s3control", "core", "config", "credential-providers", "sts"
 
 
 def scan(files: dict[str, str]) -> dict:
+    return finish(raw(files))
+
+
+def raw(files: dict[str, str]) -> tuple:
+    """Scan one set of files. Results of consecutive (path-sorted) chunks combine with merge() into exactly scan(all)."""
     rules = [(re.compile(p), item, cat) for p, item, cat in S3_RULES]
-    lockin = [(re.compile(p), cloud) for p, cloud in LOCKIN_RULES]
+    lockin = [(re.compile(p), cloud, needs) for p, cloud, needs in LOCKIN_RULES]
     evidence, counts, lock = [], Counter(), defaultdict(list)
     s3_files = []
     for path, text in sorted(files.items()):
-        is_s3 = bool(DETECT_S3.search(text))
+        is_s3 = any(s in text for s in DETECT_NEEDS) and bool(DETECT_S3.search(text))
         if is_s3:
             s3_files.append(path)
+        # a rule can only match a line if it matches the whole text: one C-speed pass per rule skips most files entirely
+        f_rules = [r for r in rules if r[0].search(text)] if is_s3 else []
+        f_lock = [r for r in lockin if any(s in text for s in r[2]) and r[0].search(text)]
+        if not f_rules and not f_lock:
+            continue
         for n, line in enumerate(text.splitlines(), 1):
             if len(line) > 400 or COMMENT.match(line):
                 continue
-            if is_s3 and not IMPORT.match(line):  # imports prove a dependency, not a call site
-                for rx, item, cat in rules:
+            if f_rules and not IMPORT.match(line):  # imports prove a dependency, not a call site
+                for rx, item, cat in f_rules:
                     if rx.search(line):
                         counts[item] += 1
                         if counts[item] <= 6:  # keep evidence bounded per item
                             evidence.append({"item": item, "category": cat, "file": path, "line": n, "code": line.strip()[:180]})
-            for rx, cloud in lockin:
+            for rx, cloud, _ in f_lock:
                 for m in rx.finditer(line):
                     svc = next((g for g in m.groups() if g), "").lower()
                     if svc in NOT_LOCKIN or not svc:
@@ -90,11 +102,31 @@ def scan(files: dict[str, str]) -> dict:
                     name = AWS_NAMES.get(svc, svc.upper()) if cloud == "aws" else {"azure": "Azure Blob Storage", "gcp": "Google Cloud Storage"}[cloud]
                     if len(lock[name]) < 4:
                         lock[name].append({"file": path, "line": n, "code": line.strip()[:180], "cloud": cloud})
+    return len(files), s3_files, evidence, counts, lock
+
+
+def merge(parts: list[tuple]) -> tuple:
+    """Combine raw() results of consecutive chunks, in order, applying the same per-item caps as one pass would."""
+    n, s3_files, evidence, counts, lock = 0, [], [], Counter(), defaultdict(list)
+    for pn, ps3, pev, pcounts, plock in parts:
+        n += pn
+        s3_files += ps3
+        for e in pev:  # a chunk keeps its first 6 per item, so the global first 6 are among them
+            if sum(1 for x in evidence if x["item"] == e["item"]) < 6:
+                evidence.append(e)
+        counts.update(pcounts)
+        for name, ev in plock.items():
+            lock[name].extend(ev[:4 - len(lock[name])])
+    return n, s3_files, evidence, counts, lock
+
+
+def finish(r: tuple) -> dict:
+    n, s3_files, evidence, counts, lock = r
     ops = {k: v for k, v in counts.items() if any(k == i and c == "op" for _, i, c in S3_RULES)}
     feats = {k: v for k, v in counts.items() if any(k == i and c == "behaviour" for _, i, c in S3_RULES)}
     config = {k: v for k, v in counts.items() if any(k == i and c == "config" for _, i, c in S3_RULES)}
     return {
-        "files_scanned": len(files), "s3_files": s3_files[:50], "uses_s3": bool(ops),
+        "files_scanned": n, "s3_files": s3_files, "uses_s3": bool(ops),
         "operations": ops, "features": feats, "config": config,
         "evidence": evidence, "lockin": [{"service": k, "evidence": v} for k, v in sorted(lock.items())],
     }

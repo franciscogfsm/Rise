@@ -13,7 +13,7 @@ Paste a GitHub repository. RISE finds every object-storage call in the code, has
 <p align="center">
   <img src="https://img.shields.io/badge/license-Apache--2.0-0A8A74" alt="license Apache-2.0">
   <img src="https://img.shields.io/badge/python-3.12-2563EB" alt="python 3.12">
-  <img src="https://img.shields.io/badge/tests-40%20passing-0A8A74" alt="40 tests passing">
+  <img src="https://img.shields.io/badge/tests-43%20passing-0A8A74" alt="43 tests passing">
   <img src="https://img.shields.io/badge/storage-any%20S3--compatible-121F35" alt="any S3-compatible storage">
   <img src="https://img.shields.io/badge/AI-OpenRouter%20%C2%B7%20strict%20JSON-7C5CFF" alt="AI: OpenRouter, strict JSON">
   <img src="https://img.shields.io/badge/InfraHack-Portugal%202026-D4513B" alt="InfraHack Portugal 2026">
@@ -79,6 +79,7 @@ The answer comes first: **Ready to migrate**, **Ready · 1 change**, **Partially
 | **Private repos** | A read-only GitHub token, used for the download only: never stored, logged or sent to the AI. |
 | **Any S3 provider** | Add Leaseweb Object Storage, AWS S3, MinIO… from the UI. Keys are encrypted at rest. **Test** makes real calls and explains failures (wrong region, rejected key, missing bucket). |
 | **RISE agent** (`Ctrl K`) | Ask "can we migrate?" and get the answer with the file to change. It can also start analyses and comparisons, test connections and open pages. |
+| **`/rise` in Claude Code** | An MCP server: type `/rise move this app to Leaseweb` and Claude sends the folder you are working in to RISE, gets the answer from real tests, and shows the exact edit in your code. `.env` files never leave your machine. |
 | **Live switch** | The full journey on a running app: discover → test → adapt → copy and verify → switch → cut the old cloud → prove a new write works. |
 
 ## How it works
@@ -156,6 +157,22 @@ bash scripts/run.sh      # simulated providers + RISE on 127.0.0.1:8080
 
 Stop the providers with `bash scripts/stop.sh`. Run the tests (two real S3 servers in-process, plus the real link cut) with `~/.venvs/rise/bin/python -m pytest -q`.
 
+### Use it from Claude Code (`/rise`)
+
+With RISE running (`docker compose up`), open Claude Code **in this repo** and type:
+
+```
+/rise move this app to Leaseweb
+```
+
+The repo ships [.mcp.json](.mcp.json) and [.claude/commands/rise.md](.claude/commands/rise.md), so Claude Code finds the MCP server on its own (approve it once). For **any other project**, register it once:
+
+```bash
+claude mcp add rise -- python /path/to/Rise/rise/mcp.py
+```
+
+Then copy `.claude/commands/rise.md` into that project, or just ask Claude: *"use rise_check on this folder, can we move to Leaseweb?"*. The MCP server uses only the Python standard library. It reads the folder, skips `.env` files, `node_modules` and binaries, and sends the source to RISE at `RISE_URL` (default `http://127.0.0.1:8080`; `RISE_PASSWORD` too if you set one). It returns the answer, the 1 change, the risks with `file:line` and a link to the full evidence.
+
 ### Use your real clouds
 
 Open **Connections → Add**, enter the endpoint, region, bucket and keys (for AWS S3, leave the endpoint empty), then press **Test**. RISE writes a probe object, reads it back, compares SHA-256 and deletes it. Each step shows its request ID. Use a **dedicated test bucket** and a key limited to it, never production.
@@ -188,7 +205,8 @@ The image is self-contained (Python 3.12 slim, moto, Garage) and has a health ch
 rise/
   server.py     FastAPI: UI, /api/*, optional password, /app/assets/*
   analysis.py   the pipeline: fetch → scan → risks + AI → tests → adapt → answer
-  repo.py       GitHub archive fetch, in memory (private repos with a token)
+  repo.py       GitHub archive fetch, in memory (private repos with a token), or a local folder from mcp.py
+  mcp.py        MCP server for Claude Code: /rise checks the folder you are working in (stdlib only)
   scan.py       static scan: S3 call sites, behaviours, other-cloud lock-in
   risks.py      architecture risks with file:line
   ai.py         OpenRouter: plan, adaptation, briefing (schema + validation + fallbacks)
@@ -202,7 +220,7 @@ rise/
   config.py     settings from the environment
 web/            React 18 + htm, no build step, works offline (Light Liquid Glass design)
 scripts/        setup · env · providers · run · stop
-tests/          40 tests: end-to-end journey on two real S3 servers, scan, risks, connections, agent, auth
+tests/          43 tests: end-to-end journey on two real S3 servers, scan, risks, connections, agent, auth
 ```
 
 **API:** `POST /api/analyses` · `GET /api/analyses/{id}` · `GET /api/analyses/{id}/proof` · `GET|POST|DELETE /api/connections` · `POST /api/connections/{id}/test` · `POST /api/agent` · `GET /api/events` (SSE)

@@ -5,7 +5,7 @@
 # Neither is Leaseweb or AWS. Idempotent: safe to run again.
 set -euo pipefail
 cd "$(dirname "$0")/.."
-set -a; . ./.env; set +a
+set -a; . <(tr -d '\r' < .env); set +a  # tolerate a .env saved with Windows line endings
 
 VENV="${RISE_VENV:-$HOME/.venvs/rise}"
 GARAGE="${GARAGE_BIN:-$HOME/.local/bin/garage}"

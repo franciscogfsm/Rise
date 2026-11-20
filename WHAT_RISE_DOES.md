@@ -63,6 +63,7 @@ The risks found in the code:
 
 ## 6. Other features
 
+- **`/rise` inside Claude Code (MCP).** A developer types `/rise move this app to Leaseweb` in their editor. Claude reads the folder they are working in through the RISE MCP server, RISE runs the real tests, and Claude answers in their language with the verdict, the exact edit in *their* file, the risks with `file:line` and the evidence link. `.env` files never leave the machine; cloud keys stay inside RISE. Measured: a local Python app gave **Ready · 1 change** (`region: us-east-1 → nl-ams-1`) with 5/5 behaviours verified.
 - **Real clouds in one click.** *Connections → Add* has presets for **AWS S3, Leaseweb, Backblaze B2, Wasabi, Scaleway, Hetzner and Cloudflare R2**. You pick the region, and the endpoint is filled in along with where to create the keys.
 - **Connection test.** It writes a probe, reads it back, compares SHA-256 and deletes it, showing a request ID per step. When it fails, it says why: wrong region, rejected key or missing bucket.
 - **RISE agent** (`Ctrl K`). Ask *"can we migrate?"* and get the answer with the file to change. It can also:
@@ -91,7 +92,7 @@ The risks found in the code:
 | 3-provider comparison | about **16 s**, in parallel |
 | Live switch (Docker) | **284 requests, 0 failed**, source cut, new object SHA-256 match |
 | Fresh clone, no AI key, empty volume | **Ready · 1 change** (RULES), live switch completes with 0 failed requests |
-| Automated tests | **40 passing**, including an end-to-end journey on two real S3 servers and the real link cut |
+| Automated tests | **43 passing**, including an end-to-end journey on two real S3 servers and the real link cut |
 
 ## 8. Why it is different (map to the judging criteria)
 
@@ -100,7 +101,7 @@ The risks found in the code:
 | **Innovation** | Not a migration tool, not a checklist: an **evidence engine**. It turns *"we think we can move"* into *"here is the proof"* in seconds. |
 | **Applicability** | Any repo, any S3-compatible cloud, Leaseweb included, with **one Docker command** and no account. It answers the 89% problem directly. |
 | **Technical complexity** | Multi-language static scan, AI with strict JSON schema + validation + fallbacks, 13 real test kinds in parallel on 2–5 clouds, constrained auto-adaptation, encrypted keys (Fernet), a live traffic switch with a real network cut, CI that tests and deploys on push. |
-| **Use of AI** | The AI **plans and explains**; deterministic code **runs and decides**. It never runs a shell, never sees secrets, never owns the switch. That makes the AI safe to trust. |
+| **Use of AI** | Two layers: an AI coding agent (Claude, via MCP) asks RISE for **proof**, and inside RISE the AI **plans and explains**; deterministic code **runs and decides**. It never runs a shell, never sees secrets, never owns the switch. That makes the AI safe to trust. |
 | **Use of cloud infra** | Real calls on real clouds (AWS proven), with presets for 7 providers. It ships as a self-contained Docker image with a health check and one-click free deploy (Render) or a VM auto-deploy. |
 | **Presentation** | One answer in big type, then the evidence. Every number on screen comes from a real event. |
 
@@ -122,7 +123,8 @@ The risks found in the code:
 2. **The answer** appears big: *Ready · 1 change*. Show the change, a risk with `file:line`, and a real AWS request ID.
 3. **Compare.** Show **Best fit**.
 4. **`/demo`.** Press *Start traffic*, run the steps, and stop on **CUT**: the old cloud is gone and the traffic graph keeps flowing on the new one. Then **PROVE**.
-5. **Close** with the Freedom Proof download and the line: *"From 'we think' to 'here is the proof' in 10 seconds."*
+5. **Optional, 30 s:** in VS Code, type `/rise move this app to Leaseweb` and show Claude answering with the exact edit.
+6. **Close** with the Freedom Proof download and the line: *"From 'we think' to 'here is the proof' in 10 seconds."*
 
 ## 11. How the judges can try it
 

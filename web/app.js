@@ -62,9 +62,7 @@ const ICON = {
   plug: html`<svg viewBox="0 0 24 24"><path d="M9 3v5M15 3v5M6 8h12v3a6 6 0 0 1-12 0zM12 17v4"/></svg>`,
 };
 
-function Sidebar({ path, go, system, recent, children, agentOpen, onAgent }) {
-  const P = system?.providers || [];
-  const H = system?.health || {};
+function Sidebar({ path, go, recent, children, agentOpen, onAgent }) {
   return html`<aside className="side glass" aria-label="Navigation">
     <div className="brand"><img src="/static/brand/rise-icon.svg" alt="" />
       <div><div className="wm">RISE</div><div className="tag">Proof of Cloud Freedom</div></div></div>
@@ -85,12 +83,6 @@ function Sidebar({ path, go, system, recent, children, agentOpen, onAgent }) {
           <span className=${`rs ${cls}`}>${a.status === "done" ? (pct == null ? "—" : `${pct}%`) : a.status === "error" ? "!" : "…"}</span>
           <span className="ro">${a.status === "done" ? `${a.score?.verified ?? 0}/${a.score?.total ?? 0} verified · ${clock(a.created)}` : a.status}</span><//>`;
       }) : html`<${Empty}>No analyses yet.<//>`}</div><//>`}
-    <div className="sys">
-      ${P.map((p, i) => html`<div key=${p.id} className="sys-row"><${Dot} cls=${H[p.id]?.ok ? "ok" : H[p.id] ? "bad" : "idle"} />
-        <span>${i === 0 ? "Reference" : "Target"} · ${p.name}</span><b>${p.simulated ? "sim" : "real"}</b></div>`)}
-      <div className="sys-row"><${Dot} cls=${system?.ai?.configured ? "live" : "warn"} /><span>AI</span><b>${system?.ai?.configured ? "ready" : "no key"}</b></div>
-      <div className="sys-meta">${system?.ai?.model || ""}${P.map((p) => html`<${Fragment} key=${p.id}><br />${p.name} · ${p.documented_region}<//>`)}</div>
-    </div>
   </aside>`;
 }
 
@@ -98,9 +90,9 @@ function Sidebar({ path, go, system, recent, children, agentOpen, onAgent }) {
 // PRODUCT
 // =====================================================================================
 const EXAMPLES = [
-  ["CandyShare · Next.js", "https://github.com/Anonymous961/CandyShare"],
-  ["assetstorageservice · Python", "https://github.com/priteshgudge/assetstorageservice"],
-  ["s3PresignedUrl_v3 · TypeScript", "https://github.com/ucapistranmtz/s3PresignedUrl_v3"],
+  ["CandyShare", "https://github.com/Anonymous961/CandyShare  leave AWS for a European cloud"],
+  ["assetstorageservice", "https://github.com/priteshgudge/assetstorageservice  add a backup provider"],
+  ["s3PresignedUrl_v3", "https://github.com/ucapistranmtz/s3PresignedUrl_v3  can I move this to Garage?"],
 ];
 const ITEM = {
   PutObject: "Upload objects", GetObject: "Download objects", HeadObject: "Read object metadata", ListObjectsV2: "List objects",
@@ -123,10 +115,6 @@ function ScoreCell({ s }) {
     <span className="meter"><i className=${cls} style=${{ width: `${s.percent}%` }}></i></span><span className="muted mono">${s.verified}/${s.total}</span></span>`;
 }
 
-const Pick = ({ value, set, label, conns }) => html`<label className="fld"><span>${label}</span>
-  <select value=${value} onChange=${(e) => set(e.target.value)}>${(conns || []).map((c) => html`<option key=${c.id} value=${c.id}>${c.name}${c.simulated ? " (simulated)" : ""}</option>`)}</select></label>`;
-
-const GOALS = ["Move to another cloud", "Add a backup provider", "Find lock-in and single points of failure", "Pick the best provider"];
 const RANK = { ready: 0, ready_with_change: 1, partial: 2, not_ready: 3, no_storage: 4 };
 const DKIND = { ready: "ok", ready_with_change: "ok", partial: "warn", not_ready: "bad", no_storage: "idle" };
 
@@ -135,53 +123,64 @@ function Answer({ a }) {
   return a.decision ? html`<${Pill} cls=${DKIND[a.decision.kind]}>${a.decision.title}<//>` : html`<${Pill} cls="ok">Done<//>`;
 }
 
+const GH_TOKEN = /\b(?:gh[pousr]_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,})\b/g;
+
 function Home({ go, toast, recent, conns }) {
-  const [url, setUrl] = useState("");
-  const [goal, setGoal] = useState("");
-  const [token, setToken] = useState("");
-  const [priv, setPriv] = useState(false);
-  const [ref, setRef] = useState("source");
-  const [tgts, setTgts] = useState(["destination"]);
-  const [busy, setBusy] = useState(false);
-  const real = (conns || []).find((c) => !c.simulated)?.id;
-  useEffect(() => { if (real && ref === "source") setRef(real); }, [real]);  // a real cloud is where the app runs today
-  const options = (conns || []).filter((c) => c.id !== ref);
-  const picked = tgts.filter((t) => options.some((c) => c.id === t));
-  const toggle = (id) => setTgts((t) => (t.includes(id) ? t.filter((x) => x !== id) : [...t, id].slice(-4)));
-  const submit = async () => {
-    setBusy(true);
-    try {
-      const a = await api("/api/analyses", "POST", { url, reference: ref, targets: picked, goal, token: priv ? token : null });
-      setToken("");
-      go(a.compare ? `/c/${a.compare}` : `/a/${a.id}`);
-    } catch (e) { toast(e.message); } finally { setBusy(false); }
+  const [text, setText] = useState("");
+  const [token, setToken] = useState("");  // stays in this tab: sent once with the analysis, never to /api/intent
+  const [plan, setPlan] = useState(null);
+  const [busy, setBusy] = useState("");
+  const onText = (v) => {
+    const t = v.match(GH_TOKEN);
+    if (t) setToken(t[0]);
+    setText(t ? v.replace(GH_TOKEN, "").replace(/[ \t]{2,}/g, " ") : v);
+    setPlan(null);
   };
+  const understand = async () => {
+    setBusy("understand");
+    try {
+      const p = await api("/api/intent", "POST", { text });
+      if (!p.url) toast("Paste a GitHub repository link, then say where you want to go.");
+      else setPlan(p);
+    } catch (e) { toast(e.message); } finally { setBusy(""); }
+  };
+  const run = async () => {
+    setBusy("run");
+    try {
+      const a = await api("/api/analyses", "POST", { url: plan.url, reference: plan.reference, targets: plan.targets, goal: plan.goal, token: token || null });
+      setToken(""); setText(""); setPlan(null);
+      go(a.compare ? `/c/${a.compare}` : `/a/${a.id}`);
+    } catch (e) { toast(e.message); } finally { setBusy(""); }
+  };
+  const submit = () => (plan ? run() : text.trim() && understand());
+  const setRef = (r) => setPlan({ ...plan, reference: r, targets: plan.targets.filter((x) => x !== r) });
+  const toggle = (id) => setPlan({ ...plan, targets: plan.targets.includes(id) ? plan.targets.filter((x) => x !== id) : [...plan.targets, id].slice(-4) });
   const groups = new Set();
   const rows = recent.filter((a) => !a.group || (!groups.has(a.group) && groups.add(a.group)));
   return html`<${Fragment}>
-    <header className="head"><h1>Analyses</h1><span className="meta">Prove your code can move to another cloud, before you migrate</span></header>
-    <${GetStarted} conns=${conns} recent=${recent} go=${go} />
-    <form className="card glass newrun2" onSubmit=${(e) => { e.preventDefault(); submit(); }}>
-      <div className="q"><span className="qn">1</span><label className="fld wide"><span>Repository</span>
-        <input value=${url} onInput=${(e) => setUrl(e.target.value)} placeholder="https://github.com/owner/repository" autoFocus /></label>
-        <label className="priv"><input type="checkbox" checked=${priv} onChange=${(e) => setPriv(e.target.checked)} /> Private repo</label></div>
-      ${priv && html`<div className="q sub"><span className="qn"></span><label className="fld wide"><span>GitHub token (read-only)</span>
-        <input type="password" value=${token} onInput=${(e) => setToken(e.target.value)} placeholder="github_pat_…" autoComplete="off" /></label>
-        <span className="muted small">Used once to download the code. Never stored, never sent to the AI.</span></div>`}
-      <div className="q"><span className="qn">2</span><label className="fld wide"><span>What do you want to do? <i className="muted">(optional)</i></span>
-        <input value=${goal} maxLength="300" onInput=${(e) => setGoal(e.target.value)} placeholder="e.g. Leave AWS for a European cloud without downtime" /></label></div>
-      <div className="goals">${GOALS.map((g) => html`<button key=${g} type="button" className=${goal === g ? "on" : ""} onClick=${() => setGoal(goal === g ? "" : g)}>${g}</button>`)}</div>
-      <div className="q"><span className="qn">3</span>
-        <${Pick} value=${ref} set=${(v) => { setRef(v); setTgts((t) => t.filter((x) => x !== v)); }} conns=${conns} label="From (runs today)" />
+    <header className="head"><h1>Will my code survive another cloud?</h1></header>
+    <form className="card glass ask" onSubmit=${(e) => { e.preventDefault(); submit(); }}>
+      <textarea value=${text} rows="2" autoFocus aria-label="Repository and goal" onInput=${(e) => onText(e.target.value)}
+        onKeyDown=${(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); submit(); } }}
+        placeholder="Paste a GitHub repo and say where you want to go" />
+      <div className="ask-bar">
+        ${token ? html`<span className="pill-lock">Private repo · token hidden, used once, never sent to the AI</span>`
+          : !text && html`<span className="examples">${EXAMPLES.map(([l, t]) => html`<button key=${l} type="button" onClick=${() => onText(t)}>${l}</button>`)}</span>`}
+        <span className="grow"></span>
+        <button className="btn go" type="submit" disabled=${!!busy || !text.trim() || (plan && !plan.targets.length)}>
+          ${busy === "understand" ? "Understanding…" : busy === "run" ? "Starting…" : plan ? (plan.targets.length > 1 ? `Compare ${plan.targets.length} clouds` : "Check now") : "Go"}</button>
+      </div>
+      ${plan && html`<div className="plan-w">
+        <span className="pw"><small>Repo</small><b>${plan.url.replace(/^https:\/\/github\.com\//, "")}</b></span>
+        <label className="pw"><small>From</small><select value=${plan.reference} onChange=${(e) => setRef(e.target.value)}>
+          ${(conns || []).map((c) => html`<option key=${c.id} value=${c.id}>${c.name}</option>`)}</select></label>
         <span className="arrow" aria-hidden="true">→</span>
-        <div className="fld wide"><span>To ${picked.length > 1 ? html`<i className="muted">· comparing ${picked.length}</i>` : html`<i className="muted">· pick one or more</i>`}</span>
-          <div className="tgts">${options.map((c) => html`<button key=${c.id} type="button" className=${picked.includes(c.id) ? "on" : ""} onClick=${() => toggle(c.id)}>
-            <span className="tick">${picked.includes(c.id) ? "✓" : ""}</span>${c.name}${c.simulated ? html`<i>sim</i>` : ""}</button>`)}
-            <button type="button" className="add" onClick=${() => go("/connect")}>+ Add your cloud</button></div></div>
-        <button className="btn go" type="submit" disabled=${busy || !url.trim() || !picked.length || (priv && !token.trim())}>
-          ${busy ? "Starting…" : picked.length > 1 ? `Compare ${picked.length} providers` : "Run analysis"}</button></div>
-      <div className="examples">Examples${EXAMPLES.map(([l, u]) => html`<button key=${u} type="button" onClick=${() => setUrl(u)}>${l}</button>`)}
-        <span className="grow"></span><span className="muted">Code is read, never executed · tests use synthetic data</span></div>
+        <div className="tgts">${(conns || []).filter((c) => c.id !== plan.reference).map((c) => html`<button key=${c.id} type="button"
+          className=${plan.targets.includes(c.id) ? "on" : ""} onClick=${() => toggle(c.id)}>
+          <span className="tick">${plan.targets.includes(c.id) ? "✓" : ""}</span>${c.name}${c.simulated ? html`<i>sim</i>` : ""}</button>`)}
+          <button type="button" className="add" onClick=${() => go("/connect")}>+ Cloud</button></div>
+        <span className="pw-by">${plan.by === "ai" ? `Understood by AI · ${(plan.ai?.ms / 1000).toFixed(1)} s · ${plan.ai?.tokens ?? "?"} tokens` : "Default route"}</span>
+      </div>`}
     </form>
     <section className="card glass grow">
       <div className="card-h"><h2>All analyses</h2><span className="chip">${rows.length}</span></div>
@@ -254,6 +253,7 @@ function Briefing({ a }) {
 }
 
 function blobUrl(a, file, line) {
+  if (a.repo.local) return "#";  // a local folder has no web URL
   const base = a.url.split("/tree/")[0];
   const ref = a.repo.ref !== "HEAD" ? a.repo.ref : /^[0-9a-f]{40}$/.test(a.repo.commit || "") ? a.repo.commit : "HEAD";
   return `${base}/blob/${ref}/${file.split("/").map(encodeURIComponent).join("/")}#L${line}`;
@@ -325,7 +325,7 @@ function Analysis({ id, tick, go, onAsk }) {
     <header className="head">
       <h1><${Link} to="/" go=${go} className="crumb">Analyses<//><span className="sep">/</span>${a.repo.owner}/${a.repo.name}</h1>
       <${Pill} cls=${(STATUS[a.status] || ["idle"])[0]}>${(STATUS[a.status] || [0, a.status])[1]}<//>
-      <span className="meta"><a className="ext" href=${a.url} target="_blank" rel="noopener">GitHub ↗</a>${a.repo.commit ? ` · ${a.repo.commit.slice(0, 8)}` : ""}${a.repo.files ? ` · ${a.repo.files} files` : ""}${P.length ? ` · ${P[0].name} → ${P[1].name}` : ""}${a.status === "error" ? html` · <span className="badc">${a.error}</span>` : a.status !== "done" ? ` · ${last ? last.msg : "queued"}` : ""}</span>
+      <span className="meta">${a.repo.local ? `Local folder · ${a.repo.name}` : html`<a className="ext" href=${a.url} target="_blank" rel="noopener">GitHub ↗</a>`}${a.repo.commit ? ` · ${a.repo.commit.slice(0, 8)}` : ""}${a.repo.files ? ` · ${a.repo.files} files` : ""}${P.length ? ` · ${P[0].name} → ${P[1].name}` : ""}${a.status === "error" ? html` · <span className="badc">${a.error}</span>` : a.status !== "done" ? ` · ${last ? last.msg : "queued"}` : ""}</span>
       <div className="actions">
         <button className="btn sm" type="button" onClick=${() => go("/")}>New analysis</button>
       </div>
@@ -361,6 +361,7 @@ function Analysis({ id, tick, go, onAsk }) {
 
       <section className="card glass">
         <div className="card-h"><h2>Found in your code</h2><span className="grow"></span>
+          ${a.speed && html`<span className="chip">${a.speed.lines.toLocaleString("en")} lines read in ${a.speed.ms < 1000 ? `${Math.round(a.speed.ms)} ms` : `${(a.speed.ms / 1000).toFixed(1)} s`} · ${a.speed.cores} core${a.speed.cores > 1 ? "s" : ""}</span>`}
           ${a.scan && html`<span className="chip">${Object.values(a.scan.operations).reduce((x, y) => x + y, 0)} S3 call sites · ${a.scan.s3_files.length} files</span>`}</div>
         <div className="card-b">${items.length ? items.map((it) => {
           const v = a.verdict?.[it];
@@ -794,24 +795,10 @@ function Agent({ path, go, onClose, openAdd, reloadConns, ask }) {
   </aside>`;
 }
 
-// 1 · connect → 2 · analyze → 3 · proof, from real state
-function GetStarted({ conns, recent, go }) {
-  const okConns = (conns || []).filter((c) => c.last_test?.ok).length;
-  const done = recent.filter((a) => a.status === "done");
-  const steps = [
-    [okConns >= 2, "Connect your storage", okConns ? `${okConns} of ${(conns || []).length} connections tested OK` : "Add where you run today and where you want to go", "/connect"],
-    [recent.length > 0, "Analyze a repository", recent.length ? `${recent.length} analyses · ${done.length} finished` : "Paste any public GitHub repo below", null],
-    [done.length > 0, "Get the proof", done.length ? `fastest: ${secs(Math.min(...done.map((a) => a.duration_ms || Infinity)))} from URL to proof` : "Score, failures, the fix and a signed JSON proof", done[0] ? `/a/${done[0].id}` : null],
-  ];
-  return html`<div className="started">${steps.map(([ok, t, d, to], i) => html`<button key=${t} type="button" className=${`gs ${ok ? "ok" : ""}`} disabled=${!to} onClick=${() => to && go(to)}>
-    <span className="gs-n">${ok ? "✓" : i + 1}</span><span><b>${t}</b><span>${d}</span></span></button>`)}</div>`;
-}
-
 // =====================================================================================
 function App() {
   const [path, go] = useRoute();
   const tick = useTick();
-  const [system, setSystem] = useState(null);
   const [recent, setRecent] = useState([]);
   const [conns, setConns] = useState(null);
   const [agentOpen, setAgentOpen] = useState(localStorage.getItem("rise.agent") !== "0");
@@ -832,7 +819,6 @@ function App() {
   const reloadConns = useCallback(() => api("/api/connections").then(setConns, (e) => toast(e.message)), [toast]);
 
   useEffect(() => {
-    api("/api/system").then(setSystem, () => {});
     api("/api/analyses").then(setRecent, () => {});
     if (path === "/" || path === "/connect") reloadConns();
     if (path === "/demo") api("/api/demo/state").then(setDemo, (e) => toast(e.message));
@@ -853,7 +839,7 @@ function App() {
   const next = demo && SEQUENCE.find(([, done]) => !done(demo))?.[0];
   return html`<${Fragment}>
     <div className=${`shell${agentOpen ? " with-agent" : ""}`}>
-      <${Sidebar} path=${path} go=${go} system=${system} recent=${path === "/demo" ? null : recent} agentOpen=${agentOpen} onAgent=${toggleAgent}>
+      <${Sidebar} path=${path} go=${go} recent=${path === "/demo" ? null : recent} agentOpen=${agentOpen} onAgent=${toggleAgent}>
         ${path === "/demo" && demo && html`<${JourneyNav} S=${demo} next=${next} view=${view || STEP_OF[next] || next} setView=${setView} />`}
       <//>
       <main>${page}</main>
