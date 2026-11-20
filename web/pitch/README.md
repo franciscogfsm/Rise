@@ -18,9 +18,9 @@ Teclas:
 
 | Parte | Slides | Ficheiros |
 |---|---|---|
-| A: a história | Opening, Problem, Solution, AI | `slides/a1-*.js` a `slides/a4-*.js` |
-| B: a prova | Live demo, Proof, Impact, Reveal | `slides/b1-*.js` a `slides/b4-*.js` |
-| Partilhado | Motor, estilos de palco, ligação à API | `core/`, `config.js`, `index.html` |
+| A: a história | Cover, Problem, How it works, Discover, AI test plan | `slides/a1-*.js` a `slides/a5-*.js` |
+| B: a prova | Live demo, Challenge to Adapt, Integrity, Source cut, Impact, Reveal, Close | `slides/b1-*.js` a `slides/b7-*.js` |
+| Partilhado | Motor, palco, motion, ligação à API | `core/`, `config.js`, `index.html` |
 
 Regras para trabalharem os dois ao mesmo tempo sem conflitos:
 
@@ -57,6 +57,18 @@ O `api` inclui:
 - `api.esc(texto)`, para escapar HTML, e `api.still`, que indica se a animação está desligada.
 
 Só o `core/live.js` conhece os endpoints. Se a API mudar, muda-se esse ficheiro e os slides ficam iguais.
+
+Para subscrever mudanças em tempo real, faz-se `this._off = api.live.onChange(...)` no `enter` e `this._off?.()` no `leave`. Subscrever no `init` deixa ligações abertas: o browser só permite 6 por servidor e o dashboard e as imagens ficam bloqueados.
+
+### Motion (`core/stage.css` + `core/fx.js`)
+
+- **Entradas:** a classe `.rv` faz o elemento entrar quando o slide aparece; com `data-s="N"`, entra no passo N. As variantes são `.fade`, `.scale`, `.left`, `.right`, `.mask` e `.pop`, e `--i` define a ordem.
+- **Títulos:** `.split` faz o título entrar palavra a palavra.
+- **Traços SVG:** `.draw` desenha o traço.
+- **Preparação:** chamar `FX.prep(el)` no `init`.
+- **Fundo:** `FX.act("problem" | "solution" | "proof" | "finale")` muda o fundo e a cor de acento do ato.
+- **Valores técnicos:** `FX.type(el, texto)` escreve um valor real da esquerda para a direita. Não há contadores a subir nem caracteres aleatórios: isso seria animar o que não aconteceu.
+- **Estilo:** sem itálico serifado nem palavras coloridas nos títulos, sem etiquetas em maiúsculas, e só as cores do `rise.css`.
 
 ## Regras de conteúdo
 
