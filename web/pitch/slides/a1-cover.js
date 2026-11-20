@@ -26,7 +26,7 @@ RISE.slide({
       </div>
       <div class="copy">
         <h1 class="display split"><span class="soft">Don't hope your migration works.</span> Prove it.</h1>
-        <p class="what rv" style="--i:8">Paste a repo. In 10 seconds: ready to migrate or not, proven on real clouds.</p>
+        <p class="what rv" style="--i:8">Your repo, one answer in seconds.</p>
       </div>
     </div>`,
 
